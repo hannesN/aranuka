@@ -1,0 +1,2 @@
+@Topic(name="%TOPIC_TYPE_NAME%", si="%SUBJECT_IDENTIFIER%")
+public class %CLASS_NAME% {

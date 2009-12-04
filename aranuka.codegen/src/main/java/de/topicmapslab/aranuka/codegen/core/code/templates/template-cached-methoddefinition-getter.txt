@@ -1,0 +1,9 @@
+/**
+* get()-method for %FIELD_NAME%
+*/
+public %FIELD_TYPE% get%METHOD_NAME%() throws TopicMap2JavaMapperException{
+	if ( this.%FIELD_NAME% == null ){
+		this.%FIELD_NAME% = (%FIELD_TYPE%) PropertyLoader.getInstance().getDataBridge().get%TMQLTYPE%(this.topic,%TYPE% );
+	}
+	return this.%FIELD_NAME%;
+}

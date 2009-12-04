@@ -1,0 +1,6 @@
+/*
+* add()-method for %FIELD_NAME%
+*/
+public void add%METHOD_NAME%(final %FIELD_TYPE% %FIELD_NAME%){
+	this.%FIELD_NAME%.addAll(%FIELD_NAME%);
+}

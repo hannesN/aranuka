@@ -1,0 +1,5 @@
+/*
+* field definition for %FIELD_NAME%
+*/
+%ANNOTATION_NAME%(%ANNOTATION_ATTRIBUTES%)
+private %FIELD_TYPE% %FIELD_NAME% %PREDEFINITION%;

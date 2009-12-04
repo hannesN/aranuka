@@ -1,0 +1,6 @@
+private final org.tmapi.core.Topic topic;
+
+public %CLASS_NAME%(org.tmapi.core.Topic topic){
+	this.topic = topic;
+}
+
