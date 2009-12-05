@@ -1,0 +1,74 @@
+%include <http://www.topicmaps.org/tmcl/templates.ctm>
+%prefix tmcl <http://psi.topicmaps.org/tmcl/>
+%prefix tmdm <http://psi.topicmaps.org/iso13250/model/>
+
+WorksFor20 isa tmcl:association-type;
+    - "WorksFor";
+    <http://exmaple.org/worksfor>;
+    has-role(Employee22, 1, "*"^^<ctm:integer>);
+    has-role(Employer21, 1, 1);
+    has-scope(tmdm:subject, 0, "*"^^<ctm:integer>).
+
+Firstname1 isa tmcl:name-type;
+    - "Firstname";
+    <http://exmaple.org/firstname>;
+    may-have-reifier(tmdm:subject).
+
+Adress14 isa tmcl:occurrence-type;
+    - "Adress";
+    <http://exmaple.org/adress>;
+    has-datatype("xsd:anyType");
+    may-have-reifier(Headquarter16).
+
+Vita3 isa tmcl:occurrence-type;
+    - "Vita";
+    <http://exmaple.org/vita>;
+    has-datatype("xsd:anyType");
+    overlaps(Person0);
+    overlaps(Employee22);
+    has-scope(Language8, 1, 1).
+
+Employee22 isa tmcl:role-type;
+    - "Employee";
+    <http://exmaple.org/Employee>.
+
+Employer21 isa tmcl:role-type;
+    - "Employer";
+    <http://exmaple.org/employer>.
+
+Company13 isa tmcl:topic-type;
+    - "Company";
+    <http://exmaple.org/Company>;
+    has-subject-identifier(1, "*"^^<ctm:integer>, ".*");
+    plays-role(Employer21, WorksFor20, 1, 1);
+    has-occurrence(Adress14, 0, "*"^^<ctm:integer>);
+    has-name(tmdm:topic-name, 1, 1).
+
+Headquarter16 isa tmcl:topic-type;
+    - "Headquarter";
+    <http://exmaple.org/headquarter>.
+
+Language8 isa tmcl:topic-type;
+    - "Language";
+    <http://exmaple.org/language>.
+
+Person0 isa tmcl:topic-type;
+    - "Person";
+    <http://exmaple.org/Person>;
+    has-subject-identifier(1, "*"^^<ctm:integer>, ".*");
+    plays-role(Employee22, WorksFor20, 1, "*"^^<ctm:integer>);
+    has-occurrence(Vita3, 1, "*"^^<ctm:integer>);
+    has-name(Firstname1, 1, 1);
+    cannot-reify().
+
+default023 isa tmcl:topic-type;
+    - "Nix Da Beispiel";
+    <bsp:test>;
+    <mailto:me>;
+    <urn:nixda>;
+    must-reify(WorksFor20).
+
+default126 isa tmcl:topic-type;
+    - "Test3 im Beispiel";
+    <bsp:test3>;
+    may-reify(tmdm:subject).

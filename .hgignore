@@ -22,11 +22,12 @@ annoTM/doc/presentation/document.out
 annoTM/doc/presentation/document.pdf
 annoTM/doc/presentation/document.snm
 annoTM/doc/presentation/document.toc
-
 annoTM/doc/proposal/document.aux
 annoTM/doc/proposal/document.log
 annoTM/doc/proposal/document.pdf
 annoTM/doc/proposal/document.dvi
+annoTM/target
+
 
 test.log
 

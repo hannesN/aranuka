@@ -13,7 +13,7 @@ import de.topicmapslab.aranuka.codegen.model.definition.ITopicAnnotationDefiniti
 /**
  * 
  * @author Sven Krosse
- *
+ * 
  */
 public class TopicAnnotationDefinition implements ITopicAnnotationDefinition {
 
@@ -25,6 +25,15 @@ public class TopicAnnotationDefinition implements ITopicAnnotationDefinition {
 	private final Set<IdAnnotationDefinition> idAnnotationDefinitions = new THashSet<IdAnnotationDefinition>();
 	private final Set<NameAnnotationDefinition> nameAnnotationDefinitions = new THashSet<NameAnnotationDefinition>();
 	private final Set<OccurrenceAnnotationDefinition> occurrenceAnnotationDefinitions = new THashSet<OccurrenceAnnotationDefinition>();
+	private final Set<AssociationAnnotationDefinition> associationAnnotationDefinitions = new THashSet<AssociationAnnotationDefinition>();
+
+	public TopicAnnotationDefinition(String name, String type,
+			String subjectIdentifer) {
+		this.name = name;
+		this.type = type;
+		this.subjectIdentifer = subjectIdentifer;
+		this.topic = null;
+	}
 
 	public TopicAnnotationDefinition(Topic topic)
 			throws POJOGenerationException {
@@ -51,6 +60,10 @@ public class TopicAnnotationDefinition implements ITopicAnnotationDefinition {
 		return occurrenceAnnotationDefinitions;
 	}
 
+	public Set<AssociationAnnotationDefinition> getAssociationAnnotationDefinitions() {
+		return associationAnnotationDefinitions;
+	}
+
 	public String getName() {
 		return name;
 	}
@@ -65,6 +78,11 @@ public class TopicAnnotationDefinition implements ITopicAnnotationDefinition {
 
 	public Topic getTopic() {
 		return topic;
+	}
+
+	public void addAssociationAnnotationDefinitions(
+			Set<AssociationAnnotationDefinition> associationAnnotationDefinitions) {
+		this.associationAnnotationDefinitions.addAll(associationAnnotationDefinitions);
 	}
 
 	public void addNameAnnotationDefinitions(

@@ -32,7 +32,6 @@ import java.util.Set;
 
 import de.topicmapslab.aranuka.codegen.core.definition.TopicAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.exception.TopicMap2JavaMapperException;
-import de.topicmapslab.aranuka.codegen.core.factory.AssociationAnnotationFactory;
 import de.topicmapslab.aranuka.codegen.core.utility.ImportHandler;
 import de.topicmapslab.aranuka.codegen.model.definition.FieldDefinition;
 
@@ -114,10 +113,8 @@ public class CachedCodeBuffer extends AnnotationSupportingCodeBuffer {
 				.getNameAnnotationDefinitions());
 		internalWriteOperationFields(getTopicAnnotationDefinition()
 				.getOccurrenceAnnotationDefinitions());
-		internalWriteOperationFields(AssociationAnnotationFactory.buildFactory(
-				getTopicAnnotationDefinition().getTopic().getParent())
-				.getAssociationAnnotationDefinitions(
-						getTopicAnnotationDefinition().getTopic()));
+		internalWriteOperationFields(getTopicAnnotationDefinition()
+				.getAssociationAnnotationDefinitions());
 
 		/*
 		 * generate fields methods
@@ -128,11 +125,8 @@ public class CachedCodeBuffer extends AnnotationSupportingCodeBuffer {
 				.getNameAnnotationDefinitions());
 		internalWriteOperationFieldMethods(getTopicAnnotationDefinition()
 				.getOccurrenceAnnotationDefinitions());
-		internalWriteOperationFieldMethods(AssociationAnnotationFactory
-				.buildFactory(
-						getTopicAnnotationDefinition().getTopic().getParent())
-				.getAssociationAnnotationDefinitions(
-						getTopicAnnotationDefinition().getTopic()));
+		internalWriteOperationFieldMethods(getTopicAnnotationDefinition()
+				.getAssociationAnnotationDefinitions());
 
 		/*
 		 * generate class foot

@@ -30,12 +30,14 @@ public class TopicAnnotationFactory implements ITopicAnnotationFactory {
 
 	private final Set<TopicAnnotationDefinition> topicAnnotationDefinitions = new THashSet<TopicAnnotationDefinition>();
 	
+	private final AssociationAnnotationFactory assocFactory;
 	private final TopicMap topicMap;
 
 	public TopicAnnotationFactory(final TopicMap topicMap)
 			throws POJOGenerationException, LazyOperationException,
 			InitializationException {
 		this.topicMap = topicMap;
+		assocFactory = new AssociationAnnotationFactory(topicMap);
 		init(topicMap);
 
 	}	
@@ -54,6 +56,8 @@ public class TopicAnnotationFactory implements ITopicAnnotationFactory {
 			
 			topicAnnotationDefinition.addIdAnnotationDefinitions(getIdAnnotationDefinitions(topicType));
 			
+			topicAnnotationDefinition.addAssociationAnnotationDefinitions(assocFactory.getAssociationAnnotationDefinitions(topicType));
+			
 			topicAnnotationDefinitions.add(topicAnnotationDefinition);
 		}
 
@@ -69,7 +73,7 @@ public class TopicAnnotationFactory implements ITopicAnnotationFactory {
 	public Set<TopicAnnotationDefinition> getTopicAnnotationDefinitions() {
 		return topicAnnotationDefinitions;
 	}
-
+	
 	private Set<NameAnnotationDefinition> getNameAnnotationDefinitions(
 			Topic topicType) throws POJOGenerationException,
 			LazyOperationException, InitializationException {

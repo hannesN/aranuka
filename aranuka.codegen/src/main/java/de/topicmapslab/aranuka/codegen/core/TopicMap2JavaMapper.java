@@ -7,7 +7,6 @@ import de.topicmapslab.aranuka.codegen.core.code.CodeBuffer;
 import de.topicmapslab.aranuka.codegen.core.code.POJOTypes;
 import de.topicmapslab.aranuka.codegen.core.definition.TopicAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.exception.TopicMap2JavaMapperException;
-import de.topicmapslab.aranuka.codegen.core.factory.AssociationAnnotationFactory;
 import de.topicmapslab.aranuka.codegen.core.factory.CodeBufferFactory;
 import de.topicmapslab.aranuka.codegen.core.factory.ITopicAnnotationFactory;
 import de.topicmapslab.aranuka.codegen.core.factory.TopicAnnotationFactory;
@@ -20,7 +19,6 @@ import de.topicmapslab.aranuka.codegen.properties.PropertyLoader;
  */
 public class TopicMap2JavaMapper {
 
-	private final AssociationAnnotationFactory associationAnnotationFactory;
 	private final ITopicAnnotationFactory topicAnnotationFactory;
 	private final CodeBufferFactory codeBufferFactory;
 
@@ -39,7 +37,8 @@ public class TopicMap2JavaMapper {
 
 	public TopicMap2JavaMapper(final TopicMapSystem topicMapSystem,
 			final TopicMap topicMap, final String targetPackage,
-			final String targetDirectory, final ITopicAnnotationFactory factory)
+			final String targetDirectory,
+			final ITopicAnnotationFactory factory)
 			throws TopicMap2JavaMapperException {
 		this.topicMap = topicMap;
 		this.targetDirectory = targetDirectory;
@@ -54,13 +53,6 @@ public class TopicMap2JavaMapper {
 		} else {
 			this.topicAnnotationFactory = factory;
 		}
-
-		this.associationAnnotationFactory = AssociationAnnotationFactory
-				.buildFactory(topicMap);
-	}
-
-	public AssociationAnnotationFactory getAssociationAnnotationFactory() {
-		return associationAnnotationFactory;
 	}
 
 	public TopicMap getTopicMap() {

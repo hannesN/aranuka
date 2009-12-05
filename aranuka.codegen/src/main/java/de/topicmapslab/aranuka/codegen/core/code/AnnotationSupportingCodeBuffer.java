@@ -28,7 +28,6 @@ import java.util.Set;
 
 import de.topicmapslab.aranuka.codegen.core.definition.TopicAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.exception.TopicMap2JavaMapperException;
-import de.topicmapslab.aranuka.codegen.core.factory.AssociationAnnotationFactory;
 import de.topicmapslab.aranuka.codegen.core.utility.ImportHandler;
 import de.topicmapslab.aranuka.codegen.model.definition.FieldDefinition;
 
@@ -108,10 +107,8 @@ public class AnnotationSupportingCodeBuffer extends CodeBuffer {
 				.getNameAnnotationDefinitions());
 		internalWriteOperationFields(topicAnnotationDefinition
 				.getOccurrenceAnnotationDefinitions());
-		internalWriteOperationFields(AssociationAnnotationFactory.buildFactory(
-				topicAnnotationDefinition.getTopic().getParent())
-				.getAssociationAnnotationDefinitions(
-						topicAnnotationDefinition.getTopic()));
+		internalWriteOperationFields(topicAnnotationDefinition
+				.getAssociationAnnotationDefinitions());
 
 		/*
 		 * generate fields methods
@@ -122,10 +119,8 @@ public class AnnotationSupportingCodeBuffer extends CodeBuffer {
 				.getNameAnnotationDefinitions());
 		internalWriteOperationFieldMethods(topicAnnotationDefinition
 				.getOccurrenceAnnotationDefinitions());
-		internalWriteOperationFieldMethods(AssociationAnnotationFactory
-				.buildFactory(topicAnnotationDefinition.getTopic().getParent())
-				.getAssociationAnnotationDefinitions(
-						topicAnnotationDefinition.getTopic()));
+		internalWriteOperationFieldMethods(topicAnnotationDefinition
+				.getAssociationAnnotationDefinitions());
 
 		/*
 		 * generate class foot

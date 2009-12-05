@@ -36,6 +36,17 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 		this.fieldName = this.fieldType.toLowerCase();
 	}
 
+	public AssociationAnnotationDefinition(String assocTypeName,
+			String roleName, String otherRoleName, String playerName) {
+		this.type = assocTypeName;
+		this.containerRole = roleName;
+		this.role = otherRoleName;
+		
+		fieldType = playerName;
+
+		this.fieldName = this.fieldType.toLowerCase();
+	}
+
 	public String getAnnotation() {
 		return "@Association";
 	}

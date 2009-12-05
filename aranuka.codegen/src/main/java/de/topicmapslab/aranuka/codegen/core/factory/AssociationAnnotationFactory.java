@@ -22,26 +22,17 @@ import de.topicmapslab.aranuka.codegen.core.utility.TypeUtility;
  * @author Sven Krosse
  *
  */
-public class AssociationAnnotationFactory {
+public class AssociationAnnotationFactory implements IAssociationAnnotationFactory {
 
 	private final Map<Topic, Set<AssociationAnnotationDefinition>> associationsAnnotationsDefinitions = new HashMap<Topic, Set<AssociationAnnotationDefinition>>();
 
-	private static AssociationAnnotationFactory factory = null;
 	private final TopicMap topicMap;
 
-	private AssociationAnnotationFactory(final TopicMap topicMap)
+	public AssociationAnnotationFactory(final TopicMap topicMap)
 			throws POJOGenerationException {
 		this.topicMap = topicMap;
 		init(topicMap);
 
-	}
-
-	public static final AssociationAnnotationFactory buildFactory(
-			final TopicMap topicMap) throws POJOGenerationException {
-		if (factory == null) {
-			factory = new AssociationAnnotationFactory(topicMap);
-		}
-		return factory;
 	}
 
 	private void init(final TopicMap topicMap) throws POJOGenerationException {
@@ -120,6 +111,9 @@ public class AssociationAnnotationFactory {
 		return topicMap;
 	}
 
+	/* (non-Javadoc)
+	 * @see de.topicmapslab.aranuka.codegen.core.factory.IAssociationAnnotationFactory#getAssociationAnnotationDefinitions(org.tmapi.core.Topic)
+	 */
 	public Set<AssociationAnnotationDefinition> getAssociationAnnotationDefinitions(
 			final Topic roleType) {
 		if (associationsAnnotationsDefinitions.containsKey(roleType)) {
