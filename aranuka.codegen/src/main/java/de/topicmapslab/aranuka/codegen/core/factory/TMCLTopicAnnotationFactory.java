@@ -381,47 +381,52 @@ public class TMCLTopicAnnotationFactory implements ITopicAnnotationFactory {
 				}
 			}
 			
-			Topic otherRole = null;
+			Topic otherRole = null;			
+			Topic otherPlayer = null;
 			for (Role assocRole : assocType.getRolesPlayed(constrained, constraintStatement)) {
 				Topic constraint = assocRole.getParent().getRoles(constrains).iterator().next().getPlayer();
-				if (!constraint.getTypes().contains(associationRoleConstraint))
+				if (!constraint.getTypes().contains(topicRoleConstraint))
 					continue;
+				
 				
 				Association assoc = constraint.getRolesPlayed(constrains, constrainedRole).iterator().next().getParent();
 				
 				// check if we have the otherRole
 				Topic tmp = assoc.getRoles(constrained).iterator().next().getPlayer();
-				if (!tmp.equals(roleType))
-					otherRole = tmp;
+				if (tmp.equals(roleType))
+					continue;
+					
+				otherRole = tmp;
 				
-				if (otherRole!=null)
-					break;
+				
+				assoc = constraint.getRolesPlayed(constrains, constrainedTopicType).iterator().next().getParent();
+				
+				// check if we have the otherRole
+				tmp = assoc.getRoles(constrained).iterator().next().getPlayer();
+				otherPlayer = tmp;
 			}
 			
-			Topic otherPlayer = null;
-			for (Role assocRole : assocType.getRolesPlayed(constrained, constraintStatement)) {
-				Topic constraint = fromRolesToOtherRoles(assocRole, constrains).iterator().next().getPlayer();
-				if (!constraint.getTypes().contains(topicRoleConstraint))
-					continue;
-				Topic rt = null;
-				for (Role constrainsRole : ttc.getRolesPlayed(constrains, constrainedRole)) {
-					Topic tmp = constrainsRole.getParent().getRoles(constrained).iterator().next().getPlayer();
-					if (tmp.getTypes().contains(this.roleType)) {
-						rt = tmp;
-						break;
-					}
-				}
-				if (otherRole.equals(rt)) {
-					for (Role constrainsRole : ttc.getRolesPlayed(constrains, constrainedTopicType)) {
-						Topic tmp = constrainsRole.getParent().getRoles(constrained).iterator().next().getPlayer();
-						otherPlayer = tmp;
-						break;
-						
-					}
-				}
-					
-				
-			}
+//			for (Role assocRole : assocType.getRolesPlayed(constrained, constraintStatement)) {
+//				Topic constraint = fromRolesToOtherRoles(assocRole, constrains).iterator().next().getPlayer();
+//				if (!constraint.getTypes().contains(topicRoleConstraint))
+//					continue;
+//				Topic rt = null;
+//				for (Role constrainsRole : ttc.getRolesPlayed(constrains, constrainedRole)) {
+//					Topic tmp = constrainsRole.getParent().getRoles(constrained).iterator().next().getPlayer();
+//					if (tmp.getTypes().contains(this.roleType)) {
+//						rt = tmp;
+//						break;
+//					}
+//				}
+//				if (otherRole.equals(rt)) {
+//					for (Role constrainsRole : ttc.getRolesPlayed(constrains, constrainedTopicType)) {
+//						Topic tmp = constrainsRole.getParent().getRoles(constrained).iterator().next().getPlayer();
+//						otherPlayer = tmp;
+//						break;
+//						
+//					}
+//				}
+//			}
 			
 			String assocTypeName = TypeUtility.getJavaName(assocType);
 			String roleName = TypeUtility.getJavaName(roleType);
