@@ -74,5 +74,10 @@
 			<version>1.0.0</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>jalopy</groupId>
+			<artifactId>jalopy</artifactId>
+			<version>1.5rc3</version>
+		</dependency>
 	</dependencies>
 </project>

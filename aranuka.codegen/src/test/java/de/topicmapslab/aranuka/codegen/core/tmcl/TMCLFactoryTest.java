@@ -33,8 +33,7 @@ public class TMCLFactoryTest extends TestCase {
 		topicMap = topicMapSystem
 				.createTopicMap("de.topicmapslab.de/aranuka-codegen/schema-test");
 
-		TMCLLoader loader = new TMCLLoader();
-		loader.readTMCLSchema(topicMap, new File("src/test/resources/tmclschema.ctm"));
+		TMCLLoader.readTMCLSchema(topicMap, new File("src/test/resources/tmclschema.ctm"));
 		
 	}
 

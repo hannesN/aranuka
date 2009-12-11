@@ -45,8 +45,9 @@ public class TopicMap2JavaMapper {
 		this.targetPackage = targetPackage;
 		this.codeBufferFactory = CodeBufferFactory.getFactory();
 
-		this.propertyLoader = PropertyLoader.initialize(topicMapSystem,
-				topicMap);
+		
+		this.propertyLoader = PropertyLoader.initialize(topicMapSystem, topicMap);
+		
 
 		if (factory == null) {
 			this.topicAnnotationFactory = new TopicAnnotationFactory(topicMap);
@@ -59,9 +60,11 @@ public class TopicMap2JavaMapper {
 		return topicMap;
 	}
 
+
 	public PropertyLoader getPropertyLoader() {
 		return propertyLoader;
 	}
+
 
 	public void run(POJOTypes pojoType) throws TopicMap2JavaMapperException {
 		for (TopicAnnotationDefinition topicAnnotationDefinition : topicAnnotationFactory
@@ -69,6 +72,7 @@ public class TopicMap2JavaMapper {
 			CodeBuffer buffer = this.codeBufferFactory.newCodeBuffer(pojoType,
 					targetDirectory, targetPackage, topicAnnotationDefinition);
 			buffer.toClassFile();
+			
 		}
 	}
 }

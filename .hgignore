@@ -29,7 +29,7 @@ annoTM/doc/proposal/document.dvi
 annoTM/target
 
 
-test.log
+**/*.log*
 
 aranuka.codegen/target
 **/generated

@@ -3,6 +3,7 @@ package de.topicmapslab.aranuka.codegen.core.definition;
 import org.tmapi.core.Role;
 import org.tmapi.core.Topic;
 
+import annoTM.core.annotations.ASSOCKIND;
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
 import de.topicmapslab.aranuka.codegen.core.utility.TypeUtility;
 import de.topicmapslab.aranuka.codegen.model.definition.FieldDefinition;
@@ -19,10 +20,12 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	private final String type;
 	private final String fieldName;
 	private final String fieldType;
+	private final ASSOCKIND assocKind;
 
-	public AssociationAnnotationDefinition(final Topic associationType,
+	public AssociationAnnotationDefinition(final ASSOCKIND assocKind, final Topic associationType,
 			final Topic roleType, final Role otherRole)
 			throws POJOGenerationException {
+		this.assocKind = assocKind;
 		this.type = TypeUtility.getLocator(associationType).getReference();
 		this.containerRole = TypeUtility.getLocator(roleType).getReference();
 		this.role = TypeUtility.getLocator(otherRole.getType()).getReference();
@@ -36,13 +39,19 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 		this.fieldName = this.fieldType.toLowerCase();
 	}
 
-	public AssociationAnnotationDefinition(String assocTypeName,
+	public AssociationAnnotationDefinition(ASSOCKIND assocKind, String assocTypeName,
 			String roleName, String otherRoleName, String playerName) {
 		this.type = assocTypeName;
 		this.containerRole = roleName;
 		this.role = otherRoleName;
+		this.assocKind = assocKind;
 		
-		fieldType = playerName;
+		
+		if (playerName.length()>0)
+			fieldType = playerName;
+		else
+			fieldType = assocTypeName;
+		
 
 		this.fieldName = this.fieldType.toLowerCase();
 	}
@@ -52,6 +61,10 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	}
 
 	public String getAnnotationAttributes() {
+		if (assocKind==ASSOCKIND.UNARY) {
+			return "kind=ASSOCKIND.UNARY, container_role=\"" + containerRole + "\"";
+		}
+		
 		return "container_role=\"" + containerRole + "\", role=\"" + role
 				+ "\", type=\"" + type + "\"";
 	}
@@ -61,15 +74,20 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	}
 
 	public String getFieldType() {
+		if (assocKind==ASSOCKIND.UNARY)
+			return "boolean";
+		
 		return "Set<" + fieldType + ">";
 	}
-
+	
 	public String getPredefinition() {
+		if (assocKind==ASSOCKIND.UNARY)
+			return "";
 		return " = new THashSet<" + fieldType + ">()";
 	}
 
 	public boolean doesFieldTypeExtendsCollection() {
-		return true;
+		return assocKind!=ASSOCKIND.UNARY;
 	}
 
 	public String getTMQLType() {

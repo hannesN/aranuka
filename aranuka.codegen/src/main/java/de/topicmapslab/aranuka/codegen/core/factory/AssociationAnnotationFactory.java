@@ -13,6 +13,8 @@ import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
 import org.tmapi.index.TypeInstanceIndex;
 
+import annoTM.core.annotations.ASSOCKIND;
+
 import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
 import de.topicmapslab.aranuka.codegen.core.utility.TypeUtility;
@@ -87,12 +89,12 @@ public class AssociationAnnotationFactory implements IAssociationAnnotationFacto
 							setR2 = new THashSet<AssociationAnnotationDefinition>();
 						}
 
-						AssociationAnnotationDefinition aadR1 = new AssociationAnnotationDefinition(
+						AssociationAnnotationDefinition aadR1 = new AssociationAnnotationDefinition(ASSOCKIND.BINARY,
 								associationType, r1.getPlayer().getTypes()
 										.iterator().next(), r2);
 						setR1.add(aadR1);
 
-						AssociationAnnotationDefinition aadR2 = new AssociationAnnotationDefinition(
+						AssociationAnnotationDefinition aadR2 = new AssociationAnnotationDefinition(ASSOCKIND.BINARY,
 								associationType, r2.getPlayer().getTypes()
 										.iterator().next(), r1);
 						setR2.add(aadR2);

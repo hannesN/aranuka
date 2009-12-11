@@ -48,17 +48,19 @@ public class IdAnnotationDefinition extends FieldDefinition {
 
 
 	public String getFieldType() {
-		return "Set<String>";
+		if (isMany())
+			return "Set<String>";
+		else
+			return "String";
 	}
 
 	public String getPredefinition() {
-		return " = new THashSet<String>()";
+		if (isMany())
+			return " = new THashSet<String>()";
+		else
+			return "";
 	}
 
-	public boolean doesFieldTypeExtendsCollection() {
-		return true;
-	}
-	
 	public String getTMQLType() {
 		return "Identifiers";
 	}

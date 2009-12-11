@@ -25,8 +25,10 @@ public class PropertyLoader extends Properties {
 	public static final PropertyLoader initialize(
 			final TopicMapSystem topicMapSystem, final TopicMap topicMap)
 			throws InitializationException {
+		
 		if (propertyLoader != null) {
-			throw new InitializationException("Property loader is already initilazied.");
+			// we reinialize it
+			//throw new InitializationException("Property loader is already initilazied.");
 		}
 		propertyLoader = new PropertyLoader(topicMapSystem, topicMap);
 		return propertyLoader;

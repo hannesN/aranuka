@@ -42,6 +42,9 @@ public class NameAnnotationDefinition extends FieldDefinition {
 	}
 
 	public String getFieldType() {
+		if (isMany())
+			return "Set<String>";
+			
 		return "String";
 	}
 

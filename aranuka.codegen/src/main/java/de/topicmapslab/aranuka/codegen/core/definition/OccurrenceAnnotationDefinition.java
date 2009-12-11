@@ -46,6 +46,9 @@ public class OccurrenceAnnotationDefinition extends FieldDefinition {
 	}
 
 	public String getFieldType() {
+		if (isMany())
+			return "Set<"+datatype.getSimpleName()+">";
+		
 		return datatype.getSimpleName();
 	}
 

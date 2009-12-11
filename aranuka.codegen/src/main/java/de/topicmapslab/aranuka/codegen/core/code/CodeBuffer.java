@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import de.hunsicker.jalopy.Jalopy;
 import de.topicmapslab.aranuka.codegen.core.exception.ClassfileWriterException;
 import de.topicmapslab.aranuka.codegen.core.exception.TopicMap2JavaMapperException;
 
@@ -34,15 +35,24 @@ public abstract class CodeBuffer {
 	}
 
 	public void toClassFile() throws TopicMap2JavaMapperException {
-		File file = new File(directory + "/" + className + CLASSFILEEXTENSION);
+		String filename = directory + "/" + className + CLASSFILEEXTENSION;
+		File file = new File(filename);
 		try {
 			new File(directory).mkdirs();
 			file.createNewFile();
 			FileWriter writer = new FileWriter(file);
-			writer.write(builder.toString());
+						
+			// formatting code
+			Jalopy jalopy = new Jalopy();
+			jalopy.setInput(builder.toString(), filename);
+			StringBuffer b = new StringBuffer();
+			jalopy.setOutput(b);
+			jalopy.format();
+			writer = new FileWriter(file);
+			writer.write(b.toString());
 			writer.flush();
 			writer.close();
-
+			
 		} catch (IOException e) {
 			throw new ClassfileWriterException("Cannot create class file.", e);
 		}

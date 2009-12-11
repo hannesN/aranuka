@@ -3,23 +3,47 @@
  */
 package de.topicmapslab.aranuka.codegen.core.factory;
 
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ASSOCIATION_TYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CARD_MAX;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED_ROLE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED_STATEMENT;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED_TOPIC_TYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINS;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONTAINEE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONTAINER;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.DATATYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.INSTANCE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.NAME_TYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.OCCURRENCE_DATATYPE_CONSTRAINT;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ROLE_TYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBJECT_IDENTIFIER_CONSTRAINT;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBTYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUPERTYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUPERTYPE_SUBTYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TMDM;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TOPIC_NAME_CONSTRAINT;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TOPIC_OCCURRENCE_CONSTRAINT;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TOPIC_ROLE_CONSTRAINT;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TOPIC_TYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TYPE_INSTANCE;
 import gnu.trove.THashSet;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.*;
-
 import org.tmapi.core.Association;
 import org.tmapi.core.Locator;
 import org.tmapi.core.Name;
+import org.tmapi.core.Occurrence;
 import org.tmapi.core.Role;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
 import org.tmapi.index.TypeInstanceIndex;
 
+import annoTM.core.annotations.ASSOCKIND;
 import annoTM.core.annotations.IDTYPE;
-
 import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.IdAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.NameAnnotationDefinition;
@@ -40,57 +64,57 @@ public class TMCLTopicAnnotationFactory implements ITopicAnnotationFactory {
 	private Topic topicType;
 	private Topic associationType;
 	private Topic roleType;
-	private Topic occurrenceType;
+//	private Topic occurrenceType;
 	private Topic nameType;
-	private Topic scopeType;
+//	private Topic scopeType;
 
-	private Topic topicMapSchema;
+//	private Topic topicMapSchema;
 
 	// -- associations
 	private Topic constraintStatement;
 	private Topic constrainedTopicType;
 	private Topic constrainedRole;
-	private Topic allowedReifier;
-	private Topic allowedScope;
-	private Topic otherConstrainedRole;
-	private Topic otherConstrainedTopicType;
+//	private Topic allowedReifier;
+//	private Topic allowedScope;
+//	private Topic otherConstrainedRole;
+//	private Topic otherConstrainedTopicType;
 	// private Topic overlaps;
-	private Topic belongsTo;
+//	private Topic belongsTo;
 
 	// -- roles
 	private Topic constrains;
 	private Topic constrained;
-	private Topic allows;
-	private Topic allowed;
+//	private Topic allows;
+//	private Topic allowed;
 
 	// -- constrains
 	// private Topic constraint; // -- not needed is super type
-	private Topic abstractConstraint;
+//	private Topic abstractConstraint;
 	private Topic subjectIdentifierConstraint;
-	private Topic subjectLocatorConstraint;
+//	private Topic subjectLocatorConstraint;
 	private Topic topicNameConstraint;
 	private Topic topicOccurrenceConstraint;
 	private Topic topicRoleConstraint;
-	private Topic scopeConstraint;
-	private Topic reifierConstraint;
-	private Topic topicReifiesConstraint;
-	private Topic associationRoleConstraint;
-	private Topic roleCombinationConstraint;
+//	private Topic scopeConstraint;
+//	private Topic reifierConstraint;
+//	private Topic topicReifiesConstraint;
+//	private Topic associationRoleConstraint;
+//	private Topic roleCombinationConstraint;
 	private Topic occurrenceDatatypeConstraint;
-	private Topic uniqueValueConstraint;
-	private Topic regularExpressionConstraint;
-	private Topic overlapDeclaration;
+//	private Topic uniqueValueConstraint;
+//	private Topic regularExpressionConstraint;
+//	private Topic overlapDeclaration;
 
 	// -- occurrence types
 	private Topic datatype;
-	private Topic cardMin;
+//	private Topic cardMin;
 	private Topic cardMax;
-	private Topic regExp;
-	private Topic comment;
-	private Topic seeAlso;
-	private Topic description;
+//	private Topic regExp;
+//	private Topic comment;
+//	private Topic seeAlso;
+//	private Topic description;
 
-	private Topic topicName;
+//	private Topic topicName;
 
 	private Topic subject;
 
@@ -101,7 +125,6 @@ public class TMCLTopicAnnotationFactory implements ITopicAnnotationFactory {
 		init();
 	}
 
-	@SuppressWarnings("deprecation")
 	private void init() {
 		// removing TMDM types from cache
 		createStandardTopic(TYPE);
@@ -114,61 +137,61 @@ public class TMCLTopicAnnotationFactory implements ITopicAnnotationFactory {
 		createStandardTopic(CONTAINEE);
 		createStandardTopic(CONTAINER);
 
-		topicName = createStandardTopic(TOPIC_NAME);
+//		topicName = createStandardTopic(TOPIC_NAME);
 		subject = createStandardTopic(TMDM + "subject");
 
-		topicMapSchema = createStandardTopic(SCHEMA);
-		belongsTo = createStandardTopic(BELONGS_TO_SCHEMA);
+//		topicMapSchema = createStandardTopic(SCHEMA);
+//		belongsTo = createStandardTopic(BELONGS_TO_SCHEMA);
 
 		// init topic types
 		topicType = createStandardTopic(TOPIC_TYPE);
 		nameType = createStandardTopic(NAME_TYPE);
 		associationType = createStandardTopic(ASSOCIATION_TYPE);
 		roleType = createStandardTopic(ROLE_TYPE);
-		occurrenceType = createStandardTopic(OCCURRENCE_TYPE);
-		scopeType = createStandardTopic(SCOPE_TYPE);
+//		occurrenceType = createStandardTopic(OCCURRENCE_TYPE);
+//		scopeType = createStandardTopic(SCOPE_TYPE);
 
-		cardMin = createStandardTopic(CARD_MIN);
+//		cardMin = createStandardTopic(CARD_MIN);
 		cardMax = createStandardTopic(CARD_MAX);
-		regExp = createStandardTopic(REGEXP);
+//		regExp = createStandardTopic(REGEXP);
 		datatype = createStandardTopic(DATATYPE);
-		comment = createStandardTopic(COMMENT);
-		description = createStandardTopic(DESCRIPTION);
-		seeAlso = createStandardTopic(SEE_ALSO);
+//		comment = createStandardTopic(COMMENT);
+//		description = createStandardTopic(DESCRIPTION);
+//		seeAlso = createStandardTopic(SEE_ALSO);
 
 		// roles
 		constrains = createStandardTopic(CONSTRAINS);
 		constrained = createStandardTopic(CONSTRAINED);
-		allowed = createStandardTopic(ALLOWED);
-		allows = createStandardTopic(ALLOWS);
+//		allowed = createStandardTopic(ALLOWED);
+//		allows = createStandardTopic(ALLOWS);
 
 		// associations
 		constraintStatement = createStandardTopic(CONSTRAINED_STATEMENT);
 		constrainedTopicType = createStandardTopic(CONSTRAINED_TOPIC_TYPE);
 		constrainedRole = createStandardTopic(CONSTRAINED_ROLE);
-		otherConstrainedTopicType = createStandardTopic(OTHER_CONSTRAINED_TOPIC_TYPE);
-		otherConstrainedRole = createStandardTopic(OTHER_CONSTRAINED_ROLE);
-		allowedReifier = createStandardTopic(ALLOWED_REIFIER);
-		allowedScope = createStandardTopic(ALLOWED_SCOPE);
+//		otherConstrainedTopicType = createStandardTopic(OTHER_CONSTRAINED_TOPIC_TYPE);
+//		otherConstrainedRole = createStandardTopic(OTHER_CONSTRAINED_ROLE);
+//		allowedReifier = createStandardTopic(ALLOWED_REIFIER);
+//		allowedScope = createStandardTopic(ALLOWED_SCOPE);
 		constrainedRole = createStandardTopic(CONSTRAINED_ROLE);
-		otherConstrainedRole = createStandardTopic(OTHER_CONSTRAINED_ROLE);
-		otherConstrainedTopicType = createStandardTopic(OTHER_CONSTRAINED_TOPIC_TYPE);
+//		otherConstrainedRole = createStandardTopic(OTHER_CONSTRAINED_ROLE);
+//		otherConstrainedTopicType = createStandardTopic(OTHER_CONSTRAINED_TOPIC_TYPE);
 
-		abstractConstraint = createStandardTopic(ABSTRACT_CONSTRAINT);
+//		abstractConstraint = createStandardTopic(ABSTRACT_CONSTRAINT);
 		subjectIdentifierConstraint = createStandardTopic(SUBJECT_IDENTIFIER_CONSTRAINT);
-		subjectLocatorConstraint = createStandardTopic(SUBJECT_LOCATOR_CONSTRAINT);
+//		subjectLocatorConstraint = createStandardTopic(SUBJECT_LOCATOR_CONSTRAINT);
 		topicNameConstraint = createStandardTopic(TOPIC_NAME_CONSTRAINT);
 		topicOccurrenceConstraint = createStandardTopic(TOPIC_OCCURRENCE_CONSTRAINT);
 		topicRoleConstraint = createStandardTopic(TOPIC_ROLE_CONSTRAINT);
-		scopeConstraint = createStandardTopic(SCOPE_CONSTRAINT);
-		reifierConstraint = createStandardTopic(REIFIER_CONSTRAINT);
-		topicReifiesConstraint = createStandardTopic(TOPIC_REIFIES_CONSTRAINT);
-		associationRoleConstraint = createStandardTopic(ASSOCIATION_ROLE_CONSTRAINT);
-		roleCombinationConstraint = createStandardTopic(ROLE_COMBINATION_CONSTRAINT);
+//		scopeConstraint = createStandardTopic(SCOPE_CONSTRAINT);
+//		reifierConstraint = createStandardTopic(REIFIER_CONSTRAINT);
+//		topicReifiesConstraint = createStandardTopic(TOPIC_REIFIES_CONSTRAINT);
+//		associationRoleConstraint = createStandardTopic(ASSOCIATION_ROLE_CONSTRAINT);
+//		roleCombinationConstraint = createStandardTopic(ROLE_COMBINATION_CONSTRAINT);
 		occurrenceDatatypeConstraint = createStandardTopic(OCCURRENCE_DATATYPE_CONSTRAINT);
-		uniqueValueConstraint = createStandardTopic(UNIQUE_VALUE_CONSTRAINT);
-		regularExpressionConstraint = createStandardTopic(REGULAR_EXPRESSION_CONSTRAINT);
-		overlapDeclaration = createStandardTopic(OVERLAP_DECLARATION);
+//		uniqueValueConstraint = createStandardTopic(UNIQUE_VALUE_CONSTRAINT);
+//		regularExpressionConstraint = createStandardTopic(REGULAR_EXPRESSION_CONSTRAINT);
+//		overlapDeclaration = createStandardTopic(OVERLAP_DECLARATION);
 	}
 
 	private Topic createStandardTopic(String type) {
@@ -272,6 +295,7 @@ public class TMCLTopicAnnotationFactory implements ITopicAnnotationFactory {
 
 			NameAnnotationDefinition nad = new NameAnnotationDefinition(
 					typeName, member);
+			nad.setMany(isMany(ntc));
 			nadSet.add(nad);
 		}
 		tad.addNameAnnotationDefinitions(nadSet);
@@ -323,6 +347,7 @@ public class TMCLTopicAnnotationFactory implements ITopicAnnotationFactory {
 			Class<?> clazz = TypeUtility.toJavaType(datatype);
 			OccurrenceAnnotationDefinition oad = new OccurrenceAnnotationDefinition(
 					typeName, member, clazz);
+			oad.setMany(isMany(otc));
 			oadSet.add(oad);
 		}
 		tad.addOccurrenceAnnotationDefinitions(oadSet);
@@ -334,17 +359,18 @@ public class TMCLTopicAnnotationFactory implements ITopicAnnotationFactory {
 
 		for (Role constrainedTopic : t.getRolesPlayed(constrained,
 				constrainedTopicType)) {
-			Topic otc = constrainedTopic.getParent().getRoles(constrains)
+			Topic ic = constrainedTopic.getParent().getRoles(constrains)
 					.iterator().next().getPlayer();
 			IDTYPE type;
-			if (otc.getTypes().contains(subjectIdentifierConstraint)) {
+			if (ic.getTypes().contains(subjectIdentifierConstraint)) {
 				type = IDTYPE.SUBJECT_IDENTIFIER;
-			} else if (otc.getTypes().contains(subjectIdentifierConstraint)) {
+			} else if (ic.getTypes().contains(subjectIdentifierConstraint)) {
 				type = IDTYPE.SUBJECT_LOCATOR;
 			} else {
 				continue;
 			}
 			IdAnnotationDefinition idd = new IdAnnotationDefinition(type);
+			idd.setMany(isMany(ic));
 			iadSet.add(idd);
 
 		}
@@ -430,31 +456,35 @@ public class TMCLTopicAnnotationFactory implements ITopicAnnotationFactory {
 			
 			String assocTypeName = TypeUtility.getJavaName(assocType);
 			String roleName = TypeUtility.getJavaName(roleType);
-			String otherRoleName = TypeUtility.getJavaName(otherRole);
-			String playerName = TypeUtility.getJavaName(otherPlayer);
+			String otherRoleName = (otherRole!=null) ? TypeUtility.getJavaName(otherRole) : "";
+			String playerName = (otherPlayer!=null) ? TypeUtility.getJavaName(otherPlayer) : "";
 			
-			AssociationAnnotationDefinition aad = new AssociationAnnotationDefinition(assocTypeName, roleName, otherRoleName, playerName);
+			ASSOCKIND kind = (otherRole==null) ? ASSOCKIND.UNARY : ASSOCKIND.BINARY;
+			
+			AssociationAnnotationDefinition aad = new AssociationAnnotationDefinition(kind, assocTypeName, roleName, otherRoleName, playerName);
+			
 			aadSet.add(aad);
 		}
 		tad.addAssociationAnnotationDefinitions(aadSet);
 	}
 
-	private Set<Role> fromRolesToOtherRoles(Role role) {
-		Set<Role> roles = new HashSet<Role>();
+	private boolean isMany(Topic constraint) {
 		
-		for (Role r :  role.getParent().getRoles()) {
-			if (!r.equals(role))
-				roles.add(r);
+		Set<Occurrence> occs = constraint.getOccurrences(cardMax);
+		if (occs.isEmpty())
+			return false;
+		int i = 0;
+		String value = occs.iterator().next().getValue();
+		if (value.equals("*"))
+			return true;
+		try {
+			i = Integer.parseInt(value); 
+		} catch (NumberFormatException e) {
+			return false;
 		}
-		return roles;
-	}
-	private Set<Role> fromRolesToOtherRoles(Role role, Topic roleType) {
-		Set<Role> roles = new HashSet<Role>();
 		
-		for (Role r :  role.getParent().getRoles()) {
-			if ( (!r.equals(role)) && (r.getType().equals(roleType)) )
-				roles.add(r);
-		}
-		return roles;
+		return (i>1);
+			
 	}
+	
 }
