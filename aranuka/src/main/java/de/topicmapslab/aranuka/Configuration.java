@@ -45,9 +45,7 @@ public class Configuration {
 	public Set<Class<?>> getClasses(){
 		return classes;
 	}
-	
-	
-	
+
 	// properties
 	
 	public void setBaseLocator(String baseLocator){
@@ -67,26 +65,30 @@ public class Configuration {
 	public void addPrefix(String prefix, String uri) {
 		if (prefixMap == null)
 			prefixMap = new HashMap<String, String>();
+		
 		if (!(uri.endsWith("/")) || (uri.endsWith("#")))
 			uri+="/";
+		
 		prefixMap.put(prefix, uri);
 	}
 	
 	public Map<String, String> getPrefixMap() {
+		
 		if (prefixMap == null)
 			return Collections.emptyMap();
+		
 		return prefixMap;
 	}
 	
 	// session
 	
-	public Session getSession() throws BadAnnotationException, ClassNotSpecifiedException {
+	public Session getSession(boolean lasyBinding) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
 		
 		/// TODO implement
 		if(session != null)
 			return session;
 
-		session = new Session(this, false);
+		session = new Session(this, lasyBinding);
 
 		return session;
 		
