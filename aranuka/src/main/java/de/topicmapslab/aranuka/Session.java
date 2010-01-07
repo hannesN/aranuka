@@ -38,7 +38,7 @@ public class Session {
 			addBinding(clazz, createTopicBinding(clazz));
 	}
 	
-	private TopicBinding createTopicBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException{
+	private TopicBinding createTopicBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException {
 		logger.info("Create binding for " + clazz.getName());
 		
 		// check if class is annotated
@@ -57,6 +57,9 @@ public class Session {
 				throw new ClassNotSpecifiedException("Superclass of class " + clazz.getName() + " is not configured.");
 			}
 			
+			if(!isTopicAnnotated(superclass))
+				throw new BadAnnotationException("Superclass of class " + clazz.getName() + " must have an @Topic annotation as well.");
+			
 			superClassBinding = getTopicBinding(superclass);
 		}
 		
@@ -67,35 +70,33 @@ public class Session {
 		binding.setParent(superClassBinding);
 		
 		// set name
-		if (topicAnnotation.name().length() > 0) {
-			binding.setName(topicAnnotation.name());
-		} else {
-			binding.setName(clazz.getSimpleName());
-		}
+//		if (topicAnnotation.name().length() > 0) {
+//			binding.setName(topicAnnotation.name());
+//		} else {
+//			binding.setName(clazz.getSimpleName());
+//		}
 		
 		// set subject identifier
-		if (topicAnnotation.subject_identifier() != null) {
-			
-			for (String s : topicAnnotation.subject_identifier())
-				binding.addIdentifier(resolveURI(s));
-		}else{
-			
-			// create subject identifier
-			StringBuilder builder = new StringBuilder();
-			String nameSuffix = clazz.getName().replaceAll("\\.", "/");
-			if (config.getBaseLocator() != null) {
-				builder.append(config.getBaseLocator());
-				if (!(config.getBaseLocator().endsWith("/")))
-					builder.append("/");
-			}else
-				builder.append("base_locator:");
-			
-			builder.append(nameSuffix);
-			binding.addIdentifier(builder.toString());
-		}
-		
-		
-		
+//		if (topicAnnotation.subject_identifier() != null) {
+//			
+//			for (String s : topicAnnotation.subject_identifier())
+//				binding.addIdentifier(resolveURI(s));
+//		}else{
+//			
+//			// create subject identifier
+//			StringBuilder builder = new StringBuilder();
+//			String nameSuffix = clazz.getName().replaceAll("\\.", "/");
+//			if (config.getBaseLocator() != null) {
+//				builder.append(config.getBaseLocator());
+//				if (!(config.getBaseLocator().endsWith("/")))
+//					builder.append("/");
+//			}else
+//				builder.append("base_locator:");
+//			
+//			builder.append(nameSuffix);
+//			binding.addIdentifier(builder.toString());
+//		}
+
 		return binding;
 	}
 
