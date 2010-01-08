@@ -15,5 +15,12 @@ public class NameBinding extends AbstractFieldBinding {
 	public void setNameType(String nameIdentifier) {
 		this.nameType = nameIdentifier;
 	}
+
+	@Override
+	public String toString() {
+		return "NameBinding [nameType=" + nameType + "]";
+	}
+	
+	
 	
 }

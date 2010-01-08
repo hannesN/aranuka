@@ -16,5 +16,12 @@ public class IdBinding extends AbstractFieldBinding {
 	
 	public IDTYPE getIdtype() {
 		return idtype;
+	}
+
+	@Override
+	public String toString() {
+		return "IdBinding [idtype=" + idtype + "]";
 	}	
+	
+	
 }

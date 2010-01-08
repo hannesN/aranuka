@@ -17,4 +17,11 @@ public class OccurrenceBinding extends AbstractFieldBinding {
 	public void setOccurrenceType(String occurrenceTypeIdentifier) {
 		this.occurrenceType = occurrenceTypeIdentifier;
 	}
+
+	@Override
+	public String toString() {
+		return "OccurrenceBinding [occurrenceType=" + occurrenceType + "]";
+	}
+	
+	
 }

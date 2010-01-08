@@ -51,6 +51,10 @@ public class Configuration {
 	public void setBaseLocator(String baseLocator){
 		
 		logger.info("Set base locator to " + baseLocator);
+		
+		if(propertyMap == null)
+			propertyMap = new HashMap<Property, String>();
+		
 		propertyMap.put(Property.BASE_LOCATOR, baseLocator);
 		// set prefix as well
 		addPrefix("base_locator", baseLocator);

@@ -85,5 +85,14 @@ public class AbstractFieldBinding {
 		
 		return isCollection;
 	}
+
+	@Override
+	public String toString() {
+		return "AbstractFieldBinding [getter=" + getter + ", isArray="
+				+ isArray + ", isCollection=" + isCollection + ", parent="
+				+ parent + ", setter=" + setter + "]";
+	}
+	
+	
 	
 }

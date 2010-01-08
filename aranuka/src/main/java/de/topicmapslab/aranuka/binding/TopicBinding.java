@@ -16,7 +16,7 @@ public class TopicBinding extends AbstractBinding{
 	private List<IdBinding> ids;
 	private List<NameBinding> names;
 	private List<OccurrenceBinding> occurrences;
-//	private List<AssociationBinding> associations;
+	private List<AssociationBinding> associations;
 	
 	
 	public void setName(String name) {
@@ -76,5 +76,27 @@ public class TopicBinding extends AbstractBinding{
 	}
 	
 	// association bindings
+	
+	public List<AssociationBinding> getAssociationBindings() {
+		if (associations==null)
+			return Collections.emptyList();
+		return associations;
+	}
+	
+	public void addAssociationBinding(AssociationBinding ab) {
+		if (associations==null)
+			associations = new ArrayList<AssociationBinding>();
+		associations.add(ab);
+	}
+
+	@Override
+	public String toString() {
+		return "TopicBinding [associations=" + associations + ", identifiers="
+				+ identifiers + ", ids=" + ids + ", name=" + name + ", names="
+				+ names + ", occurrences=" + occurrences + ", parent=" + parent
+				+ "]";
+	}
+	
+	
 	
 }
