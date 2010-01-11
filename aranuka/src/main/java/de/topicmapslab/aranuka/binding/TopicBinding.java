@@ -3,7 +3,11 @@ package de.topicmapslab.aranuka.binding;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import org.tmapi.core.Topic;
+import org.tmapi.core.TopicMap;
 
 import de.topicmapslab.aranuka.utils.HashUtil;
 
@@ -17,6 +21,18 @@ public class TopicBinding extends AbstractBinding{
 	private List<NameBinding> names;
 	private List<OccurrenceBinding> occurrences;
 	private List<AssociationBinding> associations;
+	
+	private Map<Object, Topic> topicObjects;
+	
+	public void persist(TopicMap topicMap, Object topicObject){
+		
+		// look in cache
+		Topic topic = topicObjects.get(topicObject);
+		
+	}
+	
+	
+	
 	
 	
 	public void setName(String name) {
@@ -96,7 +112,4 @@ public class TopicBinding extends AbstractBinding{
 				+ names + ", occurrences=" + occurrences + ", parent=" + parent
 				+ "]";
 	}
-	
-	
-	
 }

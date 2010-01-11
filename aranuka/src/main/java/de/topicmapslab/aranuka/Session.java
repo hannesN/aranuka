@@ -1,5 +1,6 @@
 package de.topicmapslab.aranuka;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -12,6 +13,8 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tmapi.core.TopicMap;
+import org.tmapi.core.TopicMapSystemFactory;
 
 import de.topicmapslab.aranuka.annotations.ASSOCIATIONKIND;
 import de.topicmapslab.aranuka.annotations.Association;
@@ -42,6 +45,8 @@ public class Session {
 	
 	private Map<Class<?>, AbstractBinding> bindingMap;
 	private Configuration config;
+	
+	private TopicMap topicMap;
 	
 	/**
 	 * Constructor.
@@ -78,19 +83,10 @@ public class Session {
 		
 		for(Class<?> clazz:classes){
 		
-			if(isTopicAnnotated(clazz))
-				getTopicBinding(clazz);
-
-			else if(isAssociationContainerAnnotated(clazz))
-				getAssociationContainerBinding(clazz);
-			
-			else throw new BadAnnotationException("Class " + clazz.getName() + " must have either an @Topic or an @AssociationContainer annotation.");
-			
+			if(getTopicBinding(clazz) == null)
+				if(getAssociationContainerBinding(clazz) == null)
+					throw new BadAnnotationException("Class " + clazz.getName() + " must have either an @Topic or an @AssociationContainer annotation.");
 		}
-		
-		// test
-		
-		System.out.println(bindingMap);
 	}
 	
 	/**
@@ -687,10 +683,14 @@ public class Session {
 	 * @throws NoSuchMethodException
 	 */
 	private TopicBinding getTopicBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+
+		if(!isTopicAnnotated(clazz))
+			return null;
 		
-		if(bindingMap.get(clazz) != null)
-			return (TopicBinding)bindingMap.get(clazz);
-		
+		if(bindingMap.get(clazz) != null){
+				return (TopicBinding)bindingMap.get(clazz);
+		}
+
 		TopicBinding binding = createTopicBinding(clazz);
 		//addBinding(clazz, binding);
 		
@@ -706,6 +706,9 @@ public class Session {
 	 * @throws NoSuchMethodException
 	 */
 	private AssociationContainerBinding getAssociationContainerBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+		
+		if(!isAssociationContainerAnnotated(clazz))
+			return null;
 		
 		if(bindingMap.get(clazz) != null)
 			return (AssociationContainerBinding)bindingMap.get(clazz);
@@ -844,5 +847,51 @@ public class Session {
 		
 		fb.setThemes(resolvedThemes);
 	}
+
+	public void printBindings(){
+
+		for(Map.Entry<Class<?>, AbstractBinding> entry:bindingMap.entrySet())
+			System.out.println(entry.getValue().toString());
+	}
+
+	/**
+	 * Returns the topic map object. Creates a new one if not exist.
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	private TopicMap getTopicMap() throws IOException
+	{
+		try
+		{
+			if(topicMap == null)
+				topicMap = TopicMapSystemFactory.newInstance().newTopicMapSystem().createTopicMap(config.getBaseLocator());
+			
+			return topicMap;
+		}
+		catch (Exception e) {
+			throw new IOException("Could not create topic map (" + e.getMessage() + ")");
+		}
+	}
+	
+	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
+
+		// get the binding
+		TopicBinding topicBinding = getTopicBinding(topicObject.getClass());
+
+		/// TODO maybe catch other exception an rethrow
+			
+		
+		
+		if(topicBinding == null)
+			throw new BadAnnotationException("Object cannot be persisted.");	
+	}
+	
+	public void flushTopicMap(){
+		
+	}
+	
+
+	
 	
 }
