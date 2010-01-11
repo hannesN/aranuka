@@ -18,9 +18,9 @@ public class NameBinding extends AbstractFieldBinding {
 
 	@Override
 	public String toString() {
-		return "NameBinding [nameType=" + nameType + "]";
+		return "NameBinding [nameType=" + nameType + "] " + super.toString();
 	}
 	
-	
-	
 }
+
+

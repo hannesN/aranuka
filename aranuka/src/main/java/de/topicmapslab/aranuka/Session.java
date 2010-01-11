@@ -3,6 +3,8 @@ package de.topicmapslab.aranuka;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,7 @@ import de.topicmapslab.aranuka.annotations.Id;
 import de.topicmapslab.aranuka.annotations.Name;
 import de.topicmapslab.aranuka.annotations.Occurrence;
 import de.topicmapslab.aranuka.annotations.Role;
+import de.topicmapslab.aranuka.annotations.Scope;
 import de.topicmapslab.aranuka.annotations.Topic;
 import de.topicmapslab.aranuka.binding.AbstractBinding;
 import de.topicmapslab.aranuka.binding.AbstractFieldBinding;
@@ -126,6 +129,9 @@ public class Session {
 		Topic topicAnnotation = clazz.getAnnotation(Topic.class);
 		TopicBinding binding = new TopicBinding();
 
+		// add binding to map
+		addBinding(clazz, binding);
+		
 		// set parent
 		binding.setParent(superClassBinding);
 		
@@ -144,13 +150,7 @@ public class Session {
 		}else{
 			
 			// create subject identifier
-			StringBuilder builder = new StringBuilder();
-			String nameSuffix = clazz.getName().replaceAll("\\.", "/");
-
-			builder.append("base_locator:");
-			
-			builder.append(nameSuffix);
-			binding.addIdentifier(builder.toString());
+			binding.addIdentifier(generateSubjectIdentifier(clazz));
 		}
 		
 		// create field bindings
@@ -161,11 +161,7 @@ public class Session {
 		
 		if(binding.getIdBindings().isEmpty())
 			throw new BadAnnotationException("Topic class " + clazz.getName() + " has no identifier at all.");
-		
-		
-		// add binding to map
-		addBinding(clazz, binding);
-		
+
 		return binding;
 	}
 	
@@ -205,16 +201,16 @@ public class Session {
 		// create new binding
 		AssociationContainerBinding binding = new AssociationContainerBinding();
 
+		// add binding to map
+		addBinding(clazz, binding);
+		
 		// set parent
 		binding.setParent(superClassBinding);
 		
 		// create field bindings
 		for (Field field : clazz.getDeclaredFields())
 			createFieldBinding(binding, field, clazz);
-		
-		// add binding to map
-		addBinding(clazz, binding);
-		
+
 		return binding;
 	}
 	
@@ -373,10 +369,8 @@ public class Session {
 		
 		String nameType = null;
 		
-		/// TODO check with Hannes usage of tmdm:default-name
-		
 		if (nameAnnotation.type().length() == 0)
-			nameType = "base_locator:" + field.getName();
+			nameType = generateSubjectIdentifier(field);
 		else
 			nameType = nameAnnotation.type();
 				
@@ -385,6 +379,9 @@ public class Session {
 		// check field type
 		if(ReflectionUtil.getGenericType(field) != String.class)
 			throw new BadAnnotationException("Type of name " + field.getName() + " is not String.");
+		
+		// add scope
+		addScope(field, nb);
 		
 		// add name to topic binding
 		topicBinding.addNameBinding(nb);
@@ -411,11 +408,14 @@ public class Session {
 		String occurrenceType = null;
 		
 		if (occurrenceAnnotation.type().length() == 0)
-			occurrenceType = "base_locator:" + field.getName();
+			occurrenceType = generateSubjectIdentifier(field);
 		else
 			occurrenceType = occurrenceAnnotation.type();
 		
 		ob.setOccurrenceType(resolveURI(occurrenceType));
+		
+		// add scope
+		addScope(field, ob);
 		
 		// add occurrence to topic binding
 		topicBinding.addOccurrenceBinding(ob);
@@ -438,7 +438,7 @@ public class Session {
 		String associationType;
 		
 		if (associationAnnotation.type().length() == 0)
-			associationType = "base_locator:" + field.getName();
+			associationType = generateSubjectIdentifier(field);
 		else
 			associationType = associationAnnotation.type();
 	
@@ -487,6 +487,9 @@ public class Session {
 		
 		ab.setAssociationType(resolveURI(associationType));
 		ab.setPlayedRole(resolveURI(playedRole));
+		
+		// add scope
+		addScope(field, ab);
 		
 		// add association to topic binding
 		topicBinding.addAssociationBinding(ab);
@@ -545,6 +548,9 @@ public class Session {
 		ab.setOtherRole(otherRole);
 		ab.setOtherPlayer(getTopicBinding(otherType));
 		
+		// add scope
+		addScope(field, ab);
+		
 		// add association to topic binding
 		topicBinding.addAssociationBinding(ab);
 		
@@ -576,6 +582,9 @@ public class Session {
 		
 		ab.setAssociationType(resolveURI(associationType));
 		ab.setAssociationContainer(containerBinding);
+		
+		// add scope
+		addScope(field, ab);
 		
 		// add association to topic binding
 		topicBinding.addAssociationBinding(ab);
@@ -798,6 +807,42 @@ public class Session {
 			return false;
 
 		return true;
+	}
+	
+	private String generateSubjectIdentifier(Class<?> clazz){
+
+		StringBuilder builder = new StringBuilder();
+		String nameSuffix = clazz.getName().replaceAll("\\.", "/");
+
+		builder.append("base_locator:");
+		
+		builder.append(nameSuffix);
+		return builder.toString();
+	}
+	
+	private String generateSubjectIdentifier(Field field){
+		
+		String identifier = generateSubjectIdentifier(field.getDeclaringClass());
+		
+		identifier+= "/" + field.getName();
+		return identifier;
+	}
+	
+	private void addScope(Field field, AbstractFieldBinding fb){
+		
+		Scope scope = field.getAnnotation(Scope.class);
+		
+		if(scope == null)
+			return;
+		
+		List<String> themes = Arrays.asList(scope.themes());
+		
+		List<String> resolvedThemes = new ArrayList<String>();
+		
+		for(String t:themes)
+			resolvedThemes.add(resolveURI(t));
+		
+		fb.setThemes(resolvedThemes);
 	}
 	
 }

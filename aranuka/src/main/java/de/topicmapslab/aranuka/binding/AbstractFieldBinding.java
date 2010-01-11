@@ -2,9 +2,14 @@ package de.topicmapslab.aranuka.binding;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.topicmapslab.aranuka.utils.HashUtil;
 
 public class AbstractFieldBinding {
 
@@ -18,6 +23,8 @@ public class AbstractFieldBinding {
 		
 	private boolean isArray; 
 	private boolean isCollection;
+	
+	private List<String> themes;
 	
 	public AbstractFieldBinding(AbstractBinding parent) {
 		this.parent = parent;
@@ -86,12 +93,25 @@ public class AbstractFieldBinding {
 		return isCollection;
 	}
 
+	public List<String> getThemes() {
+		if (themes==null)
+			return Collections.emptyList();
+		return themes;
+	}
+
+	public void setThemes(List<String> themes) {
+		if (this.themes==null)
+			this.themes = new ArrayList<String>();
+		this.themes = themes;
+	}
+
 	@Override
 	public String toString() {
 		return "AbstractFieldBinding [getter=" + getter + ", isArray="
 				+ isArray + ", isCollection=" + isCollection + ", parent="
-				+ parent + ", setter=" + setter + "]";
+				+ ", setter=" + setter + ", themes=" + themes + "]";
 	}
+
 	
 	
 	
