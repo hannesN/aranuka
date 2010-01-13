@@ -3,7 +3,10 @@ package de.topicmapslab.aranuka.binding;
 import java.util.Collection;
 import java.util.Map;
 
+import org.tmapi.core.Occurrence;
 import org.tmapi.core.Topic;
+
+import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 public class OccurrenceBinding extends AbstractFieldBinding {
 
@@ -29,13 +32,14 @@ public class OccurrenceBinding extends AbstractFieldBinding {
 
 		else
 
-		if (this.getValue(topicObject) != null)
-			createOccurrence(topic, this.getValue(topicObject).toString());
+			if (this.getValue(topicObject) != null)
+				createOccurrence(topic, this.getValue(topicObject).toString());
 
 	}
 	
 	private void createOccurrence(Topic topic, String occurrence){
-		/// TODO
+		
+		topic.createOccurrence(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(this.occurrenceType)), occurrence, topic.getTopicMap().createLocator(this.dataType), getScope(topic.getTopicMap()));
 	}
 
 	public String getOccurrenceType() {

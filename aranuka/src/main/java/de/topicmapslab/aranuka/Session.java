@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,7 @@ import de.topicmapslab.aranuka.binding.NameBinding;
 import de.topicmapslab.aranuka.binding.OccurrenceBinding;
 import de.topicmapslab.aranuka.binding.RoleBinding;
 import de.topicmapslab.aranuka.binding.TopicBinding;
+import de.topicmapslab.aranuka.constants.IXsdDatatypes;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
@@ -326,6 +329,7 @@ public class Session {
 		}
 	}
 	
+	
 	/**
 	 * Creates a binding for an association class field.
 	 * Actually always a role, but kept separated for future flexibility.
@@ -354,6 +358,7 @@ public class Session {
 			throw new BadAnnotationException("Non transient field " + field.getName() + " has no valid annotaton.");
 	}
 	
+	
 	/**
 	 * Checks if a field is marked transient.
 	 * 
@@ -367,6 +372,7 @@ public class Session {
 		
 		return false;
 	}
+	
 	
 	/**
 	 * Creates an id binding.
@@ -466,6 +472,8 @@ public class Session {
 		ob.setArray(field.getType().isArray());
 		ob.setCollection(ReflectionUtil.isCollection(field));
 
+		ob.setDataType(getXSDDatatype(ReflectionUtil.getGenericType(field)));
+		
 		// add occurrence to topic binding
 		topicBinding.addFieldBinding(ob);
 		
@@ -678,6 +686,7 @@ public class Session {
 		addMethods(field, clazz, rb);
 	}
 	
+	
 	/**
 	 * Adds getter and setter methods to the field binding.
 	 * 
@@ -733,6 +742,7 @@ public class Session {
 
 	}
 	
+	
 	/**
 	 * Returns an topic binding for an specific class. If the binding not exists, it will be created (lazy binding).
 	 *  
@@ -756,6 +766,7 @@ public class Session {
 		return binding;
 	}
 	
+	
 	/**
 	 * Returns a association container binding for an specific class. If the binding not exists, it will be created (lazy binding).
 	 * @param clazz
@@ -777,6 +788,7 @@ public class Session {
 		return binding;
 	}
 	
+	
 	/**
 	 * Checks if a class is annotated with @Topic.
 	 * 
@@ -792,6 +804,7 @@ public class Session {
 		return false;
 	}
 	
+	
 	/**
 	 * Checks if a class is annotated with @AssociationContainer
 	 * @param clazz
@@ -805,6 +818,7 @@ public class Session {
 		
 		return false;
 	}
+	
 
 	/**
 	 * Adds a binding to the binding map.
@@ -847,6 +861,7 @@ public class Session {
 
 		return true;
 	}
+	
 
 	private void addScope(Field field, AbstractFieldBinding fb){
 		
@@ -864,12 +879,14 @@ public class Session {
 		
 		fb.setThemes(resolvedThemes);
 	}
+	
 
 	public void printBindings(){
 
 		for(Map.Entry<Class<?>, AbstractBinding> entry:bindingMap.entrySet())
 			System.out.println(entry.getValue().toString());
 	}
+	
 
 	/**
 	 * Returns the topic map object. Creates a new one if not exist.
@@ -891,6 +908,7 @@ public class Session {
 		}
 	}
 	
+	
 	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, IOException {
 
 		// get the binding
@@ -904,6 +922,7 @@ public class Session {
 		topicBinding.persist(getTopicMap(), topicObject);
 		
 	}
+	
 	
 	public void flushTopicMap(){
 		CTMTopicMapWriter writer;
@@ -931,6 +950,18 @@ public class Session {
 	}
 	
 
-	
+	public String getXSDDatatype(Type type) {
+		
+		if (type.equals(Boolean.class))
+			return IXsdDatatypes.XSD_BOOLEAN;
+		
+		if (type.equals(Integer.class))
+			return IXsdDatatypes.XSD_INTEGER;
+		
+		if (type.equals(Date.class))
+			return IXsdDatatypes.XSD_DATE;
+				
+		return IXsdDatatypes.XSD_STRING;
+	}
 	
 }
