@@ -71,7 +71,6 @@ public class Session {
 			logger.info("Create bindings at the beginning.");
 			createBindings(config.getClasses());
 		}
-		
 	}
 	
 	/**
@@ -158,9 +157,11 @@ public class Session {
 
 		// check topic binding
 		
+		// check of not identifier
 		if(binding.getIdBindings().isEmpty())
 			throw new BadAnnotationException("Topic class " + clazz.getName() + " has no identifier at all.");
-
+		
+		// check multiple identifier fields of the same type
 		if(countIdentifier(binding, IDTYPE.ITEM_IDENTIFIER) > 1)
 			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many item identifier.");
 		
@@ -170,6 +171,15 @@ public class Session {
 		if(countIdentifier(binding, IDTYPE.SUBJECT_LOCATOR) > 1)
 			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many subject locator.");
 
+		// check multiple occurrence fields of same type
+		
+		Map<String, Integer> counter = new HashMap<String, Integer>();
+		countOccurrenceBindings(binding, counter);
+		
+		for(Map.Entry<String, Integer> entry:counter.entrySet())
+			if(entry.getValue() > 1)
+				throw new BadAnnotationException("Multiple fields annotated with occurrence type " + entry.getKey());
+		
 		return binding;
 	}
 	
@@ -189,6 +199,27 @@ public class Session {
 				
 		return count;
 	}
+	
+	private void countOccurrenceBindings(TopicBinding binding, Map<String,Integer> counter){
+		
+		if(counter == null)
+			return;
+		
+		if(binding.getParent() != null)
+			countOccurrenceBindings(binding.getParent(), counter);
+		
+		for(OccurrenceBinding ob:binding.getOccurrencesBindings()){
+			
+			String resolvedType = TopicMapsUtils.resolveURI(ob.getOccurrenceType(), config.getPrefixMap());
+			
+			int count = 0;
+			if(counter.get(resolvedType) != null)
+				count = counter.get(resolvedType);
+			count++;
+			counter.put(resolvedType, count);
+		}
+	}
+	
 	
 	/**
 	 * Creates a association container binding.
