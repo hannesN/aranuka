@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Identifier {
+public @interface Id {
 
 	/**
 	 * Type of the identifier, default is item identifier. 

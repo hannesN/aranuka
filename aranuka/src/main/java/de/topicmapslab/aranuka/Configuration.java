@@ -15,7 +15,7 @@ import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 public class Configuration {
 
 	private final static String DEFAULT_BASEL_LOCATOR = "http://www.topicmapslab.de/aranuka/";
-	
+		
 	private static Logger logger = LoggerFactory.getLogger(Configuration.class);
 
 	private Set<Class<?>> classes;
@@ -45,14 +45,16 @@ public class Configuration {
 	public Set<Class<?>> getClasses(){
 		return classes;
 	}
-	
-	
-	
+
 	// properties
 	
 	public void setBaseLocator(String baseLocator){
 		
 		logger.info("Set base locator to " + baseLocator);
+		
+		if(propertyMap == null)
+			propertyMap = new HashMap<Property, String>();
+		
 		propertyMap.put(Property.BASE_LOCATOR, baseLocator);
 		// set prefix as well
 		addPrefix("base_locator", baseLocator);
@@ -67,29 +69,54 @@ public class Configuration {
 	public void addPrefix(String prefix, String uri) {
 		if (prefixMap == null)
 			prefixMap = new HashMap<String, String>();
+		
 		if (!(uri.endsWith("/")) || (uri.endsWith("#")))
 			uri+="/";
+		
 		prefixMap.put(prefix, uri);
 	}
 	
 	public Map<String, String> getPrefixMap() {
+		
 		if (prefixMap == null)
 			return Collections.emptyMap();
+		
 		return prefixMap;
+	}
+	
+	// property
+	public String getProperty(Property key) {
+		
+		if(propertyMap == null)
+			return null;
+		
+		return propertyMap.get(key);
+	}
+
+	public void addProperty(Property key, String value) {
+		if(this.propertyMap == null)
+			propertyMap = new HashMap<Property, String>();
+		
+		propertyMap.put(key, value);
+		
 	}
 	
 	// session
 	
-	public Session getSession() throws BadAnnotationException, ClassNotSpecifiedException {
+	public Session getSession(boolean lasyBinding) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
 		
 		/// TODO implement
 		if(session != null)
 			return session;
 
-		session = new Session(this, false);
+		session = new Session(this, lasyBinding);
 
 		return session;
 		
 	}
+
+	
+	
+	
 	
 }

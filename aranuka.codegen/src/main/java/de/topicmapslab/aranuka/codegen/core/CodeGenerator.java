@@ -5,7 +5,6 @@ package de.topicmapslab.aranuka.codegen.core;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 import org.tmapi.core.TopicMap;
@@ -17,7 +16,6 @@ import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMod;
-import com.sun.codemodel.JTypeVar;
 
 import de.topicmapslab.aranuka.codegen.core.definition.IdAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.TopicAnnotationDefinition;
@@ -46,7 +44,7 @@ public class CodeGenerator {
 		topicAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.Topic.class.getName());
 		nameAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.Name.class.getName());
 		occurrenceAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.Occurrence.class.getName());
-		identifierAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.Identifier.class.getName());
+		identifierAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.Id.class.getName());
 		associationAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.Association.class.getName());
 		associationContainerAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.AssociationContainer.class.getName());
 		
