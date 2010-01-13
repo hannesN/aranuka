@@ -1,6 +1,0 @@
-/**
-* get()-method for %FIELD_NAME%
-*/
-public %FIELD_TYPE% get%METHOD_NAME%(){
-	return this.%FIELD_NAME%;
-}
