@@ -542,6 +542,7 @@ public class Session {
 		
 		AssociationBinding ab = new AssociationBinding(config.getPrefixMap(), topicBinding);
 		
+		ab.setKind(ASSOCIATIONKIND.UNARY);
 		ab.setAssociationType(TopicMapsUtils.resolveURI(associationType, config.getPrefixMap()));
 		ab.setPlayedRole(TopicMapsUtils.resolveURI(playedRole, config.getPrefixMap()));
 		
@@ -601,6 +602,7 @@ public class Session {
 		
 		AssociationBinding ab = new AssociationBinding(config.getPrefixMap(), topicBinding);
 		
+		ab.setKind(ASSOCIATIONKIND.BINARY);
 		ab.setAssociationType(TopicMapsUtils.resolveURI(associationType, config.getPrefixMap()));
 		ab.setPlayedRole(TopicMapsUtils.resolveURI(playedRole, config.getPrefixMap()));
 		ab.setOtherRole(otherRole);
@@ -641,6 +643,7 @@ public class Session {
 		
 		AssociationBinding ab = new AssociationBinding(config.getPrefixMap(), topicBinding);
 		
+		ab.setKind(ASSOCIATIONKIND.NNARY);
 		ab.setAssociationType(TopicMapsUtils.resolveURI(associationType, config.getPrefixMap()));
 		ab.setAssociationContainer(containerBinding);
 		
