@@ -24,13 +24,13 @@ public class TopicBinding extends AbstractBinding{
 	private TopicBinding parent; // supertype
 	
 	
-	// bindings
-	private List<IdBinding> ids;
-	private List<NameBinding> names;
-	private List<OccurrenceBinding> occurrences;
-	private List<AssociationBinding> associations;
+//	// bindings
+//	private List<IdBinding> ids;
+//	private List<NameBinding> names;
+//	private List<OccurrenceBinding> occurrences;
+//	private List<AssociationBinding> associations;
 	
-	// TODO temporary, replaces all other field binding container
+	// bindings
 	private List<AbstractFieldBinding> fieldBindings;
 
 //	public TopicBinding(String baseLocator) {
@@ -153,68 +153,61 @@ public class TopicBinding extends AbstractBinding{
 		identifiers.add(id);
 	}
 	
-	// id bindings
+//	// id bindings
+//	
+//	public void addIdBinding(IdBinding ib) {
+//		if (ids==null)
+//			ids = new ArrayList<IdBinding>();
+//		ids.add(ib);
+//	}
+//	
+//	public List<IdBinding> getIdBindings() {
+//		if (ids==null)
+//			return Collections.emptyList();
+//		return ids;
+//	}
 	
-	public void addIdBinding(IdBinding ib) {
-		if (ids==null)
-			ids = new ArrayList<IdBinding>();
-		ids.add(ib);
-	}
+//	// name bindings
+//	
+//	public void addNameBinding(NameBinding nb) {
+//		if (names==null)
+//			names = new ArrayList<NameBinding>();
+//		names.add(nb);
+//	}
+//	
+//	public List<NameBinding> getNameBindings() {
+//		if (names==null)
+//			return Collections.emptyList();
+//		return names;
+//	}
 	
-	public List<IdBinding> getIdBindings() {
-		if (ids==null)
-			return Collections.emptyList();
-		return ids;
-	}
+//	// occurrence bindings
+//	
+//	public List<OccurrenceBinding> getOccurrencesBindings() {
+//		if (occurrences==null)
+//			return Collections.emptyList();
+//		return occurrences;
+//	}
+//	
+//	public void addOccurrenceBinding(OccurrenceBinding ob) {
+//		if (occurrences==null)
+//			occurrences = new ArrayList<OccurrenceBinding>();
+//		occurrences.add(ob);
+//	}
 	
-	// name bindings
-	
-	public void addNameBinding(NameBinding nb) {
-		if (names==null)
-			names = new ArrayList<NameBinding>();
-		names.add(nb);
-	}
-	
-	public List<NameBinding> getNameBindings() {
-		if (names==null)
-			return Collections.emptyList();
-		return names;
-	}
-	
-	// occurrence bindings
-	
-	public List<OccurrenceBinding> getOccurrencesBindings() {
-		if (occurrences==null)
-			return Collections.emptyList();
-		return occurrences;
-	}
-	
-	public void addOccurrenceBinding(OccurrenceBinding ob) {
-		if (occurrences==null)
-			occurrences = new ArrayList<OccurrenceBinding>();
-		occurrences.add(ob);
-	}
-	
-	// association bindings
-	
-	public List<AssociationBinding> getAssociationBindings() {
-		if (associations==null)
-			return Collections.emptyList();
-		return associations;
-	}
-	
-	public void addAssociationBinding(AssociationBinding ab) {
-		if (associations==null)
-			associations = new ArrayList<AssociationBinding>();
-		associations.add(ab);
-	}
+//	// association bindings
+//	
+//	public List<AssociationBinding> getAssociationBindings() {
+//		if (associations==null)
+//			return Collections.emptyList();
+//		return associations;
+//	}
+//	
+//	public void addAssociationBinding(AssociationBinding ab) {
+//		if (associations==null)
+//			associations = new ArrayList<AssociationBinding>();
+//		associations.add(ab);
+//	}
 
-	@Override
-	public String toString() {
-
-		return "TopicBinding [associations=" + associations + ", identifiers="
-				+ identifiers + ", ids=" + ids + ", name=" + name + ", names="
-				+ names + ", occurrences=" + occurrences + ", parent=" + parent
-				+ "]";
-	}
+	
 }

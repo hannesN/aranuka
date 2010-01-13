@@ -8,6 +8,7 @@ import org.tmapi.core.Topic;
 public class OccurrenceBinding extends AbstractFieldBinding {
 
 	private String occurrenceType;
+	private String dataType;
 
 	public OccurrenceBinding(Map<String,String> prefixMap, TopicBinding parent) {
 		super(prefixMap, parent);
@@ -43,6 +44,14 @@ public class OccurrenceBinding extends AbstractFieldBinding {
 
 	public void setOccurrenceType(String occurrenceTypeIdentifier) {
 		this.occurrenceType = occurrenceTypeIdentifier;
+	}
+
+	public String getDataType() {
+		return dataType;
+	}
+
+	public void setDataType(String dataType) {
+		this.dataType = dataType;
 	}
 
 	@Override

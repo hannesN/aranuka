@@ -156,70 +156,63 @@ public class Session {
 			createFieldBinding(binding, field, clazz);
 
 		// check topic binding
-		
-		// check of not identifier
-		if(binding.getIdBindings().isEmpty())
-			throw new BadAnnotationException("Topic class " + clazz.getName() + " has no identifier at all.");
-		
-		// check multiple identifier fields of the same type
-		if(countIdentifier(binding, IDTYPE.ITEM_IDENTIFIER) > 1)
-			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many item identifier.");
-		
-		if(countIdentifier(binding, IDTYPE.SUBJECT_IDENTIFIER) > 1)
-			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many subject identifier.");
-		
-		if(countIdentifier(binding, IDTYPE.SUBJECT_LOCATOR) > 1)
-			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many subject locator.");
-
-		// check multiple occurrence fields of same type
-		
-		Map<String, Integer> counter = new HashMap<String, Integer>();
-		countOccurrenceBindings(binding, counter);
-		
-		for(Map.Entry<String, Integer> entry:counter.entrySet())
-			if(entry.getValue() > 1)
-				throw new BadAnnotationException("Multiple fields annotated with occurrence type " + entry.getKey());
+		checkTopicBinding(binding, clazz);
 		
 		return binding;
 	}
 	
-	private int countIdentifier(TopicBinding binding, IDTYPE idType){
+	/**
+	 * Checks if no constraint for an topic binding is violated
+	 * 
+	 * @param binding
+	 * @throws BadAnnotationException
+	 */
+	private void checkTopicBinding(TopicBinding binding, Class<?> clazz) throws BadAnnotationException{
 		
-		int count = 0;
+		Map<IDTYPE,Integer> idCounter = new HashMap<IDTYPE, Integer>();
+		Map<String,Integer> occCounter = new HashMap<String, Integer>();
 		
-		// get identifier of parents
-		if(binding.getParent() != null)
-			count = countIdentifier(binding.getParent(), idType);
-		
-		// get own identifier
-		for(IdBinding ib:binding.getIdBindings()){
-			if(ib.getIdtype() == idType)
-				count++;
-		}
+		// count construct occurrences
+		for(AbstractFieldBinding fb:binding.getFieldBindings())
+		{
+			if(fb instanceof IdBinding){
 				
-		return count;
-	}
-	
-	private void countOccurrenceBindings(TopicBinding binding, Map<String,Integer> counter){
-		
-		if(counter == null)
-			return;
-		
-		if(binding.getParent() != null)
-			countOccurrenceBindings(binding.getParent(), counter);
-		
-		for(OccurrenceBinding ob:binding.getOccurrencesBindings()){
-			
-			String resolvedType = TopicMapsUtils.resolveURI(ob.getOccurrenceType(), config.getPrefixMap());
-			
-			int count = 0;
-			if(counter.get(resolvedType) != null)
-				count = counter.get(resolvedType);
-			count++;
-			counter.put(resolvedType, count);
+				int count = 0;
+				if(idCounter.get(((IdBinding)fb).getIdtype()) != null)
+					count = idCounter.get(((IdBinding)fb).getIdtype());
+				count++;
+				idCounter.put(((IdBinding)fb).getIdtype(), count);
+				
+			}else if(fb instanceof OccurrenceBinding){
+				
+				String resolvedType = TopicMapsUtils.resolveURI(((OccurrenceBinding)fb).getOccurrenceType(), config.getPrefixMap());
+				
+				int count = 0;
+				if(occCounter.get(resolvedType) != null)
+					count = occCounter.get(resolvedType);
+				count++;
+				occCounter.put(resolvedType, count);
+				
+			}
 		}
+		
+		// check of not identifier
+		if(idCounter.isEmpty())
+			throw new BadAnnotationException("Topic class " + clazz.getName() + " has no identifier at all.");
+		
+		// check multiple identifier fields of the same type
+		if(idCounter.get(IDTYPE.ITEM_IDENTIFIER) != null && idCounter.get(IDTYPE.ITEM_IDENTIFIER) > 1)
+			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many item identifier.");
+		if(idCounter.get(IDTYPE.SUBJECT_IDENTIFIER) != null && idCounter.get(IDTYPE.SUBJECT_IDENTIFIER) > 1)
+			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many subject identifier.");
+		if(idCounter.get(IDTYPE.SUBJECT_LOCATOR) != null && idCounter.get(IDTYPE.SUBJECT_LOCATOR) > 1)
+			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many subject locator.");
+		
+		// check multiple occurrence fields of same type
+		for(Map.Entry<String, Integer> entry:occCounter.entrySet())
+			if(entry.getValue() > 1)
+				throw new BadAnnotationException("Multiple fields annotated with occurrence type " + entry.getKey());
 	}
-	
 	
 	/**
 	 * Creates a association container binding.
@@ -389,28 +382,15 @@ public class Session {
 	private void createIdBinding(TopicBinding topicBinding, Field field, Class<?> clazz, Id idAnnotation) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
 		
 		IDTYPE type = idAnnotation.type();
-		
-		// check if topic already has an id of this type
-		List<IdBinding> idBindings = topicBinding.getIdBindings();
-		
-		for(IdBinding ib:idBindings)
-			if(ib.getIdtype() == type)
-				throw new BadAnnotationException("Only one id per type allowed for each class.");
-				
+
 		IdBinding ib = new IdBinding(config.getPrefixMap(), topicBinding);
 		
 		ib.setIdtype(type);
 		
 		ib.setArray(field.getType().isArray());
 		ib.setCollection(ReflectionUtil.isCollection(field));
-		
-//		logger.info("Set isArray to " + ib.isArray());
-//		logger.info("Set isCollection to " + ib.isCollection());
-		
-		// add id to topic binding
-		topicBinding.addIdBinding(ib);
-		
-		/// TODO temporary
+
+		/// add id to topic binding
 		topicBinding.addFieldBinding(ib);
 		
 		// create methods
@@ -449,11 +429,8 @@ public class Session {
 		addScope(field, nb);
 		nb.setArray(field.getType().isArray());
 		nb.setCollection(ReflectionUtil.isCollection(field));
-		
+
 		// add name to topic binding
-		topicBinding.addNameBinding(nb);
-		
-		/// TODO temporary
 		topicBinding.addFieldBinding(nb);
 		
 		// create methods
@@ -488,11 +465,8 @@ public class Session {
 		addScope(field, ob);
 		ob.setArray(field.getType().isArray());
 		ob.setCollection(ReflectionUtil.isCollection(field));
-		
+
 		// add occurrence to topic binding
-		topicBinding.addOccurrenceBinding(ob);
-		
-		/// TODO temporary
 		topicBinding.addFieldBinding(ob);
 		
 		// create methods
@@ -567,11 +541,8 @@ public class Session {
 		addScope(field, ab);
 		ab.setArray(field.getType().isArray());
 		ab.setCollection(ReflectionUtil.isCollection(field));
-		
+
 		// add association to topic binding
-		topicBinding.addAssociationBinding(ab);
-		
-		/// TODO temporary
 		topicBinding.addFieldBinding(ab);
 		
 		// create methods
@@ -614,7 +585,6 @@ public class Session {
 			throw new BadAnnotationException("Binary association " + field.getName() + " needs an other_role attribute!");
 		
 		// get other player
-		
 		Class<?> otherType = ReflectionUtil.getGenericType(field);
 		
 		if(!isTopicAnnotated(otherType))
@@ -633,11 +603,8 @@ public class Session {
 		
 		ab.setArray(field.getType().isArray());
 		ab.setCollection(ReflectionUtil.isCollection(field));
-		
+
 		// add association to topic binding
-		topicBinding.addAssociationBinding(ab);
-		
-		/// TODO temporary
 		topicBinding.addFieldBinding(ab);
 		
 		// create methods
@@ -674,11 +641,8 @@ public class Session {
 		
 		ab.setArray(field.getType().isArray());
 		ab.setCollection(ReflectionUtil.isCollection(field));
-		
+
 		// add association to topic binding
-		topicBinding.addAssociationBinding(ab);
-		
-		/// TODO temporary
 		topicBinding.addFieldBinding(ab);
 		
 		// create methods
@@ -788,7 +752,6 @@ public class Session {
 		}
 
 		TopicBinding binding = createTopicBinding(clazz);
-		//addBinding(clazz, binding);
 		
 		return binding;
 	}
@@ -810,7 +773,6 @@ public class Session {
 			return (AssociationContainerBinding)bindingMap.get(clazz);
 		
 		AssociationContainerBinding binding = createAssociationContainerBinding(clazz);
-		//addBinding(clazz, binding);
 		
 		return binding;
 	}
