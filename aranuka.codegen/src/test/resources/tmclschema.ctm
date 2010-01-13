@@ -1,0 +1,74 @@
+%encoding "utf-8"
+%version 1.0
+
+
+#-- Included Topic Maps
+%include <http://www.topicmaps.org/tmcl/templates.ctm>
+
+
+#-- Prefixes
+%prefix test <http://test.de/>
+%prefix tmcl <http://psi.topicmaps.org/tmcl/>
+%prefix tmdm <http://psi.topicmaps.org/iso13250/model/>
+
+
+
+#-- ONTOLOGY
+
+
+
+#-- INSTANCES
+
+
+#-- Topics
+
+
+#-- TT: <http://psi.topicmaps.org/tmcl/association-type>
+
+test:secure isa tmcl:association-type;
+    - "secure";
+    has-role(test:secret, 1, 1).
+
+
+#-- TT: <http://psi.topicmaps.org/tmcl/name-type>
+
+test:name isa tmcl:name-type;
+    - "Name".
+
+test:firstname isa tmcl:name-type;
+    - "Firstname".
+    
+test:lastname isa tmcl:name-type;
+    - "Lastname".
+
+#-- TT: <http://psi.topicmaps.org/tmcl/occurrence-type>
+
+test:secrent_content isa tmcl:occurrence-type;
+    - "Secrent Content";
+    has-datatype("xsd:string").
+
+
+#-- TT: <http://psi.topicmaps.org/tmcl/role-type>
+
+test:secret isa tmcl:role-type;
+    - "secret".
+
+
+#-- TT: <http://psi.topicmaps.org/tmcl/topic-type>
+
+test:document isa tmcl:topic-type;
+    - "Document";
+    has-subject-identifier(1, 1, "secret:.*");
+    plays-role(test:secret, test:secure, 1, 1);
+    has-occurrence(test:secret_content, 1, 1);
+    has-name(test:name, 0, "*"^^<ctm:integer>).
+
+test:author isa tmcl:topic-type;
+	- "Author";
+	has-subject-identifier(1, "*"^^<ctm:integer>, "secret:.*");
+	has-name(test:firstname, 0, "*"^^<ctm:integer>);
+	has-name(test:lastname, 0, "*"^^<ctm:integer>).
+	
+
+
+# Thanks for using tinyTiM -- http://tinytim.sourceforge.net/ :)
