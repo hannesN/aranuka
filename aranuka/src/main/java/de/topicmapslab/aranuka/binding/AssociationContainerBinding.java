@@ -10,6 +10,11 @@ public class AssociationContainerBinding extends AbstractBinding {
 	
 	private List<RoleBinding> roles;
 	
+	
+//	public AssociationContainerBinding(String baseLocator) {
+//		super(baseLocator);
+//	}
+	
 	public void setParent(AssociationContainerBinding parent) {
 		this.parent = parent;
 	}

@@ -1,5 +1,9 @@
 package de.topicmapslab.aranuka.binding;
 
+import java.util.Map;
+
+import org.tmapi.core.Topic;
+
 import de.topicmapslab.aranuka.annotations.ASSOCIATIONKIND;
 
 public class AssociationBinding extends AbstractFieldBinding {
@@ -14,6 +18,11 @@ public class AssociationBinding extends AbstractFieldBinding {
 	public AssociationBinding(AbstractBinding parent) {
 		super(parent);
 	}
+	
+	public void persist(Topic topic, Object topicObject, Map<String,String> prefixMap){
+		
+	}
+	
 
 	public String getAssociationType() {
 		return associationType;

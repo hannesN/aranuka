@@ -1,5 +1,6 @@
 package de.topicmapslab.aranuka;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -13,6 +14,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tinytim.mio.CTMTopicMapWriter;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystemFactory;
 
@@ -38,6 +40,7 @@ import de.topicmapslab.aranuka.binding.TopicBinding;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
+import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 public class Session {
 
@@ -127,7 +130,7 @@ public class Session {
 
 		// add binding to map
 		addBinding(clazz, binding);
-		
+
 		// set parent
 		binding.setParent(superClassBinding);
 		
@@ -141,12 +144,12 @@ public class Session {
 		if (topicAnnotation.subject_identifier() != null) {
 			
 			for (String s : topicAnnotation.subject_identifier())
-				binding.addIdentifier(resolveURI(s));
+				binding.addIdentifier(TopicMapsUtils.resolveURI(s, config.getPrefixMap()));
 			
 		}else{
 			
 			// create subject identifier
-			binding.addIdentifier(generateSubjectIdentifier(clazz));
+			binding.addIdentifier(TopicMapsUtils.generateSubjectIdentifier(clazz));
 		}
 		
 		// create field bindings
@@ -158,7 +161,33 @@ public class Session {
 		if(binding.getIdBindings().isEmpty())
 			throw new BadAnnotationException("Topic class " + clazz.getName() + " has no identifier at all.");
 
+		if(countIdentifier(binding, IDTYPE.ITEM_IDENTIFIER) > 1)
+			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many item identifier.");
+		
+		if(countIdentifier(binding, IDTYPE.SUBJECT_IDENTIFIER) > 1)
+			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many subject identifier.");
+		
+		if(countIdentifier(binding, IDTYPE.SUBJECT_LOCATOR) > 1)
+			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many subject locator.");
+
 		return binding;
+	}
+	
+	private int countIdentifier(TopicBinding binding, IDTYPE idType){
+		
+		int count = 0;
+		
+		// get identifier of parents
+		if(binding.getParent() != null)
+			count = countIdentifier(binding.getParent(), idType);
+		
+		// get own identifier
+		for(IdBinding ib:binding.getIdBindings()){
+			if(ib.getIdtype() == idType)
+				count++;
+		}
+				
+		return count;
 	}
 	
 	/**
@@ -341,8 +370,17 @@ public class Session {
 		
 		ib.setIdtype(type);
 		
+		ib.setArray(field.getType().isArray());
+		ib.setCollection(ReflectionUtil.isCollection(field));
+		
+//		logger.info("Set isArray to " + ib.isArray());
+//		logger.info("Set isCollection to " + ib.isCollection());
+		
 		// add id to topic binding
 		topicBinding.addIdBinding(ib);
+		
+		/// TODO temporary
+		topicBinding.addFieldBinding(ib);
 		
 		// create methods
 		addMethods(field, clazz, ib);
@@ -366,11 +404,11 @@ public class Session {
 		String nameType = null;
 		
 		if (nameAnnotation.type().length() == 0)
-			nameType = generateSubjectIdentifier(field);
+			nameType = TopicMapsUtils.generateSubjectIdentifier(field);
 		else
 			nameType = nameAnnotation.type();
 				
-		nb.setNameType(resolveURI(nameType));
+		nb.setNameType(TopicMapsUtils.resolveURI(nameType, config.getPrefixMap()));
 		
 		// check field type
 		if(ReflectionUtil.getGenericType(field) != String.class)
@@ -378,9 +416,14 @@ public class Session {
 		
 		// add scope
 		addScope(field, nb);
+		nb.setArray(field.getType().isArray());
+		nb.setCollection(ReflectionUtil.isCollection(field));
 		
 		// add name to topic binding
 		topicBinding.addNameBinding(nb);
+		
+		/// TODO temporary
+		topicBinding.addFieldBinding(nb);
 		
 		// create methods
 		addMethods(field, clazz, nb);
@@ -404,17 +447,22 @@ public class Session {
 		String occurrenceType = null;
 		
 		if (occurrenceAnnotation.type().length() == 0)
-			occurrenceType = generateSubjectIdentifier(field);
+			occurrenceType = TopicMapsUtils.generateSubjectIdentifier(field);
 		else
 			occurrenceType = occurrenceAnnotation.type();
 		
-		ob.setOccurrenceType(resolveURI(occurrenceType));
+		ob.setOccurrenceType(TopicMapsUtils.resolveURI(occurrenceType, config.getPrefixMap()));
 		
 		// add scope
 		addScope(field, ob);
+		ob.setArray(field.getType().isArray());
+		ob.setCollection(ReflectionUtil.isCollection(field));
 		
 		// add occurrence to topic binding
 		topicBinding.addOccurrenceBinding(ob);
+		
+		/// TODO temporary
+		topicBinding.addFieldBinding(ob);
 		
 		// create methods
 		addMethods(field, clazz, ob);
@@ -434,7 +482,7 @@ public class Session {
 		String associationType;
 		
 		if (associationAnnotation.type().length() == 0)
-			associationType = generateSubjectIdentifier(field);
+			associationType = TopicMapsUtils.generateSubjectIdentifier(field);
 		else
 			associationType = associationAnnotation.type();
 	
@@ -481,14 +529,19 @@ public class Session {
 		
 		AssociationBinding ab = new AssociationBinding(topicBinding);
 		
-		ab.setAssociationType(resolveURI(associationType));
-		ab.setPlayedRole(resolveURI(playedRole));
+		ab.setAssociationType(TopicMapsUtils.resolveURI(associationType, config.getPrefixMap()));
+		ab.setPlayedRole(TopicMapsUtils.resolveURI(playedRole, config.getPrefixMap()));
 		
 		// add scope
 		addScope(field, ab);
+		ab.setArray(field.getType().isArray());
+		ab.setCollection(ReflectionUtil.isCollection(field));
 		
 		// add association to topic binding
 		topicBinding.addAssociationBinding(ab);
+		
+		/// TODO temporary
+		topicBinding.addFieldBinding(ab);
 		
 		// create methods
 		addMethods(field, clazz, ab);
@@ -539,16 +592,22 @@ public class Session {
 		
 		AssociationBinding ab = new AssociationBinding(topicBinding);
 		
-		ab.setAssociationType(resolveURI(associationType));
-		ab.setPlayedRole(resolveURI(playedRole));
+		ab.setAssociationType(TopicMapsUtils.resolveURI(associationType, config.getPrefixMap()));
+		ab.setPlayedRole(TopicMapsUtils.resolveURI(playedRole, config.getPrefixMap()));
 		ab.setOtherRole(otherRole);
 		ab.setOtherPlayer(getTopicBinding(otherType));
 		
 		// add scope
 		addScope(field, ab);
 		
+		ab.setArray(field.getType().isArray());
+		ab.setCollection(ReflectionUtil.isCollection(field));
+		
 		// add association to topic binding
 		topicBinding.addAssociationBinding(ab);
+		
+		/// TODO temporary
+		topicBinding.addFieldBinding(ab);
 		
 		// create methods
 		addMethods(field, clazz, ab);
@@ -576,14 +635,20 @@ public class Session {
 		
 		AssociationBinding ab = new AssociationBinding(topicBinding);
 		
-		ab.setAssociationType(resolveURI(associationType));
+		ab.setAssociationType(TopicMapsUtils.resolveURI(associationType, config.getPrefixMap()));
 		ab.setAssociationContainer(containerBinding);
 		
 		// add scope
 		addScope(field, ab);
 		
+		ab.setArray(field.getType().isArray());
+		ab.setCollection(ReflectionUtil.isCollection(field));
+		
 		// add association to topic binding
 		topicBinding.addAssociationBinding(ab);
+		
+		/// TODO temporary
+		topicBinding.addFieldBinding(ab);
 		
 		// create methods
 		addMethods(field, clazz, ab);
@@ -609,7 +674,7 @@ public class Session {
 		else
 			roleType = roleAnnotation.type();
 		
-		rb.setRoleType(resolveURI(roleType));
+		rb.setRoleType(TopicMapsUtils.resolveURI(roleType, config.getPrefixMap()));
 		
 		// add role to association container binding
 		associationContainerBinding.addRoleBinding(rb);
@@ -763,29 +828,7 @@ public class Session {
 		
 	}
 	
-	/**
-	 * Resolves an uri.
-	 * 
-	 * @param uri
-	 * @return
-	 */
-	private String resolveURI(String uri) {
-		
-		int idx = uri.indexOf(":");
-		
-		if (idx != -1) {
 
-			String key = uri.substring(0, idx);
-			
-			if (this.config.getPrefixMap().get(key) != null) {
-				
-				StringBuilder builder = new StringBuilder(this.config.getPrefixMap().get(key));
-				builder.append(uri.substring(idx + 1));
-				return builder.toString();
-			}
-		}
-		return uri;
-	}
 	
 	/**
 	 * Checks if it is necessary to map a class.
@@ -811,26 +854,7 @@ public class Session {
 
 		return true;
 	}
-	
-	private String generateSubjectIdentifier(Class<?> clazz){
 
-		StringBuilder builder = new StringBuilder();
-		String nameSuffix = clazz.getName().replaceAll("\\.", "/");
-
-		builder.append("base_locator:");
-		
-		builder.append(nameSuffix);
-		return builder.toString();
-	}
-	
-	private String generateSubjectIdentifier(Field field){
-		
-		String identifier = generateSubjectIdentifier(field.getDeclaringClass());
-		
-		identifier+= "/" + field.getName();
-		return identifier;
-	}
-	
 	private void addScope(Field field, AbstractFieldBinding fb){
 		
 		Scope scope = field.getAnnotation(Scope.class);
@@ -843,7 +867,7 @@ public class Session {
 		List<String> resolvedThemes = new ArrayList<String>();
 		
 		for(String t:themes)
-			resolvedThemes.add(resolveURI(t));
+			resolvedThemes.add(TopicMapsUtils.resolveURI(t, config.getPrefixMap()));
 		
 		fb.setThemes(resolvedThemes);
 	}
@@ -874,21 +898,43 @@ public class Session {
 		}
 	}
 	
-	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
+	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, IOException {
 
 		// get the binding
 		TopicBinding topicBinding = getTopicBinding(topicObject.getClass());
 
-		/// TODO maybe catch other exception an rethrow
-			
-		
-		
+		/// TODO maybe catch other exception an re-throw
+
 		if(topicBinding == null)
-			throw new BadAnnotationException("Object cannot be persisted.");	
+			throw new BadAnnotationException("Object cannot be persisted.");
+		
+		topicBinding.persist(getTopicMap(), topicObject, config.getPrefixMap());
+		
 	}
 	
 	public void flushTopicMap(){
-		
+		CTMTopicMapWriter writer;
+		try {
+			
+			String filename = config.getProperty(Property.FILENAME);
+			logger.info("Writing to "+filename);
+			writer = new CTMTopicMapWriter(new FileOutputStream(filename), config.getBaseLocator());
+
+			Map<String, String> prefixMap = config.getPrefixMap();
+			for (String key : prefixMap.keySet()) {
+				writer.addPrefix(key, prefixMap.get(key));
+			}
+			
+			String bl = config.getBaseLocator();
+			for (Class<?> clazz : config.getClasses()) {
+				String prefix = bl+clazz.getName().replaceAll("\\.", "/")+"/";
+				writer.addPrefix(clazz.getSimpleName().toLowerCase(), prefix);
+			}
+
+			writer.write(topicMap);
+		} catch (Exception e) {
+			logger.error("", e);
+		}
 	}
 	
 

@@ -15,7 +15,7 @@ import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 public class Configuration {
 
 	private final static String DEFAULT_BASEL_LOCATOR = "http://www.topicmapslab.de/aranuka/";
-	
+		
 	private static Logger logger = LoggerFactory.getLogger(Configuration.class);
 
 	private Set<Class<?>> classes;
@@ -84,6 +84,23 @@ public class Configuration {
 		return prefixMap;
 	}
 	
+	// property
+	public String getProperty(Property key) {
+		
+		if(propertyMap == null)
+			return null;
+		
+		return propertyMap.get(key);
+	}
+
+	public void addProperty(Property key, String value) {
+		if(this.propertyMap == null)
+			propertyMap = new HashMap<Property, String>();
+		
+		propertyMap.put(key, value);
+		
+	}
+	
 	// session
 	
 	public Session getSession(boolean lasyBinding) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
@@ -97,5 +114,9 @@ public class Configuration {
 		return session;
 		
 	}
+
+	
+	
+	
 	
 }

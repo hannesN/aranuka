@@ -3,17 +3,23 @@ package de.topicmapslab.aranuka.binding;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tmapi.core.Topic;
+import org.tmapi.core.TopicMap;
 
-public class AbstractFieldBinding {
+import de.topicmapslab.aranuka.exception.BadAnnotationException;
+import de.topicmapslab.aranuka.utils.TopicMapsUtils;
+
+public abstract class AbstractFieldBinding {
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractFieldBinding.class);
-	
-		
+
 	private final AbstractBinding parent;
 	
 	private Method getter; // get method of the field
@@ -28,6 +34,9 @@ public class AbstractFieldBinding {
 		this.parent = parent;
 	}
 	
+	// abstract persist method
+	public abstract void persist(Topic topic, Object object, Map<String,String> prefixMap) throws BadAnnotationException; 
+	
 	public void setGetter(Method getter) {
 		this.getter = getter;
 	}
@@ -36,7 +45,7 @@ public class AbstractFieldBinding {
 		this.setter = setter;
 	}
 
-	protected AbstractBinding getParent() {
+	public AbstractBinding getParent() {
 		return parent;
 	}
 	
@@ -78,11 +87,14 @@ public class AbstractFieldBinding {
 	
 	public void setArray(boolean isArray) {
 		
+		//logger.info(this.getClass() + " set array to " + isArray);
+		
 		this.isArray = isArray;
 	}
 	
 	public void setCollection(boolean isCollection) {
 		
+		//logger.info(this.getClass() + " set collection to " + isCollection);
 		this.isCollection = isCollection;
 	}
 	
@@ -101,6 +113,21 @@ public class AbstractFieldBinding {
 		if (this.themes==null)
 			this.themes = new ArrayList<String>();
 		this.themes = themes;
+	}
+	
+	public Collection<Topic> getScope(TopicMap topicMap, Map<String, String> prefixMap){
+		
+		if(this.themes == null)
+			return Collections.emptyList();
+		
+		Collection<Topic> scope = new ArrayList<Topic>();
+		
+		for(String theme:themes)
+		{
+			scope.add(topicMap.createTopicBySubjectIdentifier(topicMap.createLocator(TopicMapsUtils.resolveURI(theme, prefixMap))));
+		}
+		
+		return scope;
 	}
 
 	@Override
