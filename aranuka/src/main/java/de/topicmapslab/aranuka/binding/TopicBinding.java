@@ -2,6 +2,7 @@ package de.topicmapslab.aranuka.binding;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,46 +23,47 @@ public class TopicBinding extends AbstractBinding{
 	private String name; // name of the topic type
 	private Set<String> identifiers; // identifier of the topic type
 	private TopicBinding parent; // supertype
-	
-	// bindings
-	private List<AbstractFieldBinding> fieldBindings;
 
-	public List<AbstractFieldBinding> getFieldBindings() {
+	private Map<Object, Topic> topicObjects; // the instances
+	Topic topic; // the topic type represented by this binding
+	
+	// topic field bindings
+	private List<AbstractTopicFieldBinding> fieldBindings;
+
+	public List<AbstractTopicFieldBinding> getFieldBindings() {
 		if (this.fieldBindings==null)
 			return Collections.emptyList();
 		return this.fieldBindings;
 	}
 
-	public void addFieldBinding(AbstractFieldBinding fieldBinding) {
+	public void addFieldBinding(AbstractTopicFieldBinding fieldBinding) {
 		
 		if (this.fieldBindings==null)
-			this.fieldBindings = new ArrayList<AbstractFieldBinding>();
+			this.fieldBindings = new ArrayList<AbstractTopicFieldBinding>();
 		
 		this.fieldBindings.add(fieldBinding);
 	}
 
-	private Map<Object, Topic> topicObjects; // the instances
-	Topic topic; // the topic type represented by this binding
 	
-	public void persist(TopicMap topicMap, Object topicObject) throws BadAnnotationException{
+	
+	public Topic persist(TopicMap topicMap, Object topicObject) throws BadAnnotationException{
 		
 		logger.info("Persist " + topicObject.toString());
-		
-		Topic topic = null;
-		
+
 		// look in cache
-		if(topicObjects != null)
-			topic = topicObjects.get(topicObject.getClass());
+		Topic topic = getTopicObjects(topicObject);
 
 		// create new topic if not exist
 		if(topic == null){
 			topic = persist(topicMap, topicObject, this);
-				
+
 		}else{
 			
 			// update existing topic
 			/// TODO
 		}
+		
+		return topic;
 	}
 	
 	private Topic persist(TopicMap topicMap, Object topicObject, TopicBinding topicBinding) throws BadAnnotationException{
@@ -71,6 +73,9 @@ public class TopicBinding extends AbstractBinding{
 		if(topicBinding.parent != null)
 			newTopic = persist(topicMap, topicObject, topicBinding.parent);
 		else newTopic = topicMap.createTopic();
+		
+		// store in cache
+		addTopicObject(topicObject, newTopic);
 		
 		// add type
 		newTopic.addType(getTopicType(topicMap, this));
@@ -89,7 +94,7 @@ public class TopicBinding extends AbstractBinding{
 			persistFields(topic, topicObject, binding.parent);
 		
 		// persist own fields
-		for(AbstractFieldBinding fb:binding.fieldBindings)
+		for(AbstractTopicFieldBinding fb:binding.fieldBindings)
 			fb.persist(topic, topicObject);
 	}
 	
@@ -140,4 +145,33 @@ public class TopicBinding extends AbstractBinding{
 		identifiers.add(id);
 	}
 
+	
+	public void addTopicObject(Object object, Topic topic) {
+		
+		if(this.topicObjects == null)
+			this.topicObjects = new HashMap<Object, Topic>();
+		
+		this.topicObjects.put(object, topic);
+	}
+		
+
+	public Topic getTopicObjects(Object object) {
+		
+		if(this.topicObjects == null)
+			return null;
+		
+		return this.topicObjects.get(object);
+		
+	}
+
+	@Override
+	public String toString() {
+		return "TopicBinding [fieldBindings=" + fieldBindings
+				+ ", identifiers=" + identifiers + ", name=" + name
+				+ ", parent=" + parent + ", topic=" + topic + ", topicObjects="
+				+ topicObjects + "]";
+	}
+
+	
+	
 }

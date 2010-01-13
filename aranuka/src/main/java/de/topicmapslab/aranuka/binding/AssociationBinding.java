@@ -7,11 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmapi.core.Association;
 import org.tmapi.core.Topic;
-import org.tmapi.core.TopicMap;
 
 import de.topicmapslab.aranuka.annotations.ASSOCIATIONKIND;
+import de.topicmapslab.aranuka.exception.BadAnnotationException;
 
-public class AssociationBinding extends AbstractFieldBinding {
+public class AssociationBinding extends AbstractTopicFieldBinding {
 
 	private static Logger logger = LoggerFactory.getLogger(AssociationBinding.class);
 	
@@ -26,7 +26,7 @@ public class AssociationBinding extends AbstractFieldBinding {
 		super(prefixMap, parent);
 	}
 	
-	public void persist(Topic topic, Object topicObject){
+	public void persist(Topic topic, Object topicObject) throws BadAnnotationException{
 
 		logger.info("Persist association field.");
 		
@@ -51,44 +51,58 @@ public class AssociationBinding extends AbstractFieldBinding {
 		if((Boolean)this.getValue(topicObject)){
 			
 			Association ass = topic.getTopicMap().createAssociation(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(associationType)), getScope(topic.getTopicMap()));
-			
 			ass.createRole(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(playedRole)), topic);
 			
 		}
 	}
 	
-	private void createBinaryAssociation(Topic topic, Object topicObject){
+	@SuppressWarnings("unchecked")
+	private void createBinaryAssociation(Topic topic, Object topicObject) throws BadAnnotationException{
 		
 		logger.info("Create binary association " + this.associationType);
 		
+		if(this.getValue(topicObject) == null)
+			return;
 		
 		if(this.isArray()){
-//			for (Object obj:(Object[])this.getValue(topicObject))
-//				createName(topic, obj.toString());
+			
+			for (Object obj:(Object[])this.getValue(topicObject))
+				createBinaryAssociation(topic, topicObject, obj);
 			
 		}else if(this.isCollection()){
 				
-//			for (Object obj:(Collection<Object>)this.getValue(topicObject))
-//				createName(topic, obj.toString());
+			for (Object obj:(Collection<Object>)this.getValue(topicObject))
+				createBinaryAssociation(topic, topicObject, obj);
 
 		}else{ 
-
-//			if(this.getValue(topicObject) != null)
-//				createName(topic, this.getValue(topicObject).toString());
-			
+			createBinaryAssociation(topic, topicObject, this.getValue(topicObject));
 		}
+	}
+	
+	private void createBinaryAssociation(Topic topic, Object topicObject, Object otherTopicObject) throws BadAnnotationException{
 		
+		// create other player
+		Topic otherTopic = otherPlayer.persist(topic.getTopicMap(), otherTopicObject);
+		
+		Association ass = topic.getTopicMap().createAssociation(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(associationType)), getScope(topic.getTopicMap()));
+
+		ass.createRole(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(this.playedRole)), topic);
+		ass.createRole(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(this.otherRole)), otherTopic);
 		
 	}
 	
-	private void createNnaryAssociation(Topic topic, Object topicObject){
+	private void createNnaryAssociation(Topic topic, Object topicObject) throws BadAnnotationException{
 		
 		logger.info("Create Nnary association " + this.associationType);
 
+		if(this.getValue(topicObject) == null)
+			return;
+		
+		associationContainer.persist(topic.getTopicMap(), this.getValue(topicObject), this);
+		
 	}
 	
-	
-	
+
 	public String getAssociationType() {
 		return associationType;
 	}

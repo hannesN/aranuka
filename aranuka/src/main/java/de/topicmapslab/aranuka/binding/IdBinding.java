@@ -11,7 +11,7 @@ import de.topicmapslab.aranuka.annotations.IDTYPE;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
-public class IdBinding extends AbstractFieldBinding {
+public class IdBinding extends AbstractTopicFieldBinding {
 
 	private static Logger logger = LoggerFactory.getLogger(TopicBinding.class);
 	
@@ -23,6 +23,9 @@ public class IdBinding extends AbstractFieldBinding {
 
 	@SuppressWarnings("unchecked")
 	public void persist(Topic topic, Object topicObject) throws BadAnnotationException{
+		
+		if(this.getValue(topicObject) == null)
+			return;
 		
 		String baseLocator = TopicMapsUtils.resolveURI("base_locator:", getPrefixMap()) + topicObject.getClass().getName().replaceAll("\\.", "/") + "/";
 						
@@ -39,8 +42,7 @@ public class IdBinding extends AbstractFieldBinding {
 				addIdentifier(topic, obj, baseLocator);
 
 		else 
-			if(this.getValue(topicObject) != null)
-				addIdentifier(topic, this.getValue(topicObject), baseLocator);
+			addIdentifier(topic, this.getValue(topicObject), baseLocator);
 	}
 	
 	private void addIdentifier(Topic topic, Object obj, String baseLocator) throws BadAnnotationException{

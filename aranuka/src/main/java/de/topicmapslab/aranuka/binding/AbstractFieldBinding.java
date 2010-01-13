@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
 
-import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 public abstract class AbstractFieldBinding {
@@ -40,8 +39,7 @@ public abstract class AbstractFieldBinding {
 		this.parent = parent;
 	}
 	
-	// abstract persist method
-	public abstract void persist(Topic topic, Object object) throws BadAnnotationException; 
+	
 	
 	public void setGetter(Method getter) {
 		this.getter = getter;

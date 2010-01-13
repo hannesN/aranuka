@@ -2,7 +2,14 @@ package de.topicmapslab.aranuka.binding;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.tmapi.core.Association;
+import org.tmapi.core.TopicMap;
+
+import de.topicmapslab.aranuka.exception.BadAnnotationException;
 
 public class AssociationContainerBinding extends AbstractBinding {
 
@@ -10,10 +17,62 @@ public class AssociationContainerBinding extends AbstractBinding {
 	
 	private List<RoleBinding> roles;
 	
+	private Map<Object, Association> associationObjects;
 	
-//	public AssociationContainerBinding(String baseLocator) {
-//		super(baseLocator);
-//	}
+	
+	public Association persist(TopicMap topicMap, Object associationContainerObject, AssociationBinding associationBinding) throws BadAnnotationException{
+		
+		// look in cache
+		Association ass = getAssociation(associationContainerObject);
+		
+		if(ass == null){
+			
+			ass = persist(topicMap, associationContainerObject, associationBinding, this);
+			
+		}else{
+			
+			/// TODO update association
+			
+		}
+		
+		return  ass;
+	}
+	
+	private Association persist(TopicMap topicMap, Object associationContainerObject, AssociationBinding associationBinding, AssociationContainerBinding associationContainerBinding) throws BadAnnotationException{
+		
+		Association newAssociation;
+		
+		if(associationContainerBinding.parent != null)
+			newAssociation = persist(topicMap, associationContainerObject, associationBinding, associationContainerBinding.parent);
+		else newAssociation = topicMap.createAssociation(topicMap.createTopicBySubjectIdentifier(topicMap.createLocator(associationBinding.getAssociationType())),associationBinding.getScope(topicMap));
+		
+		// store in cache
+		addAssociation(associationContainerObject, newAssociation);
+		
+		// create roles
+		for(RoleBinding role:roles)
+			role.persist(newAssociation, associationContainerObject);
+				
+		return newAssociation;
+	}
+	
+	private void addAssociation(Object object, Association association){
+		
+		if(associationObjects == null)
+			associationObjects = new HashMap<Object, Association>();
+		
+		associationObjects.put(object, association);
+		
+	}
+	
+	private Association getAssociation(Object object){
+		
+		if(associationObjects == null)
+			return null;
+		
+		return associationObjects.get(object);
+	}
+	
 	
 	public void setParent(AssociationContainerBinding parent) {
 		this.parent = parent;

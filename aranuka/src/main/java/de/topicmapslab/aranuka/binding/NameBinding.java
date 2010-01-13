@@ -9,7 +9,7 @@ import org.tmapi.core.Name;
 import org.tmapi.core.Topic;
 
 
-public class NameBinding extends AbstractFieldBinding {
+public class NameBinding extends AbstractTopicFieldBinding {
 
 	private static Logger logger = LoggerFactory.getLogger(NameBinding.class);
 	
@@ -23,6 +23,9 @@ public class NameBinding extends AbstractFieldBinding {
 	@SuppressWarnings("unchecked")
 	public void persist(Topic topic, Object topicObject){
 		
+		if(this.getValue(topicObject) == null)
+			return;
+		
 		if(this.isArray())
 			
 			for (Object obj:(Object[])this.getValue(topicObject))
@@ -34,9 +37,7 @@ public class NameBinding extends AbstractFieldBinding {
 				createName(topic, obj.toString());
 
 		else 
-
-			if(this.getValue(topicObject) != null)
-				createName(topic, this.getValue(topicObject).toString());
+			createName(topic, this.getValue(topicObject).toString());
 	}
 	
 	private void createName(Topic topic, String name){

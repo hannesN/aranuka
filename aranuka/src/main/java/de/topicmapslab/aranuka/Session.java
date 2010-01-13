@@ -682,6 +682,13 @@ public class Session {
 		
 		rb.setRoleType(TopicMapsUtils.resolveURI(roleType, config.getPrefixMap()));
 		
+		Class<?> playerType = ReflectionUtil.getGenericType(field);
+		
+		if(!isTopicAnnotated(playerType))
+			throw new BadAnnotationException("@Role annotated field in association container have to be an @Topic annotated class.");
+		
+		rb.setPlayerBinding(getTopicBinding(playerType)); 
+		
 		// add role to association container binding
 		associationContainerBinding.addRoleBinding(rb);
 		
