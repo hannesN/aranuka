@@ -366,7 +366,7 @@ public class Session {
 			if(ib.getIdtype() == type)
 				throw new BadAnnotationException("Only one id per type allowed for each class.");
 				
-		IdBinding ib = new IdBinding(topicBinding);
+		IdBinding ib = new IdBinding(config.getPrefixMap(), topicBinding);
 		
 		ib.setIdtype(type);
 		
@@ -399,7 +399,7 @@ public class Session {
 	 */
 	private void createNameBinding(TopicBinding topicBinding, Field field, Class<?> clazz, Name nameAnnotation) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
 		
-		NameBinding nb = new NameBinding(topicBinding);
+		NameBinding nb = new NameBinding(config.getPrefixMap(), topicBinding);
 		
 		String nameType = null;
 		
@@ -442,7 +442,7 @@ public class Session {
 	 */
 	private void createOccurrenceBinding(TopicBinding topicBinding, Field field, Class<?> clazz, Occurrence occurrenceAnnotation) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
 		
-		OccurrenceBinding ob = new OccurrenceBinding(topicBinding);
+		OccurrenceBinding ob = new OccurrenceBinding(config.getPrefixMap(), topicBinding);
 		
 		String occurrenceType = null;
 		
@@ -527,7 +527,7 @@ public class Session {
 		if(playedRole == "")
 			throw new BadAnnotationException("Unary association " + field.getName() + " needs an played_role attribute!");
 		
-		AssociationBinding ab = new AssociationBinding(topicBinding);
+		AssociationBinding ab = new AssociationBinding(config.getPrefixMap(), topicBinding);
 		
 		ab.setAssociationType(TopicMapsUtils.resolveURI(associationType, config.getPrefixMap()));
 		ab.setPlayedRole(TopicMapsUtils.resolveURI(playedRole, config.getPrefixMap()));
@@ -590,7 +590,7 @@ public class Session {
 			throw new BadAnnotationException("Counter player of binary association " + field.getName() + " needs to be an annotated topic class.");
 			
 		
-		AssociationBinding ab = new AssociationBinding(topicBinding);
+		AssociationBinding ab = new AssociationBinding(config.getPrefixMap(), topicBinding);
 		
 		ab.setAssociationType(TopicMapsUtils.resolveURI(associationType, config.getPrefixMap()));
 		ab.setPlayedRole(TopicMapsUtils.resolveURI(playedRole, config.getPrefixMap()));
@@ -633,7 +633,7 @@ public class Session {
 		Class<?> container = ReflectionUtil.getGenericType(field);
 		AssociationContainerBinding containerBinding = getAssociationContainerBinding(container);
 		
-		AssociationBinding ab = new AssociationBinding(topicBinding);
+		AssociationBinding ab = new AssociationBinding(config.getPrefixMap(), topicBinding);
 		
 		ab.setAssociationType(TopicMapsUtils.resolveURI(associationType, config.getPrefixMap()));
 		ab.setAssociationContainer(containerBinding);
@@ -665,7 +665,7 @@ public class Session {
 	 */
 	private void createRoleBinding(AssociationContainerBinding associationContainerBinding, Field field, Class<?> clazz,  Role roleAnnotation) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
 		
-		RoleBinding rb = new RoleBinding(associationContainerBinding);
+		RoleBinding rb = new RoleBinding(config.getPrefixMap(), associationContainerBinding);
 		
 		String roleType = null;
 		
@@ -908,7 +908,7 @@ public class Session {
 		if(topicBinding == null)
 			throw new BadAnnotationException("Object cannot be persisted.");
 		
-		topicBinding.persist(getTopicMap(), topicObject, config.getPrefixMap());
+		topicBinding.persist(getTopicMap(), topicObject);
 		
 	}
 	

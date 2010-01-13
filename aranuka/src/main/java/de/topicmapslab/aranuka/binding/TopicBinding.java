@@ -54,7 +54,7 @@ public class TopicBinding extends AbstractBinding{
 	private Map<Object, Topic> topicObjects; // the instances
 	Topic topic; // the topic type represented by this binding
 	
-	public void persist(TopicMap topicMap, Object topicObject, Map<String,String> prefixMap) throws BadAnnotationException{
+	public void persist(TopicMap topicMap, Object topicObject) throws BadAnnotationException{
 		
 		logger.info("Persist " + topicObject.toString());
 		
@@ -66,7 +66,7 @@ public class TopicBinding extends AbstractBinding{
 
 		// create new topic if not exist
 		if(topic == null){
-			topic = persist(topicMap, topicObject, this, prefixMap);
+			topic = persist(topicMap, topicObject, this);
 				
 		}else{
 			
@@ -75,12 +75,12 @@ public class TopicBinding extends AbstractBinding{
 		}
 	}
 	
-	private Topic persist(TopicMap topicMap, Object topicObject, TopicBinding topicBinding, Map<String,String> prefixMap) throws BadAnnotationException{
+	private Topic persist(TopicMap topicMap, Object topicObject, TopicBinding topicBinding) throws BadAnnotationException{
 		
 		Topic newTopic;
 		
 		if(topicBinding.parent != null)
-			newTopic = persist(topicMap, topicObject, topicBinding.parent, prefixMap);
+			newTopic = persist(topicMap, topicObject, topicBinding.parent);
 		else newTopic = topicMap.createTopic();
 		
 		// add type
@@ -88,20 +88,20 @@ public class TopicBinding extends AbstractBinding{
 		
 		// persist fields
 		logger.info("Persist " + fieldBindings.size() + " fields.");
-		persistFields(newTopic, topicObject, this, prefixMap);
+		persistFields(newTopic, topicObject, this);
 
 		return newTopic;
 	}
 	
-	private void persistFields(Topic topic, Object topicObject, TopicBinding binding, Map<String,String> prefixMap) throws BadAnnotationException{
+	private void persistFields(Topic topic, Object topicObject, TopicBinding binding) throws BadAnnotationException{
 		
 		// persist parent fields
 		if(binding.parent != null)
-			persistFields(topic, topicObject, binding.parent, prefixMap);
+			persistFields(topic, topicObject, binding.parent);
 		
 		// persist own fields
 		for(AbstractFieldBinding fb:binding.fieldBindings)
-			fb.persist(topic, topicObject, prefixMap);
+			fb.persist(topic, topicObject);
 	}
 	
 	

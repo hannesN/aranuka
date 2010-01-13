@@ -17,13 +17,14 @@ public class IdBinding extends AbstractFieldBinding {
 	
 	private IDTYPE idtype;
 	
-	public IdBinding(TopicBinding parent) {
-		super(parent);
+	public IdBinding(Map<String,String> prefixMap, TopicBinding parent) {
+		super(prefixMap, parent);
 	}
 
-	public void persist(Topic topic, Object topicObject, Map<String,String> prefixMap) throws BadAnnotationException{
+	@SuppressWarnings("unchecked")
+	public void persist(Topic topic, Object topicObject) throws BadAnnotationException{
 		
-		String baseLocator = TopicMapsUtils.resolveURI("base_locator:", prefixMap) + topicObject.getClass().getName().replaceAll("\\.", "/") + "/";
+		String baseLocator = TopicMapsUtils.resolveURI("base_locator:", getPrefixMap()) + topicObject.getClass().getName().replaceAll("\\.", "/") + "/";
 						
 		// create identifier dependent of field type
 		
@@ -50,7 +51,7 @@ public class IdBinding extends AbstractFieldBinding {
 		else
 			locator = baseLocator + obj.toString();
 
-		logger.info("Create identifier " + locator);
+		logger.info("Add identifier " + locator);
 		
 		if(this.getIdtype() == IDTYPE.ITEM_IDENTIFIER)
 			topic.addItemIdentifier(topic.getTopicMap().createLocator(locator));

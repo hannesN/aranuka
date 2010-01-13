@@ -15,11 +15,11 @@ public class AssociationBinding extends AbstractFieldBinding {
 	private TopicBinding otherPlayer;
 	private AssociationContainerBinding associationContainer;
 	
-	public AssociationBinding(AbstractBinding parent) {
-		super(parent);
+	public AssociationBinding(Map<String,String> prefixMap, AbstractBinding parent) {
+		super(prefixMap, parent);
 	}
 	
-	public void persist(Topic topic, Object topicObject, Map<String,String> prefixMap){
+	public void persist(Topic topic, Object topicObject){
 		
 	}
 	

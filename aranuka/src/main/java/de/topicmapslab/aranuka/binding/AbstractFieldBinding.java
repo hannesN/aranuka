@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,14 +29,19 @@ public abstract class AbstractFieldBinding {
 	private boolean isArray; 
 	private boolean isCollection;
 	
-	private List<String> themes;
+	private List<String> themes; // scope
 	
-	public AbstractFieldBinding(AbstractBinding parent) {
+	private Map<String,String> prefixMap;
+	
+	public AbstractFieldBinding(Map<String,String> prefixMap, AbstractBinding parent) {
+		this.prefixMap = prefixMap;
+		if(this.prefixMap == null)
+			this.prefixMap = new HashMap<String, String>(); // create empty map to avoid exception, but should never be empty
 		this.parent = parent;
 	}
 	
 	// abstract persist method
-	public abstract void persist(Topic topic, Object object, Map<String,String> prefixMap) throws BadAnnotationException; 
+	public abstract void persist(Topic topic, Object object) throws BadAnnotationException; 
 	
 	public void setGetter(Method getter) {
 		this.getter = getter;
@@ -115,7 +121,7 @@ public abstract class AbstractFieldBinding {
 		this.themes = themes;
 	}
 	
-	public Collection<Topic> getScope(TopicMap topicMap, Map<String, String> prefixMap){
+	public Collection<Topic> getScope(TopicMap topicMap){
 		
 		if(this.themes == null)
 			return Collections.emptyList();
@@ -124,10 +130,14 @@ public abstract class AbstractFieldBinding {
 		
 		for(String theme:themes)
 		{
-			scope.add(topicMap.createTopicBySubjectIdentifier(topicMap.createLocator(TopicMapsUtils.resolveURI(theme, prefixMap))));
+			scope.add(topicMap.createTopicBySubjectIdentifier(topicMap.createLocator(TopicMapsUtils.resolveURI(theme, this.prefixMap))));
 		}
 		
 		return scope;
+	}
+
+	public Map<String, String> getPrefixMap() {
+		return prefixMap;
 	}
 
 	@Override
