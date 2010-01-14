@@ -24,6 +24,8 @@ public class IdBinding extends AbstractTopicFieldBinding {
 	@SuppressWarnings("unchecked")
 	public void persist(Topic topic, Object topicObject) throws BadAnnotationException{
 		
+		// TODO how to cache identifier?
+		
 		if(this.getValue(topicObject) == null)
 			return;
 		

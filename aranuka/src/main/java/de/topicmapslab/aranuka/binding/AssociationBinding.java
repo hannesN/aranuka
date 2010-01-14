@@ -1,7 +1,10 @@
 package de.topicmapslab.aranuka.binding;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,13 +25,102 @@ public class AssociationBinding extends AbstractTopicFieldBinding {
 	private TopicBinding otherPlayer;
 	private AssociationContainerBinding associationContainer;
 	
+	private Map<AssociationIdent, Association> cache;
+	
+	private class AssociationIdent{
+		
+		Topic topic;
+		Object associationObject; // either null(uniary), the counter object(binary) or the association container(nnary)
+		boolean changed;
+		
+	}
+	
+	
+	private void addAssociationToCache(Topic topic, Object associationObject, Association association){ 
+		
+		AssociationIdent a = new AssociationIdent();
+		a.topic = topic;
+		a.associationObject = associationObject;
+		a.changed = true;
+		
+		if(this.cache == null)
+			this.cache = new HashMap<AssociationIdent, Association>();
+		
+		this.cache.put(a, association);
+	}
+	
+	private void setChanged(Association association)
+	{
+		if(this.cache == null)
+			return;
+		
+		for(Map.Entry<AssociationIdent, Association> entry:cache.entrySet()){
+			
+			if(entry.getValue().equals(association))
+				entry.getKey().changed = true;
+		}
+	}
+	
+	private void unsetChanded(){
+		
+		if(this.cache == null)
+			return;
+		
+		for(Map.Entry<AssociationIdent, Association> entry:cache.entrySet())
+			entry.getKey().changed = false;
+		
+	}
+	
+	private Association getAssociationFromCache(Object associationObject, Topic topic){
+		
+		if(this.cache == null)
+			return null;
+		
+		for(Map.Entry<AssociationIdent, Association> entry:cache.entrySet()){
+			
+			if(entry.getKey().associationObject == associationObject && entry.getKey().topic.equals(topic)){
+				return entry.getValue();								
+			}
+		}
+		
+		return null;
+	}
+	
+	private void removeObsoleteAssociations(Topic topic){
+		
+		if(this.cache == null)
+			return;
+		
+		Set<AssociationIdent> obsoleteEntries = new HashSet<AssociationIdent>();
+		
+		for(Map.Entry<AssociationIdent, Association> entry:this.cache.entrySet()){
+			
+			if(entry.getKey().topic.equals(topic) && entry.getKey().changed == false){
+				
+				logger.info("Remove obsolte association.");
+				
+				entry.getValue().remove();
+				
+				obsoleteEntries.add(entry.getKey());
+			}
+		}
+
+		for(AssociationIdent a:obsoleteEntries)
+			this.cache.remove(a);
+		
+		// set flags back to false
+		unsetChanded();
+	}
+	
+	
+	
 	public AssociationBinding(Map<String,String> prefixMap, AbstractBinding parent) {
 		super(prefixMap, parent);
 	}
 	
 	public void persist(Topic topic, Object topicObject) throws BadAnnotationException{
 
-		logger.info("Persist association field.");
+		//logger.info("Persist association field.");
 		
 		if(this.kind == ASSOCIATIONKIND.UNARY)
 			createUnaryAssociation(topic, topicObject);
@@ -40,18 +132,32 @@ public class AssociationBinding extends AbstractTopicFieldBinding {
 			createNnaryAssociation(topic, topicObject);
 		else
 			throw new RuntimeException("Association type not set!");
+	
+		
+		// remove obsolete associations
+		removeObsoleteAssociations(topic);
 		
 	}
 	
 
 	private void createUnaryAssociation(Topic topic, Object topicObject){
 		
-		logger.info("Create unary association " + this.associationType);
-		
 		if((Boolean)this.getValue(topicObject)){
 			
-			Association ass = topic.getTopicMap().createAssociation(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(associationType)), getScope(topic.getTopicMap()));
-			ass.createRole(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(playedRole)), topic);
+			Association ass = getAssociationFromCache(null, topic);
+			
+			if(ass == null)
+			{
+				logger.info("Create unary association " + this.associationType);
+				ass = topic.getTopicMap().createAssociation(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(associationType)), getScope(topic.getTopicMap()));
+				ass.createRole(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(playedRole)), topic);
+				
+				// add association to cache
+				addAssociationToCache(topic, null, ass);
+				
+			}else logger.info("Unary association already exist.");
+			
+			setChanged(ass);
 			
 		}
 	}
@@ -59,7 +165,7 @@ public class AssociationBinding extends AbstractTopicFieldBinding {
 	@SuppressWarnings("unchecked")
 	private void createBinaryAssociation(Topic topic, Object topicObject) throws BadAnnotationException{
 		
-		logger.info("Create binary association " + this.associationType);
+		//logger.info("Create binary association " + this.associationType);
 		
 		if(this.getValue(topicObject) == null)
 			return;
@@ -81,25 +187,54 @@ public class AssociationBinding extends AbstractTopicFieldBinding {
 	
 	private void createBinaryAssociation(Topic topic, Object topicObject, Object otherTopicObject) throws BadAnnotationException{
 		
-		// create other player
-		Topic otherTopic = otherPlayer.persist(topic.getTopicMap(), otherTopicObject);
+		Association ass = getAssociationFromCache(otherTopicObject, topic);
 		
-		Association ass = topic.getTopicMap().createAssociation(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(associationType)), getScope(topic.getTopicMap()));
+		if(ass == null)
+		{
+			logger.info("Create new binary association.");
+			
+			// create other player
+			Topic otherTopic = otherPlayer.persist(topic.getTopicMap(), otherTopicObject);
+			ass = topic.getTopicMap().createAssociation(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(associationType)), getScope(topic.getTopicMap()));
+			
+			ass.createRole(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(this.playedRole)), topic);
+			ass.createRole(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(this.otherRole)), otherTopic);
 
-		ass.createRole(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(this.playedRole)), topic);
-		ass.createRole(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(this.otherRole)), otherTopic);
+			// add association to cache
+			addAssociationToCache(topic, otherTopicObject, ass);
+			
+			
+		}else logger.info("Binary association already exist.");
+
+		setChanged(ass);
 		
 	}
 	
 	private void createNnaryAssociation(Topic topic, Object topicObject) throws BadAnnotationException{
 		
-		logger.info("Create Nnary association " + this.associationType);
-
 		if(this.getValue(topicObject) == null)
 			return;
 		
-		associationContainer.persist(topic.getTopicMap(), this.getValue(topicObject), this);
+		Association ass = getAssociationFromCache(this.getValue(topicObject), topic);
+
+		if(ass == null)
+		{
+			logger.info("Create new nnary association " + this.associationType);
+			
+			ass = associationContainer.persist(topic.getTopicMap(), this.getValue(topicObject), this);
+			
+			// add association to cache
+			addAssociationToCache(topic, this.getValue(topicObject), ass);
+			
+		}else{
+			
+			logger.info("Nnary association already exist.");
+			
+			// invoke update of container
+			ass = associationContainer.persist(topic.getTopicMap(), this.getValue(topicObject), this);
+		}
 		
+		setChanged(ass);
 	}
 	
 
