@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tmapi.core.Association;
 import org.tmapi.core.TopicMap;
 
@@ -13,10 +15,10 @@ import de.topicmapslab.aranuka.exception.BadAnnotationException;
 
 public class AssociationContainerBinding extends AbstractBinding {
 
+	private static Logger logger = LoggerFactory.getLogger(AssociationContainerBinding.class);
+	
 	private AssociationContainerBinding parent; // supertype
-	
 	private List<RoleBinding> roles;
-	
 	private Map<Object, Association> associationObjects;
 	
 	
@@ -27,15 +29,27 @@ public class AssociationContainerBinding extends AbstractBinding {
 		
 		if(ass == null){
 			
+			logger.info("Create new association container association.");
 			ass = persist(topicMap, associationContainerObject, associationBinding, this);
 			
 		}else{
 			
-			/// TODO update association
-			
+			logger.info("Update existing association container association.");
+			updateAssociation(ass, associationContainerObject);
 		}
 		
 		return  ass;
+	}
+	
+	private void updateAssociation(Association association, Object associationContainerObject) throws BadAnnotationException{
+		
+		if(this.parent != null)
+			createRoles(association, associationContainerObject, this.parent);
+		
+		createRoles(association, associationContainerObject, this);
+		
+			
+		
 	}
 	
 	private Association persist(TopicMap topicMap, Object associationContainerObject, AssociationBinding associationBinding, AssociationContainerBinding associationContainerBinding) throws BadAnnotationException{
@@ -50,10 +64,17 @@ public class AssociationContainerBinding extends AbstractBinding {
 		addAssociation(associationContainerObject, newAssociation);
 		
 		// create roles
-		for(RoleBinding role:roles)
-			role.persist(newAssociation, associationContainerObject);
+		createRoles(newAssociation, associationContainerObject, associationContainerBinding);
+		
 				
 		return newAssociation;
+	}
+	
+	private void createRoles(Association association, Object associationContainerObject, AssociationContainerBinding associationContainerBinding) throws BadAnnotationException{
+		
+		for(RoleBinding role:associationContainerBinding.roles)
+			role.persist(association, associationContainerObject);
+		
 	}
 	
 	private void addAssociation(Object object, Association association){

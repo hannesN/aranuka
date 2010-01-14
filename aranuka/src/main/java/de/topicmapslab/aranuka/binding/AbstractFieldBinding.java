@@ -38,9 +38,7 @@ public abstract class AbstractFieldBinding {
 			this.prefixMap = new HashMap<String, String>(); // create empty map to avoid exception, but should never be empty
 		this.parent = parent;
 	}
-	
-	
-	
+
 	public void setGetter(Method getter) {
 		this.getter = getter;
 	}

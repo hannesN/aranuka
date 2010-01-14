@@ -960,7 +960,7 @@ public class Session {
 	}
 	
 
-	public String getXSDDatatype(Type type) {
+	private String getXSDDatatype(Type type) {
 		
 		if (type.equals(Boolean.class))
 			return IXsdDatatypes.XSD_BOOLEAN;
@@ -972,6 +972,29 @@ public class Session {
 			return IXsdDatatypes.XSD_DATE;
 				
 		return IXsdDatatypes.XSD_STRING;
+	}
+	
+	
+	public void getAll(Class<?> clazz){ //	returns all instances of the class in the topic map
+		
+	}
+	
+	public void getBySubjectIdentifier(String si){ //	returns instacne of topic with si as subject identifier
+		
+	}
+	public void getBySubjectLocator(String sl){ //	returns instacne of topic with si as subject locator
+		
+	}
+	public void getByItemIdentifier(String si){ //	returns instacne of topic with si as item identifier
+		
+	}
+	
+	public void remove(Object object){ //	removes instance from the topic map
+		
+	}
+	
+	public void count(Class<?> clazz){ 
+		
 	}
 	
 }

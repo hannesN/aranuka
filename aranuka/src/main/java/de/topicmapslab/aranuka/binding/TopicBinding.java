@@ -44,8 +44,6 @@ public class TopicBinding extends AbstractBinding{
 		this.fieldBindings.add(fieldBinding);
 	}
 
-	
-	
 	public Topic persist(TopicMap topicMap, Object topicObject) throws BadAnnotationException{
 		
 		logger.info("Persist " + topicObject.toString());
@@ -60,7 +58,7 @@ public class TopicBinding extends AbstractBinding{
 		}else{
 			
 			// update existing topic
-			/// TODO
+			updateTopic(topic, topicObject, this);
 		}
 		
 		return topic;
@@ -85,6 +83,17 @@ public class TopicBinding extends AbstractBinding{
 		persistFields(newTopic, topicObject, this);
 
 		return newTopic;
+	}
+	
+	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding) throws BadAnnotationException{
+		
+		if(binding.parent != null)
+			updateTopic(topic, topicObject, binding.parent);
+		
+		// persist fields
+		for(AbstractTopicFieldBinding fb:binding.fieldBindings)
+			fb.persist(topic, topicObject);
+		
 	}
 	
 	private void persistFields(Topic topic, Object topicObject, TopicBinding binding) throws BadAnnotationException{
