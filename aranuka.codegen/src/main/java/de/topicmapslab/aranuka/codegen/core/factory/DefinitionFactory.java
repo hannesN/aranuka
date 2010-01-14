@@ -1,6 +1,6 @@
 package de.topicmapslab.aranuka.codegen.core.factory;
 
-import gnu.trove.THashSet;
+import gnu.trove.THashSet; 
 
 import java.util.HashSet;
 import java.util.Set;
@@ -32,6 +32,7 @@ import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.NAME_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.OCCURRENCE_DATATYPE_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ROLE_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBJECT_IDENTIFIER_CONSTRAINT;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBJECT_LOCATOR_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBTYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUPERTYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUPERTYPE_SUBTYPE;
@@ -88,7 +89,7 @@ public class DefinitionFactory {
 	// private Topic constraint; // -- not needed is super type
 //	private Topic abstractConstraint;
 	private Topic subjectIdentifierConstraint;
-//	private Topic subjectLocatorConstraint;
+	private Topic subjectLocatorConstraint;
 	private Topic topicNameConstraint;
 	private Topic topicOccurrenceConstraint;
 	private Topic topicRoleConstraint;
@@ -176,7 +177,7 @@ public class DefinitionFactory {
 
 //		abstractConstraint = createStandardTopic(ABSTRACT_CONSTRAINT);
 		subjectIdentifierConstraint = createStandardTopic(SUBJECT_IDENTIFIER_CONSTRAINT);
-//		subjectLocatorConstraint = createStandardTopic(SUBJECT_LOCATOR_CONSTRAINT);
+		subjectLocatorConstraint = createStandardTopic(SUBJECT_LOCATOR_CONSTRAINT);
 		topicNameConstraint = createStandardTopic(TOPIC_NAME_CONSTRAINT);
 		topicOccurrenceConstraint = createStandardTopic(TOPIC_OCCURRENCE_CONSTRAINT);
 		topicRoleConstraint = createStandardTopic(TOPIC_ROLE_CONSTRAINT);
@@ -279,18 +280,20 @@ public class DefinitionFactory {
 
 			String typeName;
 			String member;
-
+			String typeId;
 			if (nameType.equals(this.nameType)) {
 				typeName = "Name";
+				typeId = "aranuka:Name";
 				member = "name";
 			} else {
-				typeName = getTypeName(nameType);
+				typeId = TypeUtility.getLocator(nameType).toExternalForm();
+				typeName = TypeUtility.getJavaName(nameType);
 				member = Character.toLowerCase(typeName.charAt(0))
 						+ typeName.substring(1);
 			}
 
 			NameAnnotationDefinition nad = new NameAnnotationDefinition(
-					typeName, member);
+					typeId, member);
 			nad.setMany(isMany(ntc));
 			nadSet.add(nad);
 		}
@@ -314,12 +317,15 @@ public class DefinitionFactory {
 
 			// get type and member
 			String typeName;
+			String typeId;
 			String member;
 
 			if (occType.equals(this.subject)) {
 				typeName = "Object";
 				member = "object";
+				typeId = "aranuka:occurrence"; 
 			} else {
+				typeId = TypeUtility.getLocator(occType).toExternalForm();
 				typeName = getTypeName(occType);
 				member = Character.toLowerCase(typeName.charAt(0))
 						+ typeName.substring(1);
@@ -327,8 +333,8 @@ public class DefinitionFactory {
 
 			// get datatype
 			String datatype = "xsd:string";
-			for (Role role : occType.getRolesPlayed(constraintStatement,
-					constrained)) {
+			for (Role role : occType.getRolesPlayed(
+					constrained,constraintStatement)) {
 				for (Role r : role.getParent().getRoles(constrains)) {
 					Topic player = r.getPlayer();
 					if (player.getTypes()
@@ -341,8 +347,7 @@ public class DefinitionFactory {
 			}
 
 			Class<?> clazz = TypeUtility.toJavaType(datatype);
-			OccurrenceAnnotationDefinition oad = new OccurrenceAnnotationDefinition(
-					typeName, member, clazz);
+			OccurrenceAnnotationDefinition oad = new OccurrenceAnnotationDefinition(typeId, member, clazz);
 			oad.setMany(isMany(otc));
 			oadSet.add(oad);
 		}
@@ -360,7 +365,7 @@ public class DefinitionFactory {
 			IDTYPE type;
 			if (ic.getTypes().contains(subjectIdentifierConstraint)) {
 				type = IDTYPE.SUBJECT_IDENTIFIER;
-			} else if (ic.getTypes().contains(subjectIdentifierConstraint)) {
+			} else if (ic.getTypes().contains(subjectLocatorConstraint)) {
 				type = IDTYPE.SUBJECT_LOCATOR;
 			} else {
 				continue;

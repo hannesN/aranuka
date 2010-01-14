@@ -7,17 +7,17 @@ package de.topicmapslab.aranuka.codegen.core.definition;
  */
 public interface IFieldDefinition {
 
-	public abstract String getFieldName();
+	public String getFieldName();
 
-	public abstract String getFieldType();
+	public Class<?> getFieldType();
 
 	public String getMethodName();
 
-	public abstract String getAnnotation();
+	public String getAnnotation();
 
-	public abstract String getAnnotationAttributes();
+	public String getAnnotationAttributes();
 
-	public abstract String getPredefinition();
+	public String getPredefinition();
 
 	public boolean doesFieldTypeExtendsCollection();
 

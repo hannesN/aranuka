@@ -37,16 +37,30 @@ test:name isa tmcl:name-type;
 
 test:firstname isa tmcl:name-type;
     - "Firstname".
+
+test:middlename isa tmcl:name-type;
+    - "Middle Name".
     
 test:lastname isa tmcl:name-type;
     - "Lastname".
 
 #-- TT: <http://psi.topicmaps.org/tmcl/occurrence-type>
 
-test:secrent_content isa tmcl:occurrence-type;
-    - "Secrent Content";
+test:secret_content isa tmcl:occurrence-type;
+    - "Secret Content";
     has-datatype("xsd:string").
 
+test:creation_date isa tmcl:occurrence-type;
+    - "Creation Date";
+    has-datatype("xsd:date").
+
+test:rating isa tmcl:occurrence-type;
+    - "Rating";
+    has-datatype("xsd:int").
+    
+test:age isa tmcl:occurrence-type;
+    - "Age";
+    has-datatype("xsd:int").
 
 #-- TT: <http://psi.topicmaps.org/tmcl/role-type>
 
@@ -58,16 +72,21 @@ test:secret isa tmcl:role-type;
 
 test:document isa tmcl:topic-type;
     - "Document";
-    has-subject-identifier(1, 1, "secret:.*");
+    has-subject-locator(1, 1, "secret:.*");
     plays-role(test:secret, test:secure, 1, 1);
-    has-occurrence(test:secret_content, 1, 1);
+    has-occurrence(test:secret_content, 1, "*"^^<ctm:integer>);
+    has-occurrence(test:rating, 0, "*"^^<ctm:integer>);
+    has-occurrence(test:creation_date, 1, 1);
     has-name(test:name, 0, "*"^^<ctm:integer>).
 
 test:author isa tmcl:topic-type;
 	- "Author";
 	has-subject-identifier(1, "*"^^<ctm:integer>, "secret:.*");
-	has-name(test:firstname, 0, "*"^^<ctm:integer>);
-	has-name(test:lastname, 0, "*"^^<ctm:integer>).
+	has-name(test:firstname, 1, 1);
+	has-name(test:middlename, 0, "*"^^<ctm:integer>);
+	has-name(test:lastname, 1, 1);
+	has-occurrence(test:age, 1, 1).
+	
 	
 
 

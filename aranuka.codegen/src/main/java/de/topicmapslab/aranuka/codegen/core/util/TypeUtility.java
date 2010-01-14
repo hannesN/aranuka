@@ -100,6 +100,7 @@ public class TypeUtility {
 	static {
 		xsdToJavaMappings.put("xsd:string", String.class);
 		xsdToJavaMappings.put("xsd:integer", Integer.class);
+		xsdToJavaMappings.put("xsd:int", Integer.class);
 		xsdToJavaMappings.put("xsd:float", Float.class);
 		xsdToJavaMappings.put("xsd:date", Date.class);
 		xsdToJavaMappings.put("xsd:double", Double.class);
@@ -119,6 +120,12 @@ public class TypeUtility {
 		return String.class;
 	}
 
-	
+	public static String field2Method(String fieldName) {
+		StringBuilder b = new StringBuilder();
+		b.append(Character.toUpperCase(fieldName.charAt(0)));
+		b.append(fieldName.substring(1));
+		
+		return b.toString();
+	}
 	
 }

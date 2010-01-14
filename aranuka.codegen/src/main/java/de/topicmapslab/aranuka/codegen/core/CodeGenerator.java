@@ -5,6 +5,11 @@ package de.topicmapslab.aranuka.codegen.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.tmapi.core.TopicMap;
@@ -13,46 +18,65 @@ import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
+import com.sun.codemodel.JVar;
 
+import de.topicmapslab.aranuka.annotations.Association;
+import de.topicmapslab.aranuka.annotations.AssociationContainer;
+import de.topicmapslab.aranuka.annotations.Generated;
+import de.topicmapslab.aranuka.annotations.Id;
+import de.topicmapslab.aranuka.annotations.Name;
+import de.topicmapslab.aranuka.annotations.Occurrence;
+import de.topicmapslab.aranuka.codegen.core.definition.FieldDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.IdAnnotationDefinition;
+import de.topicmapslab.aranuka.codegen.core.definition.NameAnnotationDefinition;
+import de.topicmapslab.aranuka.codegen.core.definition.OccurrenceAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.TopicAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.factory.DefinitionFactory;
 import de.topicmapslab.aranuka.codegen.core.util.TypeUtility;
 
 /**
  * @author Hannes Niederhausen
- *
+ * 
  */
 public class CodeGenerator {
 
 	private JClass topicAnnotation;
 	private JClass nameAnnotation;
 	private JClass associationAnnotation;
+	private JClass generatedAnnotation;
 	private JClass associationContainerAnnotation;
 	private JClass occurrenceAnnotation;
 	private JClass identifierAnnotation;
-	
+
 	private JCodeModel cm;
 	
-	public void generateCode(TopicMap schemaMap, File directory) throws IOException {
-		Set<TopicAnnotationDefinition> annotations = new DefinitionFactory(schemaMap).getTopicAnnotationDefinitions();
-		
+	public void generateCode(TopicMap schemaMap, File directory)
+			throws IOException {
+		Set<TopicAnnotationDefinition> annotations = new DefinitionFactory(
+				schemaMap).getTopicAnnotationDefinitions();
+
 		cm = new JCodeModel();
-		topicAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.Topic.class.getName());
-		nameAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.Name.class.getName());
-		occurrenceAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.Occurrence.class.getName());
-		identifierAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.Id.class.getName());
-		associationAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.Association.class.getName());
-		associationContainerAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.AssociationContainer.class.getName());
-		
-		
+		topicAnnotation = cm
+				.ref(de.topicmapslab.aranuka.annotations.Topic.class.getName());
+		nameAnnotation = cm.ref(Name.class.getName());
+		occurrenceAnnotation = cm.ref(Occurrence.class.getName());
+		identifierAnnotation = cm.ref(Id.class.getName());
+		associationAnnotation = cm.ref(Association.class.getName());
+		associationContainerAnnotation = cm.ref(AssociationContainer.class
+				.getName());
+		generatedAnnotation = cm.ref(Generated.class);
+
 		for (TopicAnnotationDefinition tad : annotations) {
 			createType(tad);
 		}
-		
+
 		cm.build(directory);
 	}
 
@@ -61,28 +85,135 @@ public class CodeGenerator {
 			JDefinedClass type = cm._class(tad.getType());
 			JAnnotationUse use = type.annotate(topicAnnotation);
 			use.param("type", tad.getSubjectIdentifer());
-			
+
 			for (IdAnnotationDefinition idad : tad.getIdAnnotationDefinitions()) {
 				createIdFiled(type, idad);
 			}
+
+			for (NameAnnotationDefinition nad : tad
+					.getNameAnnotationDefinitions()) {
+				createNameField(type, nad);
+			}
 			
+			for (OccurrenceAnnotationDefinition oad : tad.getOccurrenceAnnotationDefinitions()) {
+				createOccurrenceField(type, oad);
+			}
+
 		} catch (JClassAlreadyExistsException e) {
 			return;
 		}
-		
+
+	}
+
+	private void createOccurrenceField(JDefinedClass type,
+			OccurrenceAnnotationDefinition oad) {
+		JFieldVar var = createField(type, oad);
+
+		var.annotate(occurrenceAnnotation).param("type", oad.getOccurrenceType());
 	}
 
 	private void createIdFiled(JDefinedClass type, IdAnnotationDefinition idad) {
-		Class<?> jt = TypeUtility.toJavaType(idad.getFieldType());
-		if (idad.isMany())
-			jt =  Set.class;//. TypeUtility.toJavaType(idad.getFieldType());
-		
-		
-		
-		JFieldVar var = type.field(JMod.PRIVATE, jt, idad.getFieldName());
-		
-		System.out.println(var.type());
-		
-		
+		JFieldVar var = createField(type, idad);
+
+		var.annotate(identifierAnnotation).param("type",
+				idad.getIdentifierType());
+	}
+
+	private JFieldVar createField(JDefinedClass type, FieldDefinition def) {
+		try {
+			Class<?> fieldType = JCodeModel.boxToPrimitive.get(def.getFieldType());
+			if (fieldType==null)
+				fieldType = def.getFieldType();
+			JClass typeClass = null; 
+			if (def.isMany()) {
+				typeClass = cm.ref(Set.class.getName()).narrow(def.getFieldType());
+			} else {
+				typeClass = fieldType.isPrimitive() ? null : cm.ref(fieldType);
+			}
+			
+			JFieldVar var = null; 
+				
+			if (typeClass!=null)
+				var = type.field(JMod.PRIVATE, typeClass, def.getFieldName());
+			else
+				var = type.field(JMod.PRIVATE, fieldType, def.getFieldName());
+
+			generateSetter(type, var);
+			JMethod get = generateGetter(type, def.isMany(), var);
+
+			if (def.isMany()) {
+				generateAddAndRemove(type, typeClass, var, get);
+			}
+
+			return var;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void createNameField(JDefinedClass type,
+			NameAnnotationDefinition nad) {
+		try {
+			JFieldVar var = createField(type, nad);
+
+			var.annotate(nameAnnotation).param("type", nad.getTopicType());
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void generateAddAndRemove(JDefinedClass type, JClass typeClass,
+			JFieldVar var, JMethod get) {
+		JFieldRef fieldRef = JExpr._this().ref(var);
+		JClass hashSet = cm.ref(HashSet.class).narrow(String.class);
+		String methodSuffix = TypeUtility.field2Method(var.name());
+
+		JMethod add = type
+				.method(JMod.PUBLIC, var.type(), "add" + methodSuffix);
+		JVar param = add
+				.param(typeClass.getTypeParameters().get(0), var.name());
+		JConditional _if = add.body()._if(fieldRef.eq(JExpr._null()));
+		_if._then().block().assign(fieldRef, JExpr._new(hashSet));
+		add.body().invoke(fieldRef, "add").arg(param);
+		add.annotate(generatedAnnotation);
+
+		JMethod remove = type.method(JMod.PUBLIC, cm.VOID, "remove"
+				+ methodSuffix);
+		param = remove.param(typeClass.getTypeParameters().get(0), var.name());
+
+		_if = remove.body()
+				._if(JExpr.invoke(get).invoke("contains").arg(param));
+		_if._then().invoke(fieldRef, "remove").arg(param);
+
+		remove.annotate(generatedAnnotation);
+
+	}
+
+	private JMethod generateSetter(JDefinedClass type, JFieldVar var) {
+		JMethod set = type.method(JMod.PUBLIC, cm.VOID, "set"
+				+ TypeUtility.field2Method(var.name()));
+		JVar param = set.param(var.type(), var.name());
+		JFieldRef fieldRef = JExpr._this().ref(var);
+		set.body().assign(fieldRef, param);
+
+		set.annotate(generatedAnnotation);
+		return set;
+	}
+
+	private JMethod generateGetter(JDefinedClass type, boolean isMany,
+			JFieldVar var) {
+		JMethod get = type.method(JMod.PUBLIC, var.type(), "get"
+				+ TypeUtility.field2Method(var.name()));
+
+		if (isMany) {
+			JConditional _if = get.body()._if(var.eq(JExpr._null()));
+			JClass collections = cm.ref("java.util.Collections");
+			_if._then()._return(collections.staticInvoke("emptySet"));
+			_if._else()._return(var);
+		} else
+			get.body()._return(var);
+
+		get.annotate(generatedAnnotation);
+		return get;
 	}
 }

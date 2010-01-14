@@ -9,7 +9,7 @@ import de.topicmapslab.aranuka.codegen.core.util.TypeUtility;
 /**
  * 
  * @author Sven Krosse
- *
+ * 
  */
 public class OccurrenceAnnotationDefinition extends FieldDefinition {
 
@@ -18,7 +18,7 @@ public class OccurrenceAnnotationDefinition extends FieldDefinition {
 	private final Class<?> datatype;
 
 	public OccurrenceAnnotationDefinition(String occurrenceType, String member,
-			Class<?> datatype) {		
+			Class<?> datatype) {
 		this.occurrenceType = occurrenceType;
 		this.member = member;
 		this.datatype = datatype;
@@ -41,14 +41,15 @@ public class OccurrenceAnnotationDefinition extends FieldDefinition {
 	}
 
 	public String getFieldName() {
-		return member.toLowerCase();
+		return member;
 	}
 
-	public String getFieldType() {
-		if (isMany())
-			return "Set<"+datatype.getSimpleName()+">";
-		
-		return datatype.getSimpleName();
+	public String getOccurrenceType() {
+		return occurrenceType;
+	}
+
+	public Class<?> getFieldType() {
+		return datatype;
 	}
 
 	public String getPredefinition() {
@@ -68,7 +69,7 @@ public class OccurrenceAnnotationDefinition extends FieldDefinition {
 		if (obj instanceof OccurrenceAnnotationDefinition) {
 			OccurrenceAnnotationDefinition def = (OccurrenceAnnotationDefinition) obj;
 			return def.getFieldName().equalsIgnoreCase(getFieldName())
-					&& def.getFieldType().equalsIgnoreCase(getFieldType());
+					&& def.getFieldType().equals(getFieldType());
 		}
 		return false;
 	}

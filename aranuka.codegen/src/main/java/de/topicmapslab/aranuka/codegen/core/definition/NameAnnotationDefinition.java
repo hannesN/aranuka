@@ -13,39 +13,27 @@ import de.topicmapslab.aranuka.codegen.core.util.TypeUtility;
  */
 public class NameAnnotationDefinition extends FieldDefinition {
 
-	private final String type;
+	private final String topicType;
 	private final String member;
 
-	public NameAnnotationDefinition(final String type, final String member)
+	public NameAnnotationDefinition(final String topicType, final String member)
 			throws POJOGenerationException {
-		this.type = type;
+		this.topicType = topicType;
 		this.member = member;
 	}
 
 	public NameAnnotationDefinition(Name name) throws POJOGenerationException {
 		Topic topic = name.getType();
-		type = TypeUtility.getTypeAttribute(topic);
+		topicType = TypeUtility.getTypeAttribute(topic);
 		member = TypeUtility.getJavaName(topic);
 	}
 
-	public String getAnnotation() {
-		return "@Name";
-	}
-
-	public String getAnnotationAttributes() {
-		return "type=\"" + type + "\"";
-	}
 
 	public String getFieldName() {
 		return member.toLowerCase();
 	}
 
-	public String getFieldType() {
-		if (isMany())
-			return "Set<String>";
-			
-		return "String";
-	}
+	
 
 	public String getPredefinition() {
 		return "";
@@ -56,22 +44,54 @@ public class NameAnnotationDefinition extends FieldDefinition {
 	}
 
 	public String getTMQLFilterType() {
-		return "\"" + type + "\"";
+		return "\"" + topicType + "\"";
+	}
+
+	public String getTopicType() {
+		return topicType;
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((member == null) ? 0 : member.hashCode());
+		result = prime * result + ((topicType == null) ? 0 : topicType.hashCode());
+		return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof NameAnnotationDefinition) {
-			NameAnnotationDefinition def = (NameAnnotationDefinition) obj;
-			return def.getFieldName().equalsIgnoreCase(getFieldName())
-					&& def.getFieldType().equalsIgnoreCase(getFieldType());
-		}
-		return false;
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		NameAnnotationDefinition other = (NameAnnotationDefinition) obj;
+		if (member == null) {
+			if (other.member != null)
+				return false;
+		} else if (!member.equals(other.member))
+			return false;
+		if (topicType == null) {
+			if (other.topicType != null)
+				return false;
+		} else if (!topicType.equals(other.topicType))
+			return false;
+		return true;
 	}
 
-	@Override
-	public int hashCode() {
-		return getFieldName().hashCode() * 999999 + getFieldType().hashCode();
+	public String getAnnotation() {
+		throw new UnsupportedOperationException();
+	}
+
+	public String getAnnotationAttributes() {
+		throw new UnsupportedOperationException();
+	}
+
+	public Class<?> getFieldType() {
+		return String.class;
 	}
 
 }
