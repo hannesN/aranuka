@@ -33,39 +33,32 @@ public class IdAnnotationDefinition extends FieldDefinition {
 		return fieldName;
 	}
 
-	public String getAnnotationType() {
-		return annotationType.name();
+	public IDTYPE getIdentifierType() {
+		return annotationType;
 	}
 
-
-	public String getAnnotation() {
-		return "@Id";
+	public Class<?> getFieldType() {
+		return String.class;
 	}
 
-	public String getAnnotationAttributes() {
-		return "type=IDTYPE." + getAnnotationType();
-	}
-
-
-	public String getFieldType() {
-		if (isMany())
-			return "Set<String>";
-		else
-			return "String";
-	}
-
-	public String getPredefinition() {
-		if (isMany())
-			return " = new THashSet<String>()";
-		else
-			return "";
-	}
-
+	
 	public String getTMQLType() {
 		return "Identifiers";
 	}
 	
 	public String getTMQLFilterType() {
 		return "IDTYPE." + annotationType.name(); 
+	}
+
+	public String getAnnotation() {
+		throw new UnsupportedOperationException();
+	}
+
+	public String getAnnotationAttributes() {
+		throw new UnsupportedOperationException();
+	}
+
+	public String getPredefinition() {
+		throw new UnsupportedOperationException();
 	}
 }

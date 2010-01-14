@@ -72,11 +72,11 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 		return fieldName;
 	}
 
-	public String getFieldType() {
-		if (ASSOCIATIONKIND==ASSOCIATIONKIND.UNARY)
-			return "boolean";
+	public Class<?> getFieldType() {
+		throw new UnsupportedOperationException();
+//		if (ASSOCIATIONKIND==ASSOCIATIONKIND.UNARY)
+//			return boolean.class;
 		
-		return "Set<" + fieldType + ">";
 	}
 	
 	public String getPredefinition() {
@@ -101,14 +101,14 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	public boolean equals(Object obj) {
 		if (obj instanceof AssociationAnnotationDefinition) {
 			AssociationAnnotationDefinition def = (AssociationAnnotationDefinition) obj;
-			return def.getFieldName().equalsIgnoreCase(getFieldName())
-					&& def.getFieldType().equalsIgnoreCase(getFieldType());
+			return def.getFieldName().equalsIgnoreCase(getFieldName());
+					
 		}
 		return false;
 	}
 	
 	@Override
 	public int hashCode() {
-		return getFieldName().hashCode() * 999999 + getFieldType().hashCode();
+		return getFieldName().hashCode() * 999999;
 	}
 }
