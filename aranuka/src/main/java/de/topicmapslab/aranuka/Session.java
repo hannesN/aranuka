@@ -30,7 +30,7 @@ import de.topicmapslab.aranuka.annotations.Occurrence;
 import de.topicmapslab.aranuka.annotations.Role;
 import de.topicmapslab.aranuka.annotations.Scope;
 import de.topicmapslab.aranuka.annotations.Topic;
-import de.topicmapslab.aranuka.binding.AbstractBinding;
+import de.topicmapslab.aranuka.binding.AbstractClassBinding;
 import de.topicmapslab.aranuka.binding.AbstractFieldBinding;
 import de.topicmapslab.aranuka.binding.AssociationBinding;
 import de.topicmapslab.aranuka.binding.AssociationContainerBinding;
@@ -49,7 +49,7 @@ public class Session {
 
 	private static Logger logger = LoggerFactory.getLogger(Session.class);
 	
-	private Map<Class<?>, AbstractBinding> bindingMap;
+	private Map<Class<?>, AbstractClassBinding> bindingMap;
 	private Configuration config;
 	
 	private TopicMap topicMap;
@@ -67,7 +67,7 @@ public class Session {
 		
 		this.config = config;
 		
-		bindingMap = new HashMap<Class<?>, AbstractBinding>();
+		bindingMap = new HashMap<Class<?>, AbstractClassBinding>();
 		
 		if(!leazyBinding){
 			
@@ -636,6 +636,17 @@ public class Session {
 	 */
 	private void createNnaryAssociationBinding(TopicBinding topicBinding, Field field, Class<?> clazz,  Association associationAnnotation, String associationType) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException{
 		
+		// get played role
+		
+		String playedRole = "";
+		
+		if(associationAnnotation.played_role().length() != 0)
+			playedRole = associationAnnotation.played_role();
+		
+		if(playedRole == "")
+			throw new BadAnnotationException("Binary association " + field.getName() + " needs an played_role attribute!");
+		
+		
 		// get container
 		
 		Class<?> container = ReflectionUtil.getGenericType(field);
@@ -645,6 +656,7 @@ public class Session {
 		
 		ab.setKind(ASSOCIATIONKIND.NNARY);
 		ab.setAssociationType(TopicMapsUtils.resolveURI(associationType, config.getPrefixMap()));
+		ab.setPlayedRole(playedRole);
 		ab.setAssociationContainer(containerBinding);
 		
 		// add scope
@@ -836,17 +848,15 @@ public class Session {
 	 * @param clazz
 	 * @param binding
 	 */
-	private void addBinding(Class<?> clazz, AbstractBinding binding){
+	private void addBinding(Class<?> clazz, AbstractClassBinding binding){
 		
 		if (bindingMap == null)
-			bindingMap = new HashMap<Class<?>, AbstractBinding>();
+			bindingMap = new HashMap<Class<?>, AbstractClassBinding>();
 		
 		bindingMap.put(clazz, binding);
 		
 	}
-	
 
-	
 	/**
 	 * Checks if it is necessary to map a class.
 	 * 
@@ -893,7 +903,7 @@ public class Session {
 
 	public void printBindings(){
 
-		for(Map.Entry<Class<?>, AbstractBinding> entry:bindingMap.entrySet())
+		for(Map.Entry<Class<?>, AbstractClassBinding> entry:bindingMap.entrySet())
 			System.out.println(entry.getValue().toString());
 	}
 	
@@ -930,9 +940,11 @@ public class Session {
 			throw new BadAnnotationException("Object cannot be persisted.");
 		
 		topicBinding.persist(getTopicMap(), topicObject);
-		
-	}
 	
+		
+		// clear updated
+		topicBinding.clearUpdatedObjects();
+	}
 	
 	public void flushTopicMap(){
 		CTMTopicMapWriter writer;

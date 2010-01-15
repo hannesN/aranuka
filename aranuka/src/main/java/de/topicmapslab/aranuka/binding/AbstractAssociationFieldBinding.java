@@ -8,7 +8,7 @@ import de.topicmapslab.aranuka.exception.BadAnnotationException;
 
 public abstract class AbstractAssociationFieldBinding extends AbstractFieldBinding {
 
-	public AbstractAssociationFieldBinding(Map<String,String> prefixMap, AbstractBinding parent) {
+	public AbstractAssociationFieldBinding(Map<String,String> prefixMap, AbstractClassBinding parent) {
 		super(prefixMap, parent);
 	}
 	

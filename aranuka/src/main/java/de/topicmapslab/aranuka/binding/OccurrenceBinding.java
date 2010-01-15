@@ -107,7 +107,6 @@ public class OccurrenceBinding extends AbstractTopicFieldBinding {
 		// set flags back to false
 		unsetChanded();
 	}
-	
 
 	@SuppressWarnings("unchecked")
 	public void persist(Topic topic, Object topicObject) {
