@@ -5,11 +5,7 @@ package de.topicmapslab.aranuka.codegen.core;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.tmapi.core.TopicMap;
@@ -27,12 +23,14 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JVar;
 
+import de.topicmapslab.aranuka.annotations.ASSOCIATIONKIND;
 import de.topicmapslab.aranuka.annotations.Association;
 import de.topicmapslab.aranuka.annotations.AssociationContainer;
 import de.topicmapslab.aranuka.annotations.Generated;
 import de.topicmapslab.aranuka.annotations.Id;
 import de.topicmapslab.aranuka.annotations.Name;
 import de.topicmapslab.aranuka.annotations.Occurrence;
+import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.FieldDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.IdAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.NameAnnotationDefinition;
@@ -56,7 +54,7 @@ public class CodeGenerator {
 	private JClass identifierAnnotation;
 
 	private JCodeModel cm;
-	
+
 	public void generateCode(TopicMap schemaMap, File directory)
 			throws IOException {
 		Set<TopicAnnotationDefinition> annotations = new DefinitionFactory(
@@ -94,9 +92,15 @@ public class CodeGenerator {
 					.getNameAnnotationDefinitions()) {
 				createNameField(type, nad);
 			}
-			
-			for (OccurrenceAnnotationDefinition oad : tad.getOccurrenceAnnotationDefinitions()) {
+
+			for (OccurrenceAnnotationDefinition oad : tad
+					.getOccurrenceAnnotationDefinitions()) {
 				createOccurrenceField(type, oad);
+			}
+
+			for (AssociationAnnotationDefinition aad : tad
+					.getAssociationAnnotationDefinitions()) {
+				createAssociationFields(type, aad);
 			}
 
 		} catch (JClassAlreadyExistsException e) {
@@ -105,11 +109,51 @@ public class CodeGenerator {
 
 	}
 
+	private void createAssociationFields(JDefinedClass type,
+			AssociationAnnotationDefinition aad) {
+		switch (aad.getAssocKind()) {
+		case BINARY:
+			createBinaryAssociationField(type, aad);
+			break;
+		case NNARY:
+			createNnaryAssociationField(type, aad);
+			break;
+		case UNARY:
+			createUnaryAssociationField(type, aad);
+			break;
+
+		}
+
+	}
+
+	private void createBinaryAssociationField(JDefinedClass type,
+			AssociationAnnotationDefinition aad) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void createNnaryAssociationField(JDefinedClass type,
+			AssociationAnnotationDefinition aad) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void createUnaryAssociationField(JDefinedClass type,
+			AssociationAnnotationDefinition aad) {
+		JFieldVar var = createField(type, aad);
+
+		JAnnotationUse assocAnnot = var.annotate(associationAnnotation);
+		assocAnnot.param("kind", ASSOCIATIONKIND.UNARY);
+		assocAnnot.param("type", aad.getAssociationType());
+		assocAnnot.param("played-role", aad.getRoleType());
+	}
+
 	private void createOccurrenceField(JDefinedClass type,
 			OccurrenceAnnotationDefinition oad) {
 		JFieldVar var = createField(type, oad);
 
-		var.annotate(occurrenceAnnotation).param("type", oad.getOccurrenceType());
+		var.annotate(occurrenceAnnotation).param("type",
+				oad.getOccurrenceType());
 	}
 
 	private void createIdFiled(JDefinedClass type, IdAnnotationDefinition idad) {
@@ -121,19 +165,21 @@ public class CodeGenerator {
 
 	private JFieldVar createField(JDefinedClass type, FieldDefinition def) {
 		try {
-			Class<?> fieldType = JCodeModel.boxToPrimitive.get(def.getFieldType());
-			if (fieldType==null)
+			Class<?> fieldType = JCodeModel.boxToPrimitive.get(def
+					.getFieldType());
+			if (fieldType == null)
 				fieldType = def.getFieldType();
-			JClass typeClass = null; 
+			JClass typeClass = null;
 			if (def.isMany()) {
-				typeClass = cm.ref(Set.class.getName()).narrow(def.getFieldType());
+				typeClass = cm.ref(Set.class.getName()).narrow(
+						def.getFieldType());
 			} else {
 				typeClass = fieldType.isPrimitive() ? null : cm.ref(fieldType);
 			}
-			
-			JFieldVar var = null; 
-				
-			if (typeClass!=null)
+
+			JFieldVar var = null;
+
+			if (typeClass != null)
 				var = type.field(JMod.PRIVATE, typeClass, def.getFieldName());
 			else
 				var = type.field(JMod.PRIVATE, fieldType, def.getFieldName());
@@ -202,7 +248,10 @@ public class CodeGenerator {
 
 	private JMethod generateGetter(JDefinedClass type, boolean isMany,
 			JFieldVar var) {
-		JMethod get = type.method(JMod.PUBLIC, var.type(), "get"
+		String prefix = "get";
+		if (var.type().name().equals("boolean"))
+			prefix = "is";
+		JMethod get = type.method(JMod.PUBLIC, var.type(), prefix
 				+ TypeUtility.field2Method(var.name()));
 
 		if (isMany) {

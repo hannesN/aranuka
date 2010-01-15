@@ -3,8 +3,6 @@
  */
 package codemodel.test;
 
-import java.io.File;
-
 import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCodeModel;

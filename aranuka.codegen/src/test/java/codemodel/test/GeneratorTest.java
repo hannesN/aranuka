@@ -5,15 +5,11 @@ package codemodel.test;
 
 import java.io.File;
 
-import org.tinytim.mio.CTMTopicMapReader;
-import org.tmapi.core.FactoryConfigurationException;
-import org.tmapi.core.TMAPIException;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
 
 import de.topicmapslab.aranuka.codegen.core.CodeGenerator;
-import de.topicmapslab.aranuka.codegen.core.factory.DefinitionFactory;
 import de.topicmapslab.tmcl_loader.TMCLLoader;
 
 /**
