@@ -106,6 +106,7 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	static public class AssocOtherPlayers {
 		Topic otherRole = null;			
 		Topic otherPlayer = null;
+		boolean many = false;
 		public AssocOtherPlayers(Topic otherRole, Topic otherPlayer) {
 			super();
 			this.otherRole = otherRole;
@@ -118,6 +119,13 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 		
 		public Topic getRole() {
 			return otherRole;
+		}
+		public boolean isMany() {
+			return many;
+		}
+		
+		public void setMany(boolean many) {
+			this.many = many;
 		}
 		
 	}

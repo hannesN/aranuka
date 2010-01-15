@@ -150,6 +150,11 @@ public class CodeGenerator {
 					.getOtherPlayers().iterator().next();
 
 			JClass ref = getModelReference(aop.getPlayer());
+			if (aop.isMany()) {
+				JClass setRef = cm.ref(Set.class);
+				setRef.narrow(ref);
+				ref = setRef;				
+			}
 
 			JFieldVar var = createField(type, aad, ref);
 

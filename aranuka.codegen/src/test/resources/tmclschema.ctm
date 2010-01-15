@@ -31,7 +31,7 @@ test:secure isa tmcl:association-type;
     
 test:written-by isa tmcl:association-type;
     - "Written By";
-    has-role(test:work, 1, 1);
+    has-role(test:work, 1, "*"^^<ctm:integer>);
     has-role(test:author, 1, 1).
 
 

@@ -430,7 +430,10 @@ public class DefinitionFactory {
 				tmp = assoc.getRoles(constrained).iterator().next().getPlayer();
 				otherPlayer = tmp;
 				
-				playerSet.add(new AssociationAnnotationDefinition.AssocOtherPlayers(otherRole, otherPlayer));
+				AssociationAnnotationDefinition.AssocOtherPlayers aop = new AssociationAnnotationDefinition.AssocOtherPlayers(otherRole, otherPlayer);
+				playerSet.add(aop);
+				aop.setMany(isMany(constraint));
+					
 			}
 			
 			
