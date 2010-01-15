@@ -1,6 +1,7 @@
 package de.topicmapslab.aranuka.codegen.core.definition;
 
-import org.tmapi.core.Role;
+import java.util.Set;
+
 import org.tmapi.core.Topic;
 
 import de.topicmapslab.aranuka.annotations.ASSOCIATIONKIND;
@@ -10,91 +11,77 @@ import de.topicmapslab.aranuka.codegen.core.util.TypeUtility;
 /**
  * 
  * @author Sven Krosse
- *
+ * 
  */
 public class AssociationAnnotationDefinition extends FieldDefinition {
 
-	private final String containerRole;
 	private final String role;
 	private final String type;
 	private final String fieldName;
-	private final String fieldType;
-	private final ASSOCIATIONKIND ASSOCIATIONKIND;
+	
+	private final ASSOCIATIONKIND assocKind;
+	private final Set<AssocOtherPlayers> otherplayers;
+	
 
-	public AssociationAnnotationDefinition(final ASSOCIATIONKIND ASSOCIATIONKIND, final Topic associationType,
-			final Topic roleType, final Role otherRole)
-			throws POJOGenerationException {
-		this.ASSOCIATIONKIND = ASSOCIATIONKIND;
-		this.type = TypeUtility.getLocator(associationType).getReference();
-		this.containerRole = TypeUtility.getLocator(roleType).getReference();
-		this.role = TypeUtility.getLocator(otherRole.getType()).getReference();
-		if (otherRole.getPlayer().getTypes().isEmpty()) {
-			this.fieldType = "Object";
-		} else {
-			this.fieldType = TypeUtility.getJavaName(otherRole.getPlayer()
-					.getTypes().iterator().next());
+	public AssociationAnnotationDefinition(Topic assocType, Topic roleType, Set<AssocOtherPlayers> otherplayers) throws POJOGenerationException {
+		this.type = TypeUtility.getLocator(assocType).toExternalForm();
+		
+		this.role = TypeUtility.getLocator(roleType).toExternalForm();
+		
+		this.otherplayers = otherplayers;
+		
+		switch (otherplayers.size()) {
+		case 0:
+			assocKind = ASSOCIATIONKIND.UNARY;
+			break;
+		case 1:
+			assocKind = ASSOCIATIONKIND.BINARY;
+			break;
+		default:
+			assocKind = ASSOCIATIONKIND.NNARY;
 		}
-
-		this.fieldName = this.fieldType.toLowerCase();
-	}
-
-	public AssociationAnnotationDefinition(ASSOCIATIONKIND ASSOCIATIONKIND, String assocTypeName,
-			String roleName, String otherRoleName, String playerName) {
-		this.type = assocTypeName;
-		this.containerRole = roleName;
-		this.role = otherRoleName;
-		this.ASSOCIATIONKIND = ASSOCIATIONKIND;
 		
+		fieldName = TypeUtility.getTypeAttribute(roleType);
 		
-		if (playerName.length()>0)
-			fieldType = playerName;
-		else
-			fieldType = assocTypeName;
-		
-
-		this.fieldName = this.fieldType.toLowerCase();
 	}
 
 	public String getAnnotation() {
-		return "@Association";
+		throw new UnsupportedOperationException();
 	}
 
 	public String getAnnotationAttributes() {
-		if (ASSOCIATIONKIND==ASSOCIATIONKIND.UNARY) {
-			return "kind=ASSOCIATIONKIND.UNARY, container_role=\"" + containerRole + "\"";
-		}
-		
-		return "container_role=\"" + containerRole + "\", role=\"" + role
-				+ "\", type=\"" + type + "\"";
+		throw new UnsupportedOperationException();
 	}
 
 	public String getFieldName() {
 		return fieldName;
 	}
 
-	public Class<?> getFieldType() {
-		throw new UnsupportedOperationException();
-//		if (ASSOCIATIONKIND==ASSOCIATIONKIND.UNARY)
-//			return boolean.class;
-		
+	public String getRoleType() {
+		return role;
+	}
+
+	public String getAssociationType() {
+		return type;
+	}
+
+	public ASSOCIATIONKIND getAssocKind() {
+		return assocKind;
 	}
 	
+	public Class<?> getFieldType() {
+		if (assocKind == ASSOCIATIONKIND.UNARY)
+			return boolean.class;
+
+		throw new UnsupportedOperationException();
+	}
+
 	public String getPredefinition() {
-		if (ASSOCIATIONKIND==ASSOCIATIONKIND.UNARY)
-			return "";
-		return " = new THashSet<" + fieldType + ">()";
+		throw new UnsupportedOperationException();
 	}
 
 	public boolean doesFieldTypeExtendsCollection() {
-		return ASSOCIATIONKIND!=ASSOCIATIONKIND.UNARY;
-	}
-
-	public String getTMQLType() {
-		return "TraversalPlayers";
-	}
-
-	public String getTMQLFilterType() {
-		return this.fieldType + ".class ,\"" + role + "\"";
+		return assocKind != ASSOCIATIONKIND.UNARY;
 	}
 
 	@Override
@@ -102,13 +89,26 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 		if (obj instanceof AssociationAnnotationDefinition) {
 			AssociationAnnotationDefinition def = (AssociationAnnotationDefinition) obj;
 			return def.getFieldName().equalsIgnoreCase(getFieldName());
-					
+
 		}
 		return false;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return getFieldName().hashCode() * 999999;
 	}
+	
+	static public class AssocOtherPlayers {
+		Topic otherRole = null;			
+		Topic otherPlayer = null;
+		public AssocOtherPlayers(Topic otherRole, Topic otherPlayer) {
+			super();
+			this.otherRole = otherRole;
+			this.otherPlayer = otherPlayer;
+		}
+		
+		
+	}
+
 }

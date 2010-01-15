@@ -21,8 +21,4 @@ public interface IFieldDefinition {
 
 	public boolean doesFieldTypeExtendsCollection();
 
-	public String getTMQLType();
-
-	public String getTMQLFilterType();
-
 }

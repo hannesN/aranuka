@@ -26,7 +26,6 @@ public class IdAnnotationDefinition extends FieldDefinition {
 			fieldName = "subjectLocators";
 			break;
 		}
-
 	}
 
 	public String getFieldName() {

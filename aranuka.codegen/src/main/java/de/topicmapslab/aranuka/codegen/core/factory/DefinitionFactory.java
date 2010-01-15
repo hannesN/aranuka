@@ -1,22 +1,5 @@
 package de.topicmapslab.aranuka.codegen.core.factory;
 
-import gnu.trove.THashSet; 
-
-import java.util.HashSet;
-import java.util.Set;
-
-import org.tmapi.core.Association;
-import org.tmapi.core.Locator;
-import org.tmapi.core.Name;
-import org.tmapi.core.Occurrence;
-import org.tmapi.core.Role;
-import org.tmapi.core.Topic;
-import org.tmapi.core.TopicMap;
-import org.tmapi.index.TypeInstanceIndex;
-
-import de.topicmapslab.aranuka.annotations.ASSOCIATIONKIND;
-import de.topicmapslab.aranuka.annotations.IDTYPE;
-
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ASSOCIATION_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CARD_MAX;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED;
@@ -43,7 +26,21 @@ import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TOPIC_ROLE_
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TOPIC_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TYPE_INSTANCE;
+import gnu.trove.THashSet;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.tmapi.core.Association;
+import org.tmapi.core.Locator;
+import org.tmapi.core.Name;
+import org.tmapi.core.Occurrence;
+import org.tmapi.core.Role;
+import org.tmapi.core.Topic;
+import org.tmapi.core.TopicMap;
+import org.tmapi.index.TypeInstanceIndex;
+
+import de.topicmapslab.aranuka.annotations.IDTYPE;
 import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.IdAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.NameAnnotationDefinition;
@@ -410,6 +407,7 @@ public class DefinitionFactory {
 			
 			Topic otherRole = null;			
 			Topic otherPlayer = null;
+			Set<AssociationAnnotationDefinition.AssocOtherPlayers> playerSet = new HashSet<AssociationAnnotationDefinition.AssocOtherPlayers>();
 			for (Role assocRole : assocType.getRolesPlayed(constrained, constraintStatement)) {
 				Topic constraint = assocRole.getParent().getRoles(constrains).iterator().next().getPlayer();
 				if (!constraint.getTypes().contains(topicRoleConstraint))
@@ -431,38 +429,12 @@ public class DefinitionFactory {
 				// check if we have the otherRole
 				tmp = assoc.getRoles(constrained).iterator().next().getPlayer();
 				otherPlayer = tmp;
+				
+				playerSet.add(new AssociationAnnotationDefinition.AssocOtherPlayers(otherRole, otherPlayer));
 			}
 			
-//			for (Role assocRole : assocType.getRolesPlayed(constrained, constraintStatement)) {
-//				Topic constraint = fromRolesToOtherRoles(assocRole, constrains).iterator().next().getPlayer();
-//				if (!constraint.getTypes().contains(topicRoleConstraint))
-//					continue;
-//				Topic rt = null;
-//				for (Role constrainsRole : ttc.getRolesPlayed(constrains, constrainedRole)) {
-//					Topic tmp = constrainsRole.getParent().getRoles(constrained).iterator().next().getPlayer();
-//					if (tmp.getTypes().contains(this.roleType)) {
-//						rt = tmp;
-//						break;
-//					}
-//				}
-//				if (otherRole.equals(rt)) {
-//					for (Role constrainsRole : ttc.getRolesPlayed(constrains, constrainedTopicType)) {
-//						Topic tmp = constrainsRole.getParent().getRoles(constrained).iterator().next().getPlayer();
-//						otherPlayer = tmp;
-//						break;
-//						
-//					}
-//				}
-//			}
 			
-			String assocTypeName = TypeUtility.getJavaName(assocType);
-			String roleName = TypeUtility.getJavaName(roleType);
-			String otherRoleName = (otherRole!=null) ? TypeUtility.getJavaName(otherRole) : "";
-			String playerName = (otherPlayer!=null) ? TypeUtility.getJavaName(otherPlayer) : "";
-			
-			ASSOCIATIONKIND kind = (otherRole==null) ? ASSOCIATIONKIND.UNARY : ASSOCIATIONKIND.BINARY;
-			
-			AssociationAnnotationDefinition aad = new AssociationAnnotationDefinition(kind, assocTypeName, roleName, otherRoleName, playerName);
+			AssociationAnnotationDefinition aad = new AssociationAnnotationDefinition(assocType, roleType, playerSet);
 			
 			aadSet.add(aad);
 		}
@@ -487,4 +459,6 @@ public class DefinitionFactory {
 		return (i>1);
 			
 	}
+	
+	
 }
