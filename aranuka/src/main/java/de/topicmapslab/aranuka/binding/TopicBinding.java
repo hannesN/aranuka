@@ -15,7 +15,7 @@ import org.tmapi.core.TopicMap;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.utils.HashUtil;
 
-public class TopicBinding extends AbstractBinding{
+public class TopicBinding extends AbstractClassBinding{
 
 	private static Logger logger = LoggerFactory.getLogger(TopicBinding.class);
 	
@@ -45,7 +45,7 @@ public class TopicBinding extends AbstractBinding{
 	}
 
 	public Topic persist(TopicMap topicMap, Object topicObject) throws BadAnnotationException{
-		
+
 		logger.info("Persist " + topicObject.toString());
 
 		// look in cache
@@ -53,12 +53,13 @@ public class TopicBinding extends AbstractBinding{
 
 		// create new topic if not exist
 		if(topic == null){
+			
 			topic = persist(topicMap, topicObject, this);
 
 		}else{
-			
-			// update existing topic
-			updateTopic(topic, topicObject, this);
+
+			if(!isUpdated(topic))
+				updateTopic(topic, topicObject, this);// update existing topic
 		}
 		
 		return topic;
@@ -86,6 +87,8 @@ public class TopicBinding extends AbstractBinding{
 	}
 	
 	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding) throws BadAnnotationException{
+		
+		setToUpdated(topic);
 		
 		if(binding.parent != null)
 			updateTopic(topic, topicObject, binding.parent);
