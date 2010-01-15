@@ -36,84 +36,7 @@ public class AssociationBinding extends AbstractTopicFieldBinding {
 		
 	}
 	
-	
-	private void addAssociationToCache(Topic topic, Object associationObject, Association association){ 
-		
-		AssociationIdent a = new AssociationIdent();
-		a.topic = topic;
-		a.associationObject = associationObject;
-		a.changed = true;
-		
-		if(this.cache == null)
-			this.cache = new HashMap<AssociationIdent, Association>();
-		
-		this.cache.put(a, association);
-	}
-	
-	private void setChanged(Association association)
-	{
-		if(this.cache == null)
-			return;
-		
-		for(Map.Entry<AssociationIdent, Association> entry:cache.entrySet()){
-			
-			if(entry.getValue().equals(association))
-				entry.getKey().changed = true;
-		}
-	}
-	
-	private void unsetChanded(){
-		
-		if(this.cache == null)
-			return;
-		
-		for(Map.Entry<AssociationIdent, Association> entry:cache.entrySet())
-			entry.getKey().changed = false;
-		
-	}
-	
-	private Association getAssociationFromCache(Object associationObject, Topic topic){
-		
-		if(this.cache == null)
-			return null;
-		
-		for(Map.Entry<AssociationIdent, Association> entry:cache.entrySet()){
-			
-			if(entry.getKey().associationObject == associationObject && entry.getKey().topic.equals(topic)){
-				return entry.getValue();								
-			}
-		}
-		
-		return null;
-	}
-	
-	private void removeObsoleteAssociations(Topic topic){
-		
-		if(this.cache == null)
-			return;
-		
-		Set<AssociationIdent> obsoleteEntries = new HashSet<AssociationIdent>();
-		
-		for(Map.Entry<AssociationIdent, Association> entry:this.cache.entrySet()){
-			
-			if(entry.getKey().topic.equals(topic) && entry.getKey().changed == false){
-				
-				logger.info("Remove obsolte association.");
-				
-				entry.getValue().remove();
-				
-				obsoleteEntries.add(entry.getKey());
-			}
-		}
-
-		for(AssociationIdent a:obsoleteEntries)
-			this.cache.remove(a);
-		
-		// set flags back to false
-		unsetChanded();
-	}
-	
-	
+	// --[ public methods ]--------------------------------------------------------------------------------
 	
 	public AssociationBinding(Map<String,String> prefixMap, AbstractClassBinding parent) {
 		super(prefixMap, parent);
@@ -140,7 +63,59 @@ public class AssociationBinding extends AbstractTopicFieldBinding {
 		
 	}
 	
+	// getter and setter
+	
+	public String getAssociationType() {
+		return associationType;
+	}
 
+	public void setAssociationType(String associationTypeIdentifier) {
+		this.associationType = associationTypeIdentifier;
+	}
+
+	public ASSOCIATIONKIND getKind() {
+		return kind;
+	}
+
+	public void setKind(ASSOCIATIONKIND kind) {
+		this.kind = kind;
+	}
+
+	public String getPlayedRole() {
+		return playedRole;
+	}
+
+	public void setPlayedRole(String playedRole) {
+		this.playedRole = playedRole;
+	}
+
+	public String getOtherRole() {
+		return otherRole;
+	}
+
+	public void setOtherRole(String otherRole) {
+		this.otherRole = otherRole;
+	}
+
+	public TopicBinding getOtherPlayer() {
+		return otherPlayer;
+	}
+
+	public void setOtherPlayer(TopicBinding otherPlayer) {
+		this.otherPlayer = otherPlayer;
+	}
+
+	public AssociationContainerBinding getAssociationContainer() {
+		return associationContainer;
+	}
+
+	public void setAssociationContainer(
+			AssociationContainerBinding associationContainer) {
+		this.associationContainer = associationContainer;
+	}
+	
+	// --[ private methods ]-------------------------------------------------------------------------------
+		
 	private void createUnaryAssociation(Topic topic, Object topicObject){
 		
 		if((Boolean)this.getValue(topicObject)){
@@ -224,7 +199,7 @@ public class AssociationBinding extends AbstractTopicFieldBinding {
 			
 			ass = associationContainer.persist(topic.getTopicMap(), this.getValue(topicObject), this);
 
-			/// TODO add own role as player to the association if not existing
+			/// add own role as player to the association if not existing
 			addPlayer(ass, topic);
 			
 			// add association to cache
@@ -235,12 +210,88 @@ public class AssociationBinding extends AbstractTopicFieldBinding {
 			logger.info("Nnary association already exist.");
 			
 			// invoke update of container /// TODO how to do it best?
-			//ass = associationContainer.persist(topic.getTopicMap(), this.getValue(topicObject), this);
+			ass = associationContainer.persist(topic.getTopicMap(), this.getValue(topicObject), this);
 		}
 		
 		setChanged(ass);
 	}
 	
+	private void addAssociationToCache(Topic topic, Object associationObject, Association association){ 
+		
+		AssociationIdent a = new AssociationIdent();
+		a.topic = topic;
+		a.associationObject = associationObject;
+		a.changed = true;
+		
+		if(this.cache == null)
+			this.cache = new HashMap<AssociationIdent, Association>();
+		
+		this.cache.put(a, association);
+	}
+	
+	private void setChanged(Association association)
+	{
+		if(this.cache == null)
+			return;
+		
+		for(Map.Entry<AssociationIdent, Association> entry:cache.entrySet()){
+			
+			if(entry.getValue().equals(association))
+				entry.getKey().changed = true;
+		}
+	}
+	
+	private void unsetChanded(){
+		
+		if(this.cache == null)
+			return;
+		
+		for(Map.Entry<AssociationIdent, Association> entry:cache.entrySet())
+			entry.getKey().changed = false;
+		
+	}
+	
+	private Association getAssociationFromCache(Object associationObject, Topic topic){
+		
+		if(this.cache == null)
+			return null;
+		
+		for(Map.Entry<AssociationIdent, Association> entry:cache.entrySet()){
+			
+			if(entry.getKey().associationObject == associationObject && entry.getKey().topic.equals(topic)){
+				return entry.getValue();								
+			}
+		}
+		
+		return null;
+	}
+	
+	private void removeObsoleteAssociations(Topic topic){
+		
+		if(this.cache == null)
+			return;
+		
+		Set<AssociationIdent> obsoleteEntries = new HashSet<AssociationIdent>();
+		
+		for(Map.Entry<AssociationIdent, Association> entry:this.cache.entrySet()){
+			
+			if(entry.getKey().topic.equals(topic) && entry.getKey().changed == false){
+				
+				logger.info("Remove obsolte association.");
+				
+				entry.getValue().remove();
+				
+				obsoleteEntries.add(entry.getKey());
+			}
+		}
+
+		for(AssociationIdent a:obsoleteEntries)
+			this.cache.remove(a);
+		
+		// set flags back to false
+		unsetChanded();
+	}
+
 	private void addPlayer(Association association, Topic player){
 	
 	Topic roleType = association.getTopicMap().getTopicBySubjectIdentifier(association.getTopicMap().createLocator(this.playedRole));
@@ -259,67 +310,5 @@ public class AssociationBinding extends AbstractTopicFieldBinding {
 	// add owner role
 	association.createRole(association.getTopicMap().createTopicBySubjectIdentifier(association.getTopicMap().createLocator(this.playedRole)), player);
 }
-	
 
-	public String getAssociationType() {
-		return associationType;
-	}
-
-	public void setAssociationType(String associationTypeIdentifier) {
-		this.associationType = associationTypeIdentifier;
-	}
-
-	public ASSOCIATIONKIND getKind() {
-		return kind;
-	}
-
-	public void setKind(ASSOCIATIONKIND kind) {
-		this.kind = kind;
-	}
-
-	public String getPlayedRole() {
-		return playedRole;
-	}
-
-	public void setPlayedRole(String playedRole) {
-		this.playedRole = playedRole;
-	}
-
-	public String getOtherRole() {
-		return otherRole;
-	}
-
-	public void setOtherRole(String otherRole) {
-		this.otherRole = otherRole;
-	}
-
-	public TopicBinding getOtherPlayer() {
-		return otherPlayer;
-	}
-
-	public void setOtherPlayer(TopicBinding otherPlayer) {
-		this.otherPlayer = otherPlayer;
-	}
-
-	public AssociationContainerBinding getAssociationContainer() {
-		return associationContainer;
-	}
-
-	public void setAssociationContainer(
-			AssociationContainerBinding associationContainer) {
-		this.associationContainer = associationContainer;
-	}
-
-	@Override
-	public String toString() {
-		return "AssociationBinding [associationContainer="
-				+ associationContainer + ", associationType=" + associationType
-				+ ", kind=" + kind + ", otherRole=" + otherRole
-				+ ", playedRole=" + playedRole + "]";
-	}
-
-	
-	
-	
-	
 }

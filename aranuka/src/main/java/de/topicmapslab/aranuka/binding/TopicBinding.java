@@ -19,37 +19,26 @@ public class TopicBinding extends AbstractClassBinding{
 
 	private static Logger logger = LoggerFactory.getLogger(TopicBinding.class);
 	
-	// topic type informations
 	private String name; // name of the topic type
 	private Set<String> identifiers; // identifier of the topic type
-	private TopicBinding parent; // supertype
+	private TopicBinding parent; // super type
 
-	private Map<Object, Topic> topicObjects; // the instances
-	Topic topic; // the topic type represented by this binding
+	private Map<Object, Topic> cache; // the instances
+	Topic topicType; // the topic type represented by this binding
+
+	private List<AbstractTopicFieldBinding> fieldBindings; // topic field bindings
 	
-	// topic field bindings
-	private List<AbstractTopicFieldBinding> fieldBindings;
-
-	public List<AbstractTopicFieldBinding> getFieldBindings() {
-		if (this.fieldBindings==null)
-			return Collections.emptyList();
-		return this.fieldBindings;
-	}
-
-	public void addFieldBinding(AbstractTopicFieldBinding fieldBinding) {
-		
-		if (this.fieldBindings==null)
-			this.fieldBindings = new ArrayList<AbstractTopicFieldBinding>();
-		
-		this.fieldBindings.add(fieldBinding);
-	}
-
+	// --[ public methods ]------------------------------------------------------------------------------
+	
+	/**
+	 * Persists an topic annotated java object in the topic map.
+	 */
 	public Topic persist(TopicMap topicMap, Object topicObject) throws BadAnnotationException{
 
 		logger.info("Persist " + topicObject.toString());
 
 		// look in cache
-		Topic topic = getTopicObjects(topicObject);
+		Topic topic = getTopicFromCache(topicObject);
 
 		// create new topic if not exist
 		if(topic == null){
@@ -65,6 +54,43 @@ public class TopicBinding extends AbstractClassBinding{
 		return topic;
 	}
 	
+	// getter and setter
+	
+	public List<AbstractTopicFieldBinding> getFieldBindings() {
+		
+		if (this.fieldBindings==null)
+			return Collections.emptyList();
+		return this.fieldBindings;
+	}
+	
+	public void addFieldBinding(AbstractTopicFieldBinding fieldBinding) {
+		
+		if (this.fieldBindings==null)
+			this.fieldBindings = new ArrayList<AbstractTopicFieldBinding>();
+		
+		this.fieldBindings.add(fieldBinding);
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public void setParent(TopicBinding parent) {
+		this.parent = parent;
+	}
+	
+	public TopicBinding getParent(){
+		return this.parent;
+	}
+	
+	public void addIdentifier(String id) {
+		if (identifiers==null)
+			identifiers = HashUtil.createSet();
+		identifiers.add(id);
+	}
+
+	// --[ private methods ]-------------------------------------------------------------------------------
+
 	private Topic persist(TopicMap topicMap, Object topicObject, TopicBinding topicBinding) throws BadAnnotationException{
 		
 		Topic newTopic;
@@ -74,7 +100,7 @@ public class TopicBinding extends AbstractClassBinding{
 		else newTopic = topicMap.createTopic();
 		
 		// store in cache
-		addTopicObject(topicObject, newTopic);
+		addTopicToCache(topicObject, newTopic);
 		
 		// add type
 		newTopic.addType(getTopicType(topicMap, this));
@@ -85,7 +111,7 @@ public class TopicBinding extends AbstractClassBinding{
 
 		return newTopic;
 	}
-	
+
 	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding) throws BadAnnotationException{
 		
 		setToUpdated(topic);
@@ -120,70 +146,40 @@ public class TopicBinding extends AbstractClassBinding{
 	 */
 	private Topic getTopicType(TopicMap topicMap, TopicBinding binding){
 		
-		if(binding.topic == null){
+		if(binding.topicType == null){
 			// create topic type
 			
-			binding.topic = topicMap.createTopic();
+			binding.topicType = topicMap.createTopic();
 			
 			// add supertype
 			if(binding.parent != null)
-				binding.topic.addType(getTopicType(topicMap, binding.parent));
+				binding.topicType.addType(getTopicType(topicMap, binding.parent));
 			
 			// add name
-			binding.topic.createName(binding.name);
+			binding.topicType.createName(binding.name);
 			
 		}
 		
-		return binding.topic;
+		return binding.topicType;
 	}
 
-	// getter and setter
-	
-	public void setName(String name) {
-		this.name = name;
-	}
-	
-	public void setParent(TopicBinding parent) {
-		this.parent = parent;
-	}
-	
-	public TopicBinding getParent(){
-		return this.parent;
-	}
-	
-	public void addIdentifier(String id) {
-		if (identifiers==null)
-			identifiers = HashUtil.createSet();
-		identifiers.add(id);
+	private void addTopicToCache(Object object, Topic topic) {
+		
+		if(this.cache == null)
+			this.cache = new HashMap<Object, Topic>();
+		
+		this.cache.put(object, topic);
 	}
 
-	
-	public void addTopicObject(Object object, Topic topic) {
+	private Topic getTopicFromCache(Object object) {
 		
-		if(this.topicObjects == null)
-			this.topicObjects = new HashMap<Object, Topic>();
-		
-		this.topicObjects.put(object, topic);
-	}
-		
-
-	public Topic getTopicObjects(Object object) {
-		
-		if(this.topicObjects == null)
+		if(this.cache == null)
 			return null;
 		
-		return this.topicObjects.get(object);
+		return this.cache.get(object);
 		
 	}
 
-	@Override
-	public String toString() {
-		return "TopicBinding [fieldBindings=" + fieldBindings
-				+ ", identifiers=" + identifiers + ", name=" + name
-				+ ", parent=" + parent + ", topic=" + topic + ", topicObjects="
-				+ topicObjects + "]";
-	}
 
-	
 	
 }

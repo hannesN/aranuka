@@ -27,9 +27,74 @@ public class OccurrenceBinding extends AbstractTopicFieldBinding {
 		boolean changed;
 		
 	}
-		
+	
+	// --[ public methods ]--------------------------------------------------------------------------------
+	
 	public OccurrenceBinding(Map<String,String> prefixMap, TopicBinding parent) {
 		super(prefixMap, parent);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void persist(Topic topic, Object topicObject) {
+
+		if(this.getValue(topicObject) == null)
+			return;
+		
+		if (this.isArray())
+
+			for (Object obj : (Object[])this.getValue(topicObject))
+				createOccurrence(topic, obj.toString());
+
+		else if (this.isCollection())
+
+			for (Object obj : (Collection<Object>) this.getValue(topicObject))
+				createOccurrence(topic, obj.toString());
+
+		else
+			createOccurrence(topic, this.getValue(topicObject).toString());
+
+		// check if obsolete occurrences exist
+		removeObsoleteOccurrence(topic);
+		
+	}
+	
+	// getter and setter
+	
+	public String getOccurrenceType() {
+		return occurrenceType;
+	}
+
+	public void setOccurrenceType(String occurrenceTypeIdentifier) {
+		this.occurrenceType = occurrenceTypeIdentifier;
+	}
+
+	public String getDataType() {
+		return dataType;
+	}
+
+	public void setDataType(String dataType) {
+		this.dataType = dataType;
+	}
+
+	// --[ private methods ]-------------------------------------------------------------------------------
+		
+	private void createOccurrence(Topic topic, String value){
+		
+		Occurrence occ = getOccurrenceFromCache(value, topic);
+		
+		if(occ == null)
+		{
+			logger.info("Add new occurrrence '" + value + "'.");
+			occ = topic.createOccurrence(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(this.occurrenceType)), value, topic.getTopicMap().createLocator(this.dataType), getScope(topic.getTopicMap()));
+			
+			// add occurrence to cache
+			addOccurrenceToCache(value, topic, occ);
+			
+		}else logger.info("Occurrence '" + value + "' already exist.");
+		
+		// set the flag
+		setChanged(occ);
+		
 	}
 	
 	private void addOccurrenceToCache(String value, Topic topic, Occurrence occurrence){
@@ -106,70 +171,6 @@ public class OccurrenceBinding extends AbstractTopicFieldBinding {
 		
 		// set flags back to false
 		unsetChanded();
-	}
-
-	@SuppressWarnings("unchecked")
-	public void persist(Topic topic, Object topicObject) {
-
-		if(this.getValue(topicObject) == null)
-			return;
-		
-		if (this.isArray())
-
-			for (Object obj : (Object[])this.getValue(topicObject))
-				createOccurrence(topic, obj.toString());
-
-		else if (this.isCollection())
-
-			for (Object obj : (Collection<Object>) this.getValue(topicObject))
-				createOccurrence(topic, obj.toString());
-
-		else
-			createOccurrence(topic, this.getValue(topicObject).toString());
-
-		// check if obsolete occurrences exist
-		removeObsoleteOccurrence(topic);
-		
-	}
-	
-	private void createOccurrence(Topic topic, String value){
-		
-		Occurrence occ = getOccurrenceFromCache(value, topic);
-		
-		if(occ == null)
-		{
-			logger.info("Add new occurrrence '" + value + "'.");
-			occ = topic.createOccurrence(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(this.occurrenceType)), value, topic.getTopicMap().createLocator(this.dataType), getScope(topic.getTopicMap()));
-			
-			// add occurrence to cache
-			addOccurrenceToCache(value, topic, occ);
-			
-		}else logger.info("Occurrence '" + value + "' already exist.");
-		
-		// set the flag
-		setChanged(occ);
-		
-	}
-
-	public String getOccurrenceType() {
-		return occurrenceType;
-	}
-
-	public void setOccurrenceType(String occurrenceTypeIdentifier) {
-		this.occurrenceType = occurrenceTypeIdentifier;
-	}
-
-	public String getDataType() {
-		return dataType;
-	}
-
-	public void setDataType(String dataType) {
-		this.dataType = dataType;
-	}
-
-	@Override
-	public String toString() {
-		return "OccurrenceBinding [occurrenceType=" + occurrenceType + "]";
 	}
 
 }

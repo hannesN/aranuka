@@ -31,6 +31,82 @@ public class RoleBinding extends AbstractAssociationFieldBinding {
 		boolean changed;
 	}
 	
+	// --[ public methods ]--------------------------------------------------------------------------------
+	
+	public RoleBinding(Map<String,String> prefixMap, AssociationContainerBinding parent) {
+		super(prefixMap, parent);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void persist(Association association, Object associationObject) throws BadAnnotationException{
+		
+		if(this.getValue(associationObject) == null)
+			return;
+
+		if (this.isArray())
+
+			for (Object obj : (Object[]) this.getValue(associationObject))
+				createRole(association, obj);
+				
+
+		else if (this.isCollection())
+
+			for (Object obj : (Collection<Object>) this.getValue(associationObject))
+				createRole(association, obj);
+
+		else
+
+			if (this.getValue(associationObject) != null)
+				createRole(association, this.getValue(associationObject));
+		
+		
+		// remove obsolete roles
+		removeObsoleteRoles(association);
+		
+	}
+
+	// getter and setter
+	
+	public String getRoleType() {
+		return roleType;
+	}
+
+	public void setRoleType(String roleTypeIdentifier) {
+		this.roleType = roleTypeIdentifier;
+	}
+
+	public TopicBinding getPlayerBinding() {
+		return playerBinding;
+	}
+
+	public void setPlayerBinding(TopicBinding playerBinding) {
+		this.playerBinding = playerBinding;
+	}
+		
+	// --[ private methods ]-------------------------------------------------------------------------------
+	
+	private void createRole(Association association, Object playerObject) throws BadAnnotationException{
+		
+		Role role = getRoleFromCache(playerObject, association);
+		
+		if(role == null){
+			
+			logger.info("Create new role " + getRoleType());
+			
+			//association.createRole();
+			
+			Topic player = playerBinding.persist(association.getTopicMap(), playerObject);
+			role = association.createRole(association.getTopicMap().createTopicBySubjectIdentifier(association.getTopicMap().createLocator(roleType)), player);
+
+			// add role to cache
+			addRoleToCache(association, playerObject, role);
+			
+		}else logger.info("Role already exist.");
+
+		setChanged(role);
+
+	}
+	
 	private void addRoleToCache(Association association, Object player, Role role){ 
 		
 		RoleIdent r = new RoleIdent();
@@ -106,84 +182,5 @@ public class RoleBinding extends AbstractAssociationFieldBinding {
 		// set flags back to false
 		unsetChanded();
 	}
-	
-	
-	public RoleBinding(Map<String,String> prefixMap, AssociationContainerBinding parent) {
-		super(prefixMap, parent);
-	}
-	
-	@SuppressWarnings("unchecked")
-	public void persist(Association association, Object associationObject) throws BadAnnotationException{
-		
-		if(this.getValue(associationObject) == null)
-			return;
-		
-		
-		if (this.isArray())
-
-			for (Object obj : (Object[]) this.getValue(associationObject))
-				createRole(association, obj);
-				
-
-		else if (this.isCollection())
-
-			for (Object obj : (Collection<Object>) this.getValue(associationObject))
-				createRole(association, obj);
-
-		else
-
-			if (this.getValue(associationObject) != null)
-				createRole(association, this.getValue(associationObject));
-		
-		
-		// remove obsolete roles
-		removeObsoleteRoles(association);
-		
-	}
-	
-	private void createRole(Association association, Object playerObject) throws BadAnnotationException{
-		
-		Role role = getRoleFromCache(playerObject, association);
-		
-		if(role == null){
-			
-			logger.info("Create new role " + getRoleType());
-			
-			//association.createRole();
-			
-			Topic player = playerBinding.persist(association.getTopicMap(), playerObject);
-			role = association.createRole(association.getTopicMap().createTopicBySubjectIdentifier(association.getTopicMap().createLocator(roleType)), player);
-
-			// add role to cache
-			addRoleToCache(association, playerObject, role);
-			
-		}else logger.info("Role already exist.");
-
-		setChanged(role);
-
-	}
-	
-	public String getRoleType() {
-		return roleType;
-	}
-
-	public void setRoleType(String roleTypeIdentifier) {
-		this.roleType = roleTypeIdentifier;
-	}
-
-	public TopicBinding getPlayerBinding() {
-		return playerBinding;
-	}
-
-	public void setPlayerBinding(TopicBinding playerBinding) {
-		this.playerBinding = playerBinding;
-	}
-	
-
-	@Override
-	public String toString() {
-		return "RoleBinding [roleType=" + roleType + "]";
-	}
-
 	
 }

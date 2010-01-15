@@ -20,10 +20,6 @@ public class NameBinding extends AbstractTopicFieldBinding {
 	
 	private Map<NameIdent, Name> cache;
 	
-	/**
-	 * Container class to store created names
-	 *
-	 */
 	private class NameIdent{
 		
 		public String name;
@@ -31,90 +27,12 @@ public class NameBinding extends AbstractTopicFieldBinding {
 		public boolean changed;
 	}
 	
-	/**
-	 * Adds a name object to the cache
-	 * 
-	 * @param name
-	 * @param topic
-	 * @param topicName
-	 */
-	private void addNameToCache(String name, Topic topic, Name topicName){ 
-		
-		NameIdent n = new NameIdent();
-		n.name = name;
-		n.topic = topic;
-		n.changed = true;
-		
-		if(this.cache == null)
-			this.cache = new HashMap<NameIdent, Name>();
-		
-		this.cache.put(n, topicName);
-	}
-
-	/**
-	 * Sets the changed flag for a specific name object
-	 * @param name
-	 */
-	private void setChanged(Name name)
-	{
-		if(this.cache == null)
-			return;
-		
-		for(Map.Entry<NameIdent, Name> entry:cache.entrySet()){
-			
-			if(entry.getValue().equals(name))
-				entry.getKey().changed = true;
-		}
-	}
+	// --[ public methods ]--------------------------------------------------------------------------------
 	
-	/**
-	 * Sets all changed flags back to false
-	 */
-	private void unsetChanded(){
-		
-		if(this.cache == null)
-			return;
-		
-		for(Map.Entry<NameIdent, Name> entry:cache.entrySet())
-			entry.getKey().changed = false;
-		
-	}
-	
-	/**
-	 * Tries to retrieve a name object from cache.
-	 * 
-	 * @param name
-	 * @param topic
-	 * @return
-	 */
-	private Name getNameFromCache(String name, Topic topic){
-		
-		if(this.cache == null)
-			return null;
-		
-		for(Map.Entry<NameIdent, Name> entry:cache.entrySet()){
-			
-			if(entry.getKey().name == name && entry.getKey().topic.equals(topic)){
-				return entry.getValue();								
-			}
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * Constructor
-	 * 
-	 * @param prefixMap
-	 * @param parent
-	 */
 	public NameBinding(Map<String,String> prefixMap, TopicBinding parent) {
 		super(prefixMap, parent);
 	}
-
-	/**
-	 * Persists a name field
-	 */
+	
 	@SuppressWarnings("unchecked")
 	public void persist(Topic topic, Object topicObject){
 		
@@ -137,12 +55,90 @@ public class NameBinding extends AbstractTopicFieldBinding {
 		// check if obsolete names exist
 		removeObsoleteNames(topic);
 	}
+
+	// getter and setter
 	
-	/**
-	 * Removes obsolete name from the topic map.
-	 * 
-	 * @param topic
-	 */
+	public String getNameType() {
+		return nameType;
+	}
+
+	public void setNameType(String nameIdentifier) {
+		this.nameType = nameIdentifier;
+	}
+	
+	// --[ private methods ]-------------------------------------------------------------------------------
+	
+	private void createName(Topic topic, String name){
+
+		Name n = getNameFromCache(name, topic);
+		
+		if(n == null){
+			
+			logger.info("Add new name '" + name + "'.");
+			
+			// create new name
+			n = topic.createName(name, getScope(topic.getTopicMap()));
+			n.setType(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(this.nameType)));
+			
+			// add name construct to cache
+			addNameToCache(name, topic, n);
+		}else logger.info("Name '" + name + "' already exist.");
+		
+		// set the flag
+		setChanged(n);
+		
+	}
+
+	private void addNameToCache(String name, Topic topic, Name topicName){ 
+		
+		NameIdent n = new NameIdent();
+		n.name = name;
+		n.topic = topic;
+		n.changed = true;
+		
+		if(this.cache == null)
+			this.cache = new HashMap<NameIdent, Name>();
+		
+		this.cache.put(n, topicName);
+	}
+
+	private void setChanged(Name name)
+	{
+		if(this.cache == null)
+			return;
+		
+		for(Map.Entry<NameIdent, Name> entry:cache.entrySet()){
+			
+			if(entry.getValue().equals(name))
+				entry.getKey().changed = true;
+		}
+	}
+
+	private void unsetChanded(){
+		
+		if(this.cache == null)
+			return;
+		
+		for(Map.Entry<NameIdent, Name> entry:cache.entrySet())
+			entry.getKey().changed = false;
+		
+	}
+
+	private Name getNameFromCache(String name, Topic topic){
+		
+		if(this.cache == null)
+			return null;
+		
+		for(Map.Entry<NameIdent, Name> entry:cache.entrySet()){
+			
+			if(entry.getKey().name == name && entry.getKey().topic.equals(topic)){
+				return entry.getValue();								
+			}
+		}
+		
+		return null;
+	}
+
 	private void removeObsoleteNames(Topic topic){
 		
 		if(this.cache == null)
@@ -168,57 +164,7 @@ public class NameBinding extends AbstractTopicFieldBinding {
 		// set flags back to false
 		unsetChanded();
 	}
-	
-	/**
-	 * Creates a new name object, but tries to retrieve the name from cache first.
-	 * 
-	 * @param topic
-	 * @param name
-	 */
-	private void createName(Topic topic, String name){
 
-		Name n = getNameFromCache(name, topic);
-		
-		if(n == null){
-			
-			logger.info("Add new name '" + name + "'.");
-			
-			// create new name
-			n = topic.createName(name, getScope(topic.getTopicMap()));
-			n.setType(topic.getTopicMap().createTopicBySubjectIdentifier(topic.getTopicMap().createLocator(this.nameType)));
-			
-			// add name construct to cache
-			addNameToCache(name, topic, n);
-		}else logger.info("Name '" + name + "' already exist.");
-		
-		// set the flag
-		setChanged(n);
-		
-	}
-	
-	/**
-	 * Returns the name type as string.
-	 * 
-	 * @return
-	 */
-	public String getNameType() {
-		return nameType;
-	}
-
-	/**
-	 * Sets the name type.
-	 * 
-	 * @param nameIdentifier
-	 */
-	public void setNameType(String nameIdentifier) {
-		this.nameType = nameIdentifier;
-	}
-
-	@Override
-	public String toString() {
-		return "NameBinding [nameType=" + nameType + "] " + super.toString();
-	}
-	
 }
 
 

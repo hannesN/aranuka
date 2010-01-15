@@ -17,10 +17,11 @@ public class AssociationContainerBinding extends AbstractClassBinding {
 
 	private static Logger logger = LoggerFactory.getLogger(AssociationContainerBinding.class);
 	
-	private AssociationContainerBinding parent; // supertype
-	private List<RoleBinding> roles;
-	private Map<Object, Association> associationObjects;
+	private AssociationContainerBinding parent; // super type
+	private List<RoleBinding> roles; // list of related role bindings
+	private Map<Object, Association> cache;
 	
+	// --[ public methods ]------------------------------------------------------------------------------
 	
 	public Association persist(TopicMap topicMap, Object associationContainerObject, AssociationBinding associationBinding) throws BadAnnotationException{
 		
@@ -42,6 +43,26 @@ public class AssociationContainerBinding extends AbstractClassBinding {
 		return  ass;
 	}
 
+	// getter and setter
+	
+	public void setParent(AssociationContainerBinding parent) {
+		this.parent = parent;
+	}
+	
+	public void addRoleBinding(RoleBinding rb) {
+		if (roles==null)
+			roles = new ArrayList<RoleBinding>();
+		roles.add(rb);
+	}
+	
+	public List<RoleBinding> getRoleBindings() {
+		if (roles==null)
+			return Collections.emptyList();
+		return roles;
+	}
+
+	// --[ private methods ]-------------------------------------------------------------------------------
+	
 	private void updateAssociation(Association association, Object associationContainerObject) throws BadAnnotationException{
 		
 		setToUpdated(association);
@@ -64,7 +85,7 @@ public class AssociationContainerBinding extends AbstractClassBinding {
 		else newAssociation = topicMap.createAssociation(topicMap.createTopicBySubjectIdentifier(topicMap.createLocator(associationBinding.getAssociationType())),associationBinding.getScope(topicMap));
 		
 		// store in cache
-		addAssociation(associationContainerObject, newAssociation);
+		addAssociationToCache(associationContainerObject, newAssociation);
 		
 		// create roles
 		createRoles(newAssociation, associationContainerObject, associationContainerBinding);
@@ -80,47 +101,21 @@ public class AssociationContainerBinding extends AbstractClassBinding {
 		
 	}
 	
-	private void addAssociation(Object object, Association association){
+	private void addAssociationToCache(Object object, Association association){
 		
-		if(associationObjects == null)
-			associationObjects = new HashMap<Object, Association>();
+		if(cache == null)
+			cache = new HashMap<Object, Association>();
 		
-		associationObjects.put(object, association);
+		cache.put(object, association);
 		
 	}
 	
 	private Association getAssociation(Object object){
 		
-		if(associationObjects == null)
+		if(cache == null)
 			return null;
 		
-		return associationObjects.get(object);
-	}
-	
-	
-	public void setParent(AssociationContainerBinding parent) {
-		this.parent = parent;
-	}
-	
-	// role bindings
-	
-	public void addRoleBinding(RoleBinding rb) {
-		if (roles==null)
-			roles = new ArrayList<RoleBinding>();
-		roles.add(rb);
-	}
-	
-	public List<RoleBinding> getRoleBindings() {
-		if (roles==null)
-			return Collections.emptyList();
-		return roles;
+		return cache.get(object);
 	}
 
-	@Override
-	public String toString() {
-		return "AssociationContainerBinding [parent=" + parent + ", roles="
-				+ roles + "]";
-	}
-	
-	
 }
