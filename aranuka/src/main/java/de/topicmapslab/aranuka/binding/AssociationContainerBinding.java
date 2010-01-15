@@ -13,7 +13,7 @@ import org.tmapi.core.TopicMap;
 
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 
-public class AssociationContainerBinding extends AbstractBinding {
+public class AssociationContainerBinding extends AbstractClassBinding {
 
 	private static Logger logger = LoggerFactory.getLogger(AssociationContainerBinding.class);
 	
@@ -32,24 +32,27 @@ public class AssociationContainerBinding extends AbstractBinding {
 			logger.info("Create new association container association.");
 			ass = persist(topicMap, associationContainerObject, associationBinding, this);
 			
+			
 		}else{
 			
-			logger.info("Update existing association container association.");
-			updateAssociation(ass, associationContainerObject);
+			if(!isUpdated(ass))
+				updateAssociation(ass, associationContainerObject);
 		}
 		
 		return  ass;
 	}
-	
+
 	private void updateAssociation(Association association, Object associationContainerObject) throws BadAnnotationException{
+		
+		setToUpdated(association);
+		
+		logger.info("Update existing association container association.");
 		
 		if(this.parent != null)
 			createRoles(association, associationContainerObject, this.parent);
 		
 		createRoles(association, associationContainerObject, this);
-		
-			
-		
+
 	}
 	
 	private Association persist(TopicMap topicMap, Object associationContainerObject, AssociationBinding associationBinding, AssociationContainerBinding associationContainerBinding) throws BadAnnotationException{
