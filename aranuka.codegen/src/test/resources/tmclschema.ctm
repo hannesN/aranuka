@@ -28,6 +28,11 @@
 test:secure isa tmcl:association-type;
     - "secure";
     has-role(test:secret, 1, 1).
+    
+test:written-by isa tmcl:association-type;
+    - "Written By";
+    has-role(test:work, 1, 1);
+    has-role(test:author, 1, 1).
 
 
 #-- TT: <http://psi.topicmaps.org/tmcl/name-type>
@@ -66,6 +71,13 @@ test:age isa tmcl:occurrence-type;
 
 test:secret isa tmcl:role-type;
     - "secret".
+    
+test:author isa tmcl:role-type;
+    - "Author".
+    
+test:work isa tmcl:role-type;
+    - "Work".
+
 
 
 #-- TT: <http://psi.topicmaps.org/tmcl/topic-type>
@@ -74,6 +86,7 @@ test:document isa tmcl:topic-type;
     - "Document";
     has-subject-locator(1, 1, "secret:.*");
     plays-role(test:secret, test:secure, 1, 1);
+    plays-role(test:work, test:written-by, 1, 1);
     has-occurrence(test:secret_content, 1, "*"^^<ctm:integer>);
     has-occurrence(test:rating, 0, "*"^^<ctm:integer>);
     has-occurrence(test:creation_date, 1, 1);
@@ -82,6 +95,7 @@ test:document isa tmcl:topic-type;
 test:author isa tmcl:topic-type;
 	- "Author";
 	has-subject-identifier(1, "*"^^<ctm:integer>, "secret:.*");
+	plays-role(test:author, test:written-by, 1, 1);
 	has-name(test:firstname, 1, 1);
 	has-name(test:middlename, 0, "*"^^<ctm:integer>);
 	has-name(test:lastname, 1, 1);

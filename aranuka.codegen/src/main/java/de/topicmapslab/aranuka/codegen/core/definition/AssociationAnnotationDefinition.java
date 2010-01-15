@@ -20,7 +20,7 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	private final String fieldName;
 	
 	private final ASSOCIATIONKIND assocKind;
-	private final Set<AssocOtherPlayers> otherplayers;
+	private final Set<AssocOtherPlayers> otherPlayers;
 	
 
 	public AssociationAnnotationDefinition(Topic assocType, Topic roleType, Set<AssocOtherPlayers> otherplayers) throws POJOGenerationException {
@@ -28,7 +28,7 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 		
 		this.role = TypeUtility.getLocator(roleType).toExternalForm();
 		
-		this.otherplayers = otherplayers;
+		this.otherPlayers = otherplayers;
 		
 		switch (otherplayers.size()) {
 		case 0:
@@ -49,6 +49,10 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 		throw new UnsupportedOperationException();
 	}
 
+	public Set<AssocOtherPlayers> getOtherPlayers() {
+		return otherPlayers;
+	}
+	
 	public String getAnnotationAttributes() {
 		throw new UnsupportedOperationException();
 	}
@@ -108,6 +112,13 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 			this.otherPlayer = otherPlayer;
 		}
 		
+		public Topic getPlayer() {
+			return otherPlayer;
+		}
+		
+		public Topic getRole() {
+			return otherRole;
+		}
 		
 	}
 

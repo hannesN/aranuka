@@ -31,7 +31,7 @@ public class GeneratorTest extends AbstractGenerationTest {
 	public void run() throws Exception {
 		init();
 
-		new CodeGenerator().generateCode(topicMap, getDir());
+		new CodeGenerator().generateCode(topicMap, getDir(), "test.model");
 	}
 
 	private void init() throws Exception {
