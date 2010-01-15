@@ -9,6 +9,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmapi.core.Association;
+import org.tmapi.core.Role;
 import org.tmapi.core.Topic;
 
 import de.topicmapslab.aranuka.annotations.ASSOCIATIONKIND;
@@ -114,7 +115,7 @@ public class AssociationBinding extends AbstractTopicFieldBinding {
 	
 	
 	
-	public AssociationBinding(Map<String,String> prefixMap, AbstractBinding parent) {
+	public AssociationBinding(Map<String,String> prefixMap, AbstractClassBinding parent) {
 		super(prefixMap, parent);
 	}
 	
@@ -222,6 +223,9 @@ public class AssociationBinding extends AbstractTopicFieldBinding {
 			logger.info("Create new nnary association " + this.associationType);
 			
 			ass = associationContainer.persist(topic.getTopicMap(), this.getValue(topicObject), this);
+
+			/// TODO add own role as player to the association if not existing
+			addPlayer(ass, topic);
 			
 			// add association to cache
 			addAssociationToCache(topic, this.getValue(topicObject), ass);
@@ -230,12 +234,31 @@ public class AssociationBinding extends AbstractTopicFieldBinding {
 			
 			logger.info("Nnary association already exist.");
 			
-			// invoke update of container
-			ass = associationContainer.persist(topic.getTopicMap(), this.getValue(topicObject), this);
+			// invoke update of container /// TODO how to do it best?
+			//ass = associationContainer.persist(topic.getTopicMap(), this.getValue(topicObject), this);
 		}
 		
 		setChanged(ass);
 	}
+	
+	private void addPlayer(Association association, Topic player){
+	
+	Topic roleType = association.getTopicMap().getTopicBySubjectIdentifier(association.getTopicMap().createLocator(this.playedRole));
+	
+	if(roleType != null){
+		
+		Set<Role> roles = association.getRoles(roleType);
+		
+		for(Role role:roles){
+			if(role.getPlayer().equals(player))
+				return;
+		}
+	
+	}
+	
+	// add owner role
+	association.createRole(association.getTopicMap().createTopicBySubjectIdentifier(association.getTopicMap().createLocator(this.playedRole)), player);
+}
 	
 
 	public String getAssociationType() {

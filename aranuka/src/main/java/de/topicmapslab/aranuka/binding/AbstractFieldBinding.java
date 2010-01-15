@@ -16,11 +16,11 @@ import org.tmapi.core.TopicMap;
 
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
-public abstract class AbstractFieldBinding {
+public abstract class AbstractFieldBinding{
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractFieldBinding.class);
 
-	private final AbstractBinding parent;
+	private final AbstractClassBinding parent;
 	
 	private Method getter; // get method of the field
 	private Method setter; // set method of the field
@@ -32,7 +32,7 @@ public abstract class AbstractFieldBinding {
 	
 	private Map<String,String> prefixMap;
 	
-	public AbstractFieldBinding(Map<String,String> prefixMap, AbstractBinding parent) {
+	public AbstractFieldBinding(Map<String,String> prefixMap, AbstractClassBinding parent) {
 		this.prefixMap = prefixMap;
 		if(this.prefixMap == null)
 			this.prefixMap = new HashMap<String, String>(); // create empty map to avoid exception, but should never be empty
@@ -47,7 +47,7 @@ public abstract class AbstractFieldBinding {
 		this.setter = setter;
 	}
 
-	public AbstractBinding getParent() {
+	public AbstractClassBinding getParent() {
 		return parent;
 	}
 	
