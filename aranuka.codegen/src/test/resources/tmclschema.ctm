@@ -1,0 +1,107 @@
+%encoding "utf-8"
+%version 1.0
+
+
+#-- Included Topic Maps
+%include <http://www.topicmaps.org/tmcl/templates.ctm>
+
+
+#-- Prefixes
+%prefix test <http://test.de/>
+%prefix tmcl <http://psi.topicmaps.org/tmcl/>
+%prefix tmdm <http://psi.topicmaps.org/iso13250/model/>
+
+
+
+#-- ONTOLOGY
+
+
+
+#-- INSTANCES
+
+
+#-- Topics
+
+
+#-- TT: <http://psi.topicmaps.org/tmcl/association-type>
+
+test:secure isa tmcl:association-type;
+    - "secure";
+    has-role(test:secret, 1, 1).
+    
+test:written-by isa tmcl:association-type;
+    - "Written By";
+    has-role(test:work, 1, "*"^^<ctm:integer>);
+    has-role(test:author, 1, 1).
+
+
+#-- TT: <http://psi.topicmaps.org/tmcl/name-type>
+
+test:name isa tmcl:name-type;
+    - "Name".
+
+test:firstname isa tmcl:name-type;
+    - "Firstname".
+
+test:middlename isa tmcl:name-type;
+    - "Middle Name".
+    
+test:lastname isa tmcl:name-type;
+    - "Lastname".
+
+#-- TT: <http://psi.topicmaps.org/tmcl/occurrence-type>
+
+test:secret_content isa tmcl:occurrence-type;
+    - "Secret Content";
+    has-datatype("xsd:string").
+
+test:creation_date isa tmcl:occurrence-type;
+    - "Creation Date";
+    has-datatype("xsd:date").
+
+test:rating isa tmcl:occurrence-type;
+    - "Rating";
+    has-datatype("xsd:int").
+    
+test:age isa tmcl:occurrence-type;
+    - "Age";
+    has-datatype("xsd:int").
+
+#-- TT: <http://psi.topicmaps.org/tmcl/role-type>
+
+test:secret isa tmcl:role-type;
+    - "secret".
+    
+test:author isa tmcl:role-type;
+    - "Author".
+    
+test:work isa tmcl:role-type;
+    - "Work".
+
+
+
+#-- TT: <http://psi.topicmaps.org/tmcl/topic-type>
+
+test:document isa tmcl:topic-type;
+    - "Document";
+    has-subject-locator(1, 1, "secret:.*");
+    plays-role(test:secret, test:secure, 1, 1);
+    plays-role(test:work, test:written-by, 1, 1);
+    has-occurrence(test:secret_content, 1, "*"^^<ctm:integer>);
+    has-occurrence(test:rating, 0, "*"^^<ctm:integer>);
+    has-occurrence(test:creation_date, 1, 1);
+    has-name(test:name, 0, "*"^^<ctm:integer>).
+
+test:author isa tmcl:topic-type;
+	- "Author";
+	has-subject-identifier(1, "*"^^<ctm:integer>, "secret:.*");
+	plays-role(test:author, test:written-by, 1, 1);
+	has-name(test:firstname, 1, 1);
+	has-name(test:middlename, 0, "*"^^<ctm:integer>);
+	has-name(test:lastname, 1, 1);
+	has-occurrence(test:age, 1, 1).
+	
+	
+
+
+# Thanks for using tinyTiM -- http://tinytim.sourceforge.net/ :)
