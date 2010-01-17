@@ -10,9 +10,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import junit.framework.Test;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +32,7 @@ import de.topicmapslab.aranuka.annotations.Name;
 import de.topicmapslab.aranuka.annotations.Occurrence;
 import de.topicmapslab.aranuka.annotations.Role;
 import de.topicmapslab.aranuka.annotations.Scope;
+import de.topicmapslab.aranuka.annotations.TestAssociation;
 import de.topicmapslab.aranuka.annotations.Topic;
 import de.topicmapslab.aranuka.binding.AbstractClassBinding;
 import de.topicmapslab.aranuka.binding.AbstractFieldBinding;
@@ -154,14 +158,47 @@ public class Session {
 			binding.addIdentifier(TopicMapsUtils.generateSubjectIdentifier(clazz));
 		}
 		
+		Set<TestAssociation> testAssociations = new HashSet<TestAssociation>();
+		
 		// create field bindings
 		for (Field field : clazz.getDeclaredFields())
-			createFieldBinding(binding, field, clazz);
+			createFieldBinding(binding, field, clazz, testAssociations);
 
+		if(!testAssociations.isEmpty())
+		
 		// check topic binding
 		checkTopicBinding(binding, clazz);
 		
 		return binding;
+	}
+	
+	private void createTestAssociationBindings(Set<TestAssociation> testAssociations){
+		
+		// create subset
+
+		Map<String, Map<String, Set<TestAssociation>>> associationBindings = new HashMap<String, Map<String,Set<TestAssociation>>>();
+		
+		
+		for(TestAssociation ta:testAssociations){
+			
+			String type = ta.type();
+			String pr = ta.played_role();
+			String or = ta.other_role();
+			
+			Map<String, Set<TestAssociation>> typemap;
+			
+			if(associationBindings.get(type) == null){
+				
+			}else{
+				
+			}
+			
+		}
+		
+	}
+	
+	private void createTestAssociationBinding(Set<TestAssociation> testAssociations){
+		
 	}
 	
 	/**
@@ -276,7 +313,7 @@ public class Session {
 	 * @throws ClassNotSpecifiedException
 	 * @throws NoSuchMethodException
 	 */
-	private void createFieldBinding(TopicBinding binding, Field field, Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	private void createFieldBinding(TopicBinding binding, Field field, Class<?> clazz, Set<TestAssociation> testAssociations) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
 		
 		// ignore transient fields
 		if(isTransient(field)){
@@ -321,11 +358,23 @@ public class Session {
 						createAssociationBinding(binding, field, clazz, association);
 						
 					}else{
+					
+						TestAssociation testAssociation = field.getAnnotation(TestAssociation.class);
+						
+						if(testAssociation != null){
 							
-						throw new BadAnnotationException("Non transient field " + field.getName() + " has no valid annotaton.");
+							// collect associations
+							testAssociations.add(testAssociation);
+							
+							
+						}else{
+							
+							throw new BadAnnotationException("Non transient field " + field.getName() + " has no valid annotaton.");
+						}
 					}
 				}
 			}
+			
 		}
 	}
 	
