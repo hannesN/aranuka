@@ -34,3 +34,5 @@ annoTM/target
 aranuka.codegen/target
 **/generated
 aranuka.codegen/tmp/test_result/**
+aranuka/doc/**/*.aux
+aranuka/doc/**/*.dvi
