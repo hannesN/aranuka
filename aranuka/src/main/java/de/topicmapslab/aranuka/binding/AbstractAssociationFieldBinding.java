@@ -12,7 +12,8 @@ public abstract class AbstractAssociationFieldBinding extends AbstractFieldBindi
 		super(prefixMap, parent);
 	}
 	
-	// abstract persist method
-	public abstract void persist(Association association, Object object) throws BadAnnotationException; 
-	
+//	// abstract persist method
+//	@Deprecated
+//	public abstract void persist(Association association, Object object) throws BadAnnotationException; 
+//	
 }
