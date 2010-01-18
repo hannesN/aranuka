@@ -13,6 +13,7 @@ public abstract class AbstractTopicFieldBinding extends AbstractFieldBinding {
 	}
 	
 	// abstract persist method
+	@Deprecated
 	public abstract void persist(Topic topic, Object object) throws BadAnnotationException; 
 	
 }
