@@ -40,7 +40,6 @@ import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
 import org.tmapi.index.TypeInstanceIndex;
 
-import de.topicmapslab.aranuka.annotations.IDTYPE;
 import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.IdAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.NameAnnotationDefinition;
@@ -48,6 +47,7 @@ import de.topicmapslab.aranuka.codegen.core.definition.OccurrenceAnnotationDefin
 import de.topicmapslab.aranuka.codegen.core.definition.TopicAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
 import de.topicmapslab.aranuka.codegen.core.util.TypeUtility;
+import de.topicmapslab.aranuka.enummerations.IdType;
 
 
 
@@ -359,11 +359,11 @@ public class DefinitionFactory {
 				constrainedTopicType)) {
 			Topic ic = constrainedTopic.getParent().getRoles(constrains)
 					.iterator().next().getPlayer();
-			IDTYPE type;
+			IdType type;
 			if (ic.getTypes().contains(subjectIdentifierConstraint)) {
-				type = IDTYPE.SUBJECT_IDENTIFIER;
+				type = IdType.SUBJECT_IDENTIFIER;
 			} else if (ic.getTypes().contains(subjectLocatorConstraint)) {
-				type = IDTYPE.SUBJECT_LOCATOR;
+				type = IdType.SUBJECT_LOCATOR;
 			} else {
 				continue;
 			}
@@ -387,42 +387,34 @@ public class DefinitionFactory {
 			if (!ttc.getTypes().contains(topicRoleConstraint))
 				continue;
 			
-			Topic assocType = null;
-			for (Role constrainsRole : ttc.getRolesPlayed(constrains, constraintStatement)) {
-				Topic tmp = constrainsRole.getParent().getRoles(constrained).iterator().next().getPlayer();
-				if (tmp.getTypes().contains(associationType)) {
-					assocType = tmp;
-					break;
-				}
-			}
+			Topic assocType = getAssocType(ttc);
 			
-			Topic roleType = null;
-			for (Role constrainsRole : ttc.getRolesPlayed(constrains, constrainedRole)) {
-				Topic tmp = constrainsRole.getParent().getRoles(constrained).iterator().next().getPlayer();
-				if (tmp.getTypes().contains(this.roleType)) {
-					roleType = tmp;
-					break;
-				}
-			}
+			Topic roleType = getRoleType(ttc);
 			
+			
+			Set<AssociationAnnotationDefinition.AssocOtherPlayers> playerSet = new HashSet<AssociationAnnotationDefinition.AssocOtherPlayers>();
+			AssociationAnnotationDefinition aad = new AssociationAnnotationDefinition(assocType, roleType, playerSet);
+			
+			// filling out the other players
 			Topic otherRole = null;			
 			Topic otherPlayer = null;
-			Set<AssociationAnnotationDefinition.AssocOtherPlayers> playerSet = new HashSet<AssociationAnnotationDefinition.AssocOtherPlayers>();
+			boolean isMany = false;
 			for (Role assocRole : assocType.getRolesPlayed(constrained, constraintStatement)) {
+				// find topic role constraint
 				Topic constraint = assocRole.getParent().getRoles(constrains).iterator().next().getPlayer();
 				if (!constraint.getTypes().contains(topicRoleConstraint))
 					continue;
 				
 				
-				Association assoc = constraint.getRolesPlayed(constrains, constrainedRole).iterator().next().getParent();
 				
+				Association assoc = constraint.getRolesPlayed(constrains, constrainedRole).iterator().next().getParent();
 				// check if we have the otherRole
 				Topic tmp = assoc.getRoles(constrained).iterator().next().getPlayer();
-				if (tmp.equals(roleType))
+				if (tmp.equals(roleType)) // ignore this role
 					continue;
 					
 				otherRole = tmp;
-				
+				isMany = isMany(constraint);
 				
 				assoc = constraint.getRolesPlayed(constrains, constrainedTopicType).iterator().next().getParent();
 				
@@ -431,17 +423,41 @@ public class DefinitionFactory {
 				otherPlayer = tmp;
 				
 				AssociationAnnotationDefinition.AssocOtherPlayers aop = new AssociationAnnotationDefinition.AssocOtherPlayers(otherRole, otherPlayer);
+				aop.setMany(isMany);
 				playerSet.add(aop);
-				aop.setMany(isMany(constraint));
-					
+				// if the play cardinality says many, we set the container to many
+				// if not let it be, because another player could be set to many
+				if (isMany(constraint))
+					aad.setMany(true);
+				
 			}
-			
-			
-			AssociationAnnotationDefinition aad = new AssociationAnnotationDefinition(assocType, roleType, playerSet);
-			
 			aadSet.add(aad);
 		}
 		tad.addAssociationAnnotationDefinitions(aadSet);
+	}
+
+	private Topic getRoleType(Topic ttc) {
+		Topic roleType = null;
+		for (Role constrainsRole : ttc.getRolesPlayed(constrains, constrainedRole)) {
+			Topic tmp = constrainsRole.getParent().getRoles(constrained).iterator().next().getPlayer();
+			if (tmp.getTypes().contains(this.roleType)) {
+				roleType = tmp;
+				break;
+			}
+		}
+		return roleType;
+	}
+
+	private Topic getAssocType(Topic ttc) {
+		Topic assocType = null;
+		for (Role constrainsRole : ttc.getRolesPlayed(constrains, constraintStatement)) {
+			Topic tmp = constrainsRole.getParent().getRoles(constrained).iterator().next().getPlayer();
+			if (tmp.getTypes().contains(associationType)) {
+				assocType = tmp;
+				break;
+			}
+		}
+		return assocType;
 	}
 
 	private boolean isMany(Topic constraint) {

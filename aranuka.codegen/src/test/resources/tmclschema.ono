@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<file id="91" version="1.0.0" xmlns="onotoa.topicmapslab.de">
+    <schema id="92">
+        <topicType id="138" kind="NameType" regExp=".*">
+            <name>Name</name>
+            <subjectIdentifier>http://test.de/name</subjectIdentifier>
+        </topicType>
+        <topicType datatype="xsd:date" id="106" kind="OccurrenceType" regExp=".*">
+            <name>Creation Date</name>
+            <subjectIdentifier>http://test.de/creation_date</subjectIdentifier>
+        </topicType>
+        <topicType id="122" kind="TopicType">
+            <name>Document</name>
+            <subjectIdentifier>http://test.de/document</subjectIdentifier>
+            <nameConstraints>
+                <nameConstraint cardMax="*" cardMin="0" id="139">
+                    <topictypeRef ref="topictypes.0"/>
+                </nameConstraint>
+            </nameConstraints>
+            <occurrenceConstraints>
+                <occurrenceConstraint cardMax="*" cardMin="1" id="124">
+                    <topictypeRef ref="topictypes.13"/>
+                </occurrenceConstraint>
+                <occurrenceConstraint cardMax="1" cardMin="1" id="125">
+                    <topictypeRef ref="topictypes.1"/>
+                </occurrenceConstraint>
+                <occurrenceConstraint cardMax="*" cardMin="0" id="137">
+                    <topictypeRef ref="topictypes.9"/>
+                </occurrenceConstraint>
+            </occurrenceConstraints>
+            <subjectIdentifierConstraints>
+                <subjectIdentifierConstraint cardMax="1" cardMin="1" id="123" regExp="secret:.*"/>
+            </subjectIdentifierConstraints>
+        </topicType>
+        <topicType id="116" kind="NameType" regExp=".*">
+            <name>Lastname</name>
+            <subjectIdentifier>http://test.de/lastname</subjectIdentifier>
+        </topicType>
+        <topicType id="113" kind="RoleType">
+            <name>Work</name>
+            <subjectIdentifier>http://test.de/work</subjectIdentifier>
+        </topicType>
+        <topicType id="126" kind="AssociationType">
+            <name>Written By</name>
+            <subjectIdentifier>http://test.de/written-by</subjectIdentifier>
+            <roleConstraints>
+                <roleConstraint cardMax="*" cardMin="1" id="127">
+                    <topictypeRef ref="topictypes.4"/>
+                </roleConstraint>
+                <roleConstraint cardMax="1" cardMin="1" id="195">
+                    <topictypeRef ref="topictypes.6"/>
+                </roleConstraint>
+            </roleConstraints>
+        </topicType>
+        <topicType id="140" kind="RoleType">
+            <name>Creator</name>
+            <subjectIdentifier>http://test.de/creator</subjectIdentifier>
+        </topicType>
+        <topicType id="128" kind="TopicType">
+            <name>Author</name>
+            <subjectIdentifier>http://test.de/author</subjectIdentifier>
+            <nameConstraints>
+                <nameConstraint cardMax="1" cardMin="1" id="129">
+                    <topictypeRef ref="topictypes.3"/>
+                </nameConstraint>
+                <nameConstraint cardMax="1" cardMin="1" id="132">
+                    <topictypeRef ref="topictypes.14"/>
+                </nameConstraint>
+                <nameConstraint cardMax="*" cardMin="0" id="134">
+                    <topictypeRef ref="topictypes.8"/>
+                </nameConstraint>
+            </nameConstraints>
+            <occurrenceConstraints>
+                <occurrenceConstraint cardMax="1" cardMin="1" id="130">
+                    <topictypeRef ref="topictypes.11"/>
+                </occurrenceConstraint>
+            </occurrenceConstraints>
+            <subjectLocatorConstraints>
+                <subjectLocatorConstraint cardMax="*" cardMin="1" id="133" regExp="secret:.*"/>
+            </subjectLocatorConstraints>
+        </topicType>
+        <topicType id="95" kind="NameType" regExp=".*">
+            <name>Middle Name</name>
+            <subjectIdentifier>http://test.de/middlename</subjectIdentifier>
+        </topicType>
+        <topicType datatype="xsd:int" id="93" kind="OccurrenceType" regExp=".*">
+            <name>Rating</name>
+            <subjectIdentifier>http://test.de/rating</subjectIdentifier>
+        </topicType>
+        <topicType id="103" kind="AssociationType">
+            <name>secure</name>
+            <subjectIdentifier>http://test.de/secure</subjectIdentifier>
+            <roleConstraints>
+                <roleConstraint cardMax="1" cardMin="1" id="104">
+                    <topictypeRef ref="topictypes.12"/>
+                </roleConstraint>
+            </roleConstraints>
+        </topicType>
+        <topicType datatype="xsd:int" id="117" kind="OccurrenceType" regExp=".*">
+            <name>Age</name>
+            <subjectIdentifier>http://test.de/age</subjectIdentifier>
+        </topicType>
+        <topicType id="101" kind="RoleType">
+            <name>secret</name>
+            <subjectIdentifier>http://test.de/secret</subjectIdentifier>
+        </topicType>
+        <topicType datatype="xsd:string" id="119" kind="OccurrenceType" regExp=".*">
+            <name>Secret Content</name>
+            <subjectIdentifier>http://test.de/secret_content</subjectIdentifier>
+        </topicType>
+        <topicType id="131" kind="NameType" regExp=".*">
+            <name>Firstname</name>
+            <subjectIdentifier>http://test.de/firstname</subjectIdentifier>
+        </topicType>
+        <associationConstraint id="141">
+            <topictypeRef ref="topictypes.5"/>
+            <topicRoleConstraint cardMax="1" cardMin="1" id="142">
+                <player>
+                    <topictypeRef ref="topictypes.7"/>
+                </player>
+                <roleConstraint>
+                    <roleConstraintReference ref="topictypes.5_roleConstraints.1"/>
+                </roleConstraint>
+            </topicRoleConstraint>
+            <topicRoleConstraint cardMax="1" cardMin="1" id="145">
+                <player>
+                    <topictypeRef ref="topictypes.2"/>
+                </player>
+                <roleConstraint>
+                    <roleConstraintReference ref="topictypes.5_roleConstraints.0"/>
+                </roleConstraint>
+            </topicRoleConstraint>
+        </associationConstraint>
+        <associationConstraint id="143">
+            <topictypeRef ref="topictypes.10"/>
+            <topicRoleConstraint cardMax="1" cardMin="1" id="144">
+                <player>
+                    <topictypeRef ref="topictypes.2"/>
+                </player>
+                <roleConstraint>
+                    <roleConstraintReference ref="topictypes.10_roleConstraints.0"/>
+                </roleConstraint>
+            </topicRoleConstraint>
+        </associationConstraint>
+    </schema>
+    <diagram id="181" name="Test">
+        <node id="182" posX="41" posY="41" type="typeNode">
+            <topictypeRef ref="topictypes.7"/>
+        </node>
+        <node id="183" posX="514" posY="89" type="typeNode">
+            <topictypeRef ref="topictypes.2"/>
+        </node>
+        <node id="184" posX="726" posY="19" type="associationNode">
+            <assocConstraintRef ref="assocConstraints.1"/>
+        </node>
+        <node id="188" posX="336" posY="306" type="associationNode">
+            <assocConstraintRef ref="assocConstraints.0"/>
+        </node>
+        <edge id="185" source="node.2" target="node.1" topicRoleRef="associationConstraint.1_topicRoleConstraint.0" type="ROLE_CONSTRAINT_TYPE">
+            <labelPosition id="186" posX="15" posY="11"/>
+            <labelPosition id="187" posX="-59" posY="24"/>
+        </edge>
+        <edge id="189" source="node.3" target="node.0" topicRoleRef="associationConstraint.0_topicRoleConstraint.0" type="ROLE_CONSTRAINT_TYPE">
+            <labelPosition id="191" posX="-84" posY="-6"/>
+            <labelPosition id="192" posX="-32" posY="8"/>
+        </edge>
+        <edge id="190" source="node.3" target="node.1" topicRoleRef="associationConstraint.0_topicRoleConstraint.1" type="ROLE_CONSTRAINT_TYPE">
+            <labelPosition id="193" posX="23" posY="-8"/>
+            <labelPosition id="194" posX="-5" posY="17"/>
+        </edge>
+    </diagram>
+</file>
