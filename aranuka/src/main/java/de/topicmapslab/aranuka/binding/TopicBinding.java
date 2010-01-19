@@ -3,7 +3,6 @@ package de.topicmapslab.aranuka.binding;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -20,7 +19,6 @@ public class TopicBinding extends AbstractClassBinding{
 	private Set<String> identifiers; // identifier of the topic type
 	private TopicBinding parent; // super type
 
-	private Map<Object, Topic> cache; // the instances
 	Topic topicType; // the topic type represented by this binding
 
 	private List<AbstractFieldBinding> fieldBindings; // topic field bindings
@@ -64,7 +62,7 @@ public class TopicBinding extends AbstractClassBinding{
 
 	@Override
 	public String toString() {
-		return "TopicBinding [cache=" + cache + ", fieldBindings="
+		return "TopicBinding [fieldBindings="
 				+ fieldBindings + ", identifiers=" + identifiers + ", name="
 				+ name + ", parent=" + parent + ", topicType=" + topicType
 				+ "]";

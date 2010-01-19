@@ -39,25 +39,10 @@ public class Session {
 		
 		
 	}
-	
-	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, IOException {
 
+	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, IOException {
 		
-		
-		
-//		// get the binding
-//		TopicBinding topicBinding = getTopicBinding(topicObject.getClass());
-//
-//		/// TODO maybe catch other exception an re-throw
-//
-//		if(topicBinding == null)
-//			throw new BadAnnotationException("Object cannot be persisted.");
-//		
-//		topicBinding.persist(getTopicMap(), topicObject);
-//	
-//		
-//		// clear updated
-//		topicBinding.clearUpdatedObjects();
+		getTopicMapHandler().persist(topicObject);
 	}
 	
 	public void flushTopicMap(){
@@ -90,15 +75,15 @@ public class Session {
 		
 	}
 	
-	public void getBySubjectIdentifier(String si){ //	returns instacne of topic with si as subject identifier
+	public void getBySubjectIdentifier(String si){ //	returns instance of topic with si as subject identifier
 		
 	}
 	
-	public void getBySubjectLocator(String sl){ //	returns instacne of topic with si as subject locator
+	public void getBySubjectLocator(String sl){ //	returns instance of topic with si as subject locator
 		
 	}
 	
-	public void getByItemIdentifier(String si){ //	returns instacne of topic with si as item identifier
+	public void getByItemIdentifier(String si){ //	returns instance of topic with si as item identifier
 		
 	}
 	

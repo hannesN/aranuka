@@ -6,6 +6,12 @@
   <version>0.1.0</version>
   <name>aranuka</name>
   <url>http://maven.apache.org</url>
+  <repositories>
+  	<repository>
+  		<id>tmlab</id>
+  		<url>http://maven.topicmapslab.de/third_party</url>
+  	</repository>
+  </repositories>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>

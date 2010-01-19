@@ -18,7 +18,6 @@ public class AssociationBinding extends AbstractFieldBinding {
 
 	private static Logger logger = LoggerFactory.getLogger(AssociationBinding.class);
 	
-	//private ASSOCIATIONKIND kind;
 	private String associationType;
 	private String playedRole;
 	private String otherRole;

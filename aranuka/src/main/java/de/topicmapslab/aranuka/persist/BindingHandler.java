@@ -71,7 +71,8 @@ public class BindingHandler {
 										
 				}else if(isAssociationContainerAnnotated(clazz)){
 					
-					// TODO
+//					AssociationContainerBinding binding = createAssociationContainerBinding(clazz);
+//					addBindingToCache(clazz, binding);
 					
 				}else{
 					/// TODO throw exception
@@ -80,7 +81,7 @@ public class BindingHandler {
 		}
 	}
 	
-	// gets the bindings for an specific class
+	// gets the bindings for an specific class TODO: maybe create two different methods
 	public AbstractClassBinding getBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
 		
 		if(getBindingFromCache(clazz) != null)
@@ -99,10 +100,12 @@ public class BindingHandler {
 								
 		}else if(isAssociationContainerAnnotated(clazz)){
 			
-			// TODO
+			binding = createAssociationContainerBinding(clazz);
+			addBindingToCache(clazz, binding);
 			
 		}else{
-			/// TODO throw exception
+			
+			throw new BadAnnotationException("Class is not @Topic or @AssociationContainer annotated.");
 		}
 		
 		return binding;
@@ -114,8 +117,13 @@ public class BindingHandler {
 	public void printBindings(){
 
 		if(bindingMap != null)
-			for(Map.Entry<Class<?>, AbstractClassBinding> entry:bindingMap.entrySet())
+			for(Map.Entry<Class<?>, AbstractClassBinding> entry:bindingMap.entrySet()){
+				
+				System.out.println("");
 				System.out.println(entry.getValue().toString());
+				
+			}
+				
 	}
 	
 	// --[ private methods ]-------------------------------------------------------------------------------
@@ -469,7 +477,7 @@ public class BindingHandler {
 			
 			// is nnary association
 			/// TODO set association container binding
-			
+			ab.setAssociationContainer(getAssociationContainerBinding(ReflectionUtil.getGenericType(field).getClass()));
 		}
 	}
 		
