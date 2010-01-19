@@ -1,6 +1,7 @@
 package de.topicmapslab.aranuka.codegen.core.definition;
 
-import de.topicmapslab.aranuka.annotations.IDTYPE;
+import de.topicmapslab.aranuka.enummerations.IdType;
+
 
 
 /**
@@ -10,10 +11,10 @@ import de.topicmapslab.aranuka.annotations.IDTYPE;
  */
 public class IdAnnotationDefinition extends FieldDefinition {
 
-	private IDTYPE annotationType;
+	private IdType annotationType;
 	private String fieldName;
 
-	public IdAnnotationDefinition(final IDTYPE idtype) {
+	public IdAnnotationDefinition(final IdType idtype) {
 		this.annotationType = idtype;
 		switch (annotationType) {
 		case ITEM_IDENTIFIER:
@@ -32,7 +33,7 @@ public class IdAnnotationDefinition extends FieldDefinition {
 		return fieldName;
 	}
 
-	public IDTYPE getIdentifierType() {
+	public IdType getIdentifierType() {
 		return annotationType;
 	}
 

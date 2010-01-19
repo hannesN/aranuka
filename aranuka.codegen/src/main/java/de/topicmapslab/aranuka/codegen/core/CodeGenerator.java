@@ -5,7 +5,6 @@ package de.topicmapslab.aranuka.codegen.core;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream.GetField;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,7 +25,6 @@ import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JVar;
 
-import de.topicmapslab.aranuka.annotations.ASSOCIATIONKIND;
 import de.topicmapslab.aranuka.annotations.Association;
 import de.topicmapslab.aranuka.annotations.AssociationContainer;
 import de.topicmapslab.aranuka.annotations.Generated;
@@ -39,6 +37,7 @@ import de.topicmapslab.aranuka.codegen.core.definition.IdAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.NameAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.OccurrenceAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.TopicAnnotationDefinition;
+import de.topicmapslab.aranuka.codegen.core.definition.enumeration.AssociationKind;
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
 import de.topicmapslab.aranuka.codegen.core.factory.DefinitionFactory;
 import de.topicmapslab.aranuka.codegen.core.util.TypeUtility;
@@ -159,7 +158,7 @@ public class CodeGenerator {
 			JFieldVar var = createField(type, aad, ref);
 
 			JAnnotationUse assocAnnot = var.annotate(associationAnnotation);
-			assocAnnot.param("kind", ASSOCIATIONKIND.BINARY);
+			assocAnnot.param("kind", AssociationKind.BINARY);
 			assocAnnot.param("type", aad.getAssociationType());
 			assocAnnot.param("played_role", aad.getRoleType());
 			assocAnnot.param("other_role", TypeUtility.getLocator(aop.getRole()).toExternalForm());
@@ -178,7 +177,7 @@ public class CodeGenerator {
 		JFieldVar var = createField(type, aad);
 
 		JAnnotationUse assocAnnot = var.annotate(associationAnnotation);
-		assocAnnot.param("kind", ASSOCIATIONKIND.UNARY);
+		assocAnnot.param("kind", AssociationKind.UNARY);
 		assocAnnot.param("type", aad.getAssociationType());
 		assocAnnot.param("played-role", aad.getRoleType());
 	}
@@ -214,7 +213,6 @@ public class CodeGenerator {
 			if (def.isMany()) {
 				generateAddAndRemove(type, typeClass, var, get);
 			}
-
 			return var;
 		} catch (Exception e) {
 			throw new RuntimeException(e);

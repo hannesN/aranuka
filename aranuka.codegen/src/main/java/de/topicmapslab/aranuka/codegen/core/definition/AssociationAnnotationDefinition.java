@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.tmapi.core.Topic;
 
-import de.topicmapslab.aranuka.annotations.ASSOCIATIONKIND;
+import de.topicmapslab.aranuka.codegen.core.definition.enumeration.AssociationKind;
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
 import de.topicmapslab.aranuka.codegen.core.util.TypeUtility;
 
@@ -17,32 +17,21 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 
 	private final String role;
 	private final String type;
-	private final String fieldName;
 	
-	private final ASSOCIATIONKIND assocKind;
+	private final Topic assocType;
+	private final Topic roleType;
+	
 	private final Set<AssocOtherPlayers> otherPlayers;
 	
 
 	public AssociationAnnotationDefinition(Topic assocType, Topic roleType, Set<AssocOtherPlayers> otherplayers) throws POJOGenerationException {
-		this.type = TypeUtility.getLocator(assocType).toExternalForm();
+		this.roleType = roleType;
+		this.assocType = assocType;
 		
+		this.type = TypeUtility.getLocator(assocType).toExternalForm();
 		this.role = TypeUtility.getLocator(roleType).toExternalForm();
 		
-		this.otherPlayers = otherplayers;
-		
-		switch (otherplayers.size()) {
-		case 0:
-			assocKind = ASSOCIATIONKIND.UNARY;
-			break;
-		case 1:
-			assocKind = ASSOCIATIONKIND.BINARY;
-			break;
-		default:
-			assocKind = ASSOCIATIONKIND.NNARY;
-		}
-		
-		fieldName = TypeUtility.getTypeAttribute(roleType);
-		
+		this.otherPlayers = otherplayers;		
 	}
 
 	public String getAnnotation() {
@@ -58,7 +47,20 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	}
 
 	public String getFieldName() {
-		return fieldName;
+		
+		try {
+			switch (otherPlayers.size()) {
+			case 0:
+				return TypeUtility.getTypeAttribute(roleType);
+			case 1:
+				return TypeUtility.getTypeAttribute(otherPlayers.iterator()
+						.next().otherRole);
+			default:
+				return TypeUtility.getTypeAttribute(assocType);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public String getRoleType() {
@@ -69,12 +71,19 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 		return type;
 	}
 
-	public ASSOCIATIONKIND getAssocKind() {
-		return assocKind;
+	public AssociationKind getAssocKind() {
+		switch (otherPlayers.size()) {
+		case 0:
+			return AssociationKind.UNARY;
+		case 1:
+			return AssociationKind.BINARY;
+		default:
+			return AssociationKind.NNARY;
+		}
 	}
 	
 	public Class<?> getFieldType() {
-		if (assocKind == ASSOCIATIONKIND.UNARY)
+		if (getAssocKind() == AssociationKind.UNARY)
 			return boolean.class;
 
 		throw new UnsupportedOperationException();
@@ -85,7 +94,7 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	}
 
 	public boolean doesFieldTypeExtendsCollection() {
-		return assocKind != ASSOCIATIONKIND.UNARY;
+		return getAssocKind() != AssociationKind.UNARY;
 	}
 
 	@Override
