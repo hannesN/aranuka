@@ -24,6 +24,7 @@ public class AssociationBinding extends AbstractFieldBinding {
 	private String otherRole;
 	private TopicBinding otherPlayer;
 	private AssociationContainerBinding associationContainer;
+	private boolean persistOnCascade;
 	
 	// --[ public methods ]--------------------------------------------------------------------------------
 	
@@ -73,6 +74,16 @@ public class AssociationBinding extends AbstractFieldBinding {
 			AssociationContainerBinding associationContainer) {
 		this.associationContainer = associationContainer;
 	}
+
+	public boolean isPersistOnCascade() {
+		return persistOnCascade;
+	}
+
+	public void setPersistOnCascade(boolean persistOnCascade) {
+		this.persistOnCascade = persistOnCascade;
+	}
+	
+	
 	
 	// --[ private methods ]-------------------------------------------------------------------------------
 		

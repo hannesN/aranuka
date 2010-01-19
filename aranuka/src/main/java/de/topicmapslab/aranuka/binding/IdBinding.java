@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmapi.core.Topic;
 
-import de.topicmapslab.aranuka.annotations.IDTYPE;
+import de.topicmapslab.aranuka.enummerations.IdType;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
@@ -17,7 +17,7 @@ public class IdBinding extends AbstractFieldBinding {
 
 	private static Logger logger = LoggerFactory.getLogger(TopicBinding.class);
 	
-	private IDTYPE idtype;
+	private IdType idtype;
 	
 //	private Set<IdentifierIdent> cache;
 //	
@@ -71,11 +71,11 @@ public class IdBinding extends AbstractFieldBinding {
 		return "IdBinding [idtype=" + idtype + "]";
 	}
 
-	public void setIdtype(IDTYPE idtype) {
+	public void setIdtype(IdType idtype) {
 		this.idtype = idtype;
 	}
 	
-	public IDTYPE getIdtype() {
+	public IdType getIdtype() {
 		return idtype;
 	}
 	

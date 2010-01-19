@@ -14,12 +14,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Association {
 	
-//	/**
-//	 * The kind of the association, default BINARY. 
-//	 */
-//	@Deprecated
-//	ASSOCIATIONKIND kind() default ASSOCIATIONKIND.BINARY;
-//	
 	/**
 	 * Defines wheter an topic referenced by an association should be persited as well.
 	 * @return

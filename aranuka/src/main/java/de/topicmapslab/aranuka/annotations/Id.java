@@ -5,6 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import de.topicmapslab.aranuka.enummerations.IdType;
+
 /**
  * Annotation for field which represents identifier.
  * @author Christian Haß
@@ -17,5 +19,5 @@ public @interface Id {
 	/**
 	 * Type of the identifier, default is item identifier. 
 	 */
-	IDTYPE type() default IDTYPE.ITEM_IDENTIFIER;
+	IdType type() default IdType.ITEM_IDENTIFIER;
 }

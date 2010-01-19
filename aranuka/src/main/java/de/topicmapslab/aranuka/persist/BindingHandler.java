@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.annotations.Association;
 import de.topicmapslab.aranuka.annotations.AssociationContainer;
-import de.topicmapslab.aranuka.annotations.IDTYPE;
 import de.topicmapslab.aranuka.annotations.Id;
 import de.topicmapslab.aranuka.annotations.Name;
 import de.topicmapslab.aranuka.annotations.Occurrence;
@@ -28,6 +27,7 @@ import de.topicmapslab.aranuka.annotations.Scope;
 import de.topicmapslab.aranuka.annotations.Topic;
 import de.topicmapslab.aranuka.binding.AbstractClassBinding;
 import de.topicmapslab.aranuka.binding.AbstractFieldBinding;
+import de.topicmapslab.aranuka.binding.AssociationBinding;
 import de.topicmapslab.aranuka.binding.AssociationContainerBinding;
 import de.topicmapslab.aranuka.binding.IdBinding;
 import de.topicmapslab.aranuka.binding.NameBinding;
@@ -35,6 +35,7 @@ import de.topicmapslab.aranuka.binding.OccurrenceBinding;
 import de.topicmapslab.aranuka.binding.RoleBinding;
 import de.topicmapslab.aranuka.binding.TopicBinding;
 import de.topicmapslab.aranuka.constants.IXsdDatatypes;
+import de.topicmapslab.aranuka.enummerations.IdType;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
@@ -78,7 +79,6 @@ public class BindingHandler {
 			}
 		}
 	}
-
 	
 	// gets the bindings for an specific class
 	public AbstractClassBinding getBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
@@ -109,7 +109,6 @@ public class BindingHandler {
 		
 	}
 	
-	
 	// for debug
 	
 	public void printBindings(){
@@ -120,7 +119,6 @@ public class BindingHandler {
 	}
 	
 	// --[ private methods ]-------------------------------------------------------------------------------
-
 	
 	// topic bindings
 	
@@ -201,7 +199,7 @@ public class BindingHandler {
 	
 	private void checkTopicBinding(TopicBinding binding, Class<?> clazz) throws BadAnnotationException{
 		
-		Map<IDTYPE,Integer> idCounter = new HashMap<IDTYPE, Integer>();
+		Map<IdType,Integer> idCounter = new HashMap<IdType, Integer>();
 		Map<String,Integer> occCounter = new HashMap<String, Integer>();
 		
 		// count construct occurrences
@@ -233,11 +231,11 @@ public class BindingHandler {
 			throw new BadAnnotationException("Topic class " + clazz.getName() + " has no identifier at all.");
 		
 		// check multiple identifier fields of the same type
-		if(idCounter.get(IDTYPE.ITEM_IDENTIFIER) != null && idCounter.get(IDTYPE.ITEM_IDENTIFIER) > 1)
+		if(idCounter.get(IdType.ITEM_IDENTIFIER) != null && idCounter.get(IdType.ITEM_IDENTIFIER) > 1)
 			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many item identifier.");
-		if(idCounter.get(IDTYPE.SUBJECT_IDENTIFIER) != null && idCounter.get(IDTYPE.SUBJECT_IDENTIFIER) > 1)
+		if(idCounter.get(IdType.SUBJECT_IDENTIFIER) != null && idCounter.get(IdType.SUBJECT_IDENTIFIER) > 1)
 			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many subject identifier.");
-		if(idCounter.get(IDTYPE.SUBJECT_LOCATOR) != null && idCounter.get(IDTYPE.SUBJECT_LOCATOR) > 1)
+		if(idCounter.get(IdType.SUBJECT_LOCATOR) != null && idCounter.get(IdType.SUBJECT_LOCATOR) > 1)
 			throw new BadAnnotationException("Topic class " + clazz.getName() + " has to many subject locator.");
 		
 		// check multiple occurrence fields of same type
@@ -245,14 +243,66 @@ public class BindingHandler {
 			if(entry.getValue() > 1)
 				throw new BadAnnotationException("Multiple fields annotated with occurrence type " + entry.getKey());
 	}
-	
-	
-	
+		
 	// association  container bindings
 	
+	private AssociationContainerBinding getAssociationContainerBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException{
+		
+		if(!isAssociationContainerAnnotated(clazz))
+			return null;
+		
+		if(getBindingFromCache(clazz) != null){
+				return (AssociationContainerBinding)getBindingFromCache(clazz);
+		}
+
+		AssociationContainerBinding binding = createAssociationContainerBinding(clazz);
+		
+		return binding;
+		
+	}
+		
+	private AssociationContainerBinding createAssociationContainerBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
 	
+	logger.info("Create association container binding for " + clazz.getName());
 	
+	// check if class is correct annotated
+	if(!isAssociationContainerAnnotated(clazz))
+		throw new BadAnnotationException("Class " + clazz.getName() + " must have an @AssociationContainer annotation.");
 	
+	// create binding for superclass
+	Class<?> superclass = clazz.getSuperclass();
+	AssociationContainerBinding superClassBinding = null;
+	
+	if (superclass != Object.class){
+		
+		if(!this.config.getClasses().contains(superclass)){
+			throw new ClassNotSpecifiedException("Superclass of class " + clazz.getName() + " is not configured.");
+		}
+		
+		if(!isTopicAnnotated(superclass))
+			throw new BadAnnotationException("Superclass of class " + clazz.getName() + " must have an @AssociationContainer annotation as well.");
+		
+		superClassBinding = getAssociationContainerBinding(superclass);
+	}
+	
+	// create new binding
+	AssociationContainerBinding binding = new AssociationContainerBinding();
+
+	// add binding to map
+	addBindingToCache(clazz, binding);
+	
+	// set parent
+	binding.setParent(superClassBinding);
+	
+	// create field bindings
+	for (Field field : clazz.getDeclaredFields())
+		createFieldBinding(binding, field, clazz);
+
+	// TODO check association container binding?
+	
+	return binding;
+}
+		
 	// --[ create binding of topic fields ]-------------------------------------------------
 	
 	private void createFieldBinding(TopicBinding binding, Field field, Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
@@ -310,7 +360,7 @@ public class BindingHandler {
 		
 		logger.info("Create id-binding for field: " + field.getName());
 		
-		IDTYPE type = idAnnotation.type();
+		IdType type = idAnnotation.type();
 
 		IdBinding ib = new IdBinding(config.getPrefixMap(), topicBinding);
 		
@@ -390,42 +440,40 @@ public class BindingHandler {
 		
 		logger.info("Create association-binding for field: " + field.getName());
 		
-		// get type
-		String associationType;
-		
 		if (associationAnnotation.type().length() == 0)
-			associationType = TopicMapsUtils.generateSubjectIdentifier(field);
-		else
-			associationType = associationAnnotation.type();
+			throw new BadAnnotationException("Association type must not be empty.");
 		
-		// get played role
+		if (associationAnnotation.played_role().length() == 0)
+			throw new BadAnnotationException("Played role must not be empty.");
 		
-		// get other role
+		if (associationAnnotation.other_role().length() == 0)
+			throw new BadAnnotationException("Other role must not be empty.");
 		
-		// get container
+		AssociationBinding ab = new AssociationBinding(config.getPrefixMap(), topicBinding);
 		
-		// get other player binding
+		ab.setAssociationType(associationAnnotation.type());
+		ab.setPlayedRole(associationAnnotation.played_role());
+		ab.setOtherRole(associationAnnotation.other_role());
 		
-		
-		
-		
-//	
-//		// association kind
-//		ASSOCIATIONKIND kind = associationAnnotation.kind();
-//		
-//		if(kind == ASSOCIATIONKIND.UNARY)
-//			//createUnaryAssociationBinding(topicBinding, field, clazz, associationAnnotation, associationType);
-//		
-//		else if(kind == ASSOCIATIONKIND.BINARY)
-//			//createBinaryAssociationBinding(topicBinding, field, clazz, associationAnnotation, associationType);
-//		
-//		else if(kind == ASSOCIATIONKIND.NNARY)
-//			//createNnaryAssociationBinding(topicBinding, field, clazz, associationAnnotation, associationType);
-		
-		
+		addScope(field, ab);
+		ab.setArray(field.getType().isArray());
+		ab.setCollection(ReflectionUtil.isCollection(field));
+		ab.setPersistOnCascade(associationAnnotation.persistOnCascade());
+
+		if(isTopicAnnotated(ReflectionUtil.getGenericType(field).getClass())){ /// TODO check this check
+			
+			// is binary association
+			ab.setOtherPlayer(getTopicBinding((ReflectionUtil.getGenericType(field).getClass())));
+			
+		}else if(isAssociationContainerAnnotated(ReflectionUtil.getGenericType(field).getClass())){
+			
+			// is nnary association
+			/// TODO set association container binding
+			
+		}
 	}
 		
-	
+	// create fields
 	
 	// --[ create binding for association container fields ]---------------------------------
 	
@@ -449,6 +497,7 @@ public class BindingHandler {
 			throw new BadAnnotationException("Non transient field " + field.getName() + " has no valid annotaton.");
 		}
 	}
+	
 	
 	private void createRoleBinding(AssociationContainerBinding associationContainerBinding, Field field, Class<?> clazz,  Role roleAnnotation) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
 		
@@ -479,6 +528,8 @@ public class BindingHandler {
 		addMethods(field, clazz, rb);
 	}
 	
+	
+	// helper methods
 	
 	// helper
 	
@@ -527,6 +578,7 @@ public class BindingHandler {
 
 	}
 	
+	
 	private boolean needsMapping(Class<?> clazz) {
 		
 		Class<?> checkClazz = clazz;
@@ -546,6 +598,7 @@ public class BindingHandler {
 		return true;
 	}
 	
+	
 	private boolean isTransient(Field field){
 		
 		if ((field.getModifiers() & Modifier.TRANSIENT) != 0)
@@ -553,6 +606,7 @@ public class BindingHandler {
 		
 		return false;
 	}
+	
 	
 	private boolean isTopicAnnotated(Class<?> clazz){
 		
@@ -562,6 +616,7 @@ public class BindingHandler {
 		
 		return false;
 	}
+	
 
 	private boolean isAssociationContainerAnnotated(Class<?> clazz){
 		
@@ -589,6 +644,7 @@ public class BindingHandler {
 		fb.setThemes(resolvedThemes);
 	}
 	
+	
 	private String getXSDDatatype(Type type) {
 		
 		if (type.equals(Boolean.class))
@@ -603,6 +659,7 @@ public class BindingHandler {
 		return IXsdDatatypes.XSD_STRING;
 	}
 	
+	
 	// private getter and setter
 	
 	private void addBindingToCache(Class<?> clazz, AbstractClassBinding binding){
@@ -613,6 +670,7 @@ public class BindingHandler {
 		bindingMap.put(clazz, binding);
 		
 	}
+	
 	
 	private AbstractClassBinding getBindingFromCache(Class<?> clazz){
 		
