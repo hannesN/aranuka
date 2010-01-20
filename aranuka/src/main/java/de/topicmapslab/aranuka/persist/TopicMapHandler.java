@@ -1,6 +1,7 @@
 package de.topicmapslab.aranuka.persist;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,10 +13,12 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tmapi.core.Association;
 import org.tmapi.core.Construct;
 import org.tmapi.core.Locator;
 import org.tmapi.core.Name;
 import org.tmapi.core.Occurrence;
+import org.tmapi.core.Role;
 import org.tmapi.core.Scoped;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
@@ -24,10 +27,12 @@ import org.tmapi.core.TopicMapSystemFactory;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.binding.AbstractClassBinding;
 import de.topicmapslab.aranuka.binding.AbstractFieldBinding;
+import de.topicmapslab.aranuka.binding.AssociationBinding;
 import de.topicmapslab.aranuka.binding.IdBinding;
 import de.topicmapslab.aranuka.binding.NameBinding;
 import de.topicmapslab.aranuka.binding.OccurrenceBinding;
 import de.topicmapslab.aranuka.binding.TopicBinding;
+import de.topicmapslab.aranuka.enummerations.AssociationKind;
 import de.topicmapslab.aranuka.enummerations.IdType;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
@@ -135,6 +140,7 @@ public class TopicMapHandler {
 		updateOccurrences(newTopic, topicObject, binding);
 		
 		// update associations
+		updateAssociations(newTopic, topicObject, binding);
 		
 		return newTopic;
 	}
@@ -153,7 +159,7 @@ public class TopicMapHandler {
 		// update occurrences
 		updateOccurrences(topic, topicObject, binding);
 		// update associations
-		
+		updateAssociations(topic, topicObject, binding);
 	}
 	
 	// modifies the topic subject identifier to represent the current java object
@@ -335,8 +341,7 @@ public class TopicMapHandler {
 			// get type and scope for this binding/field
 			Topic occurrenceType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(newOccurrence.getKey().getOccurrenceType()));
 			Set<Topic> scope = newOccurrence.getKey().getScope(getTopicMap());
-			
-			
+
 			for(String value:newOccurrence.getValue()){
 				
 				boolean found = false;
@@ -379,9 +384,99 @@ public class TopicMapHandler {
 	
 	// modifies the topic associations to represent the current java object
 	// used for create new topic as well
-	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding){
+	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
+		
+		// get new associations
+		Map<AssociationBinding, Set<Object>> newAssociations = getAssociations(topicObject, binding);
+		
+		// get existing associartions, i.e. played roles
+		Map<Role,Boolean> playedRoles = addFlaggs(topic.getRolesPlayed());
+
+		for(Map.Entry<AssociationBinding, Set<Object>> newAssociation:newAssociations.entrySet()){
+
+			boolean found = false;
+			
+			// each played role represents one association
+			for(Map.Entry<Role, Boolean> playedRole:playedRoles.entrySet()){
+				
+				if(isAssociation(playedRole.getKey(), newAssociation.getKey(), newAssociation.getValue())){
+					found = true;
+					playedRole.setValue(true);
+					break;
+				}
+			}
+			
+			if(!found){
+				
+				// create new association
+				logger.info("Add new association of type " + newAssociation.getKey().getAssociationType());
+				createAssociation(topic, newAssociation.getKey(), newAssociation.getValue());
+			}
+			
+		}
+		
+		// remove obsolete associations
+		// remove the complete association
+		for(Map.Entry<Role, Boolean> entry:playedRoles.entrySet()){
+
+			if(!entry.getValue()){
+				logger.info("Remove obsolete association " + entry.getKey().getParent());
+				entry.getKey().getParent().remove();
+			}
+		}
 		
 	}
+	
+	private boolean isAssociation(Role playedRole, AssociationBinding binding, Set<Object> associationObject) throws IOException{
+		
+		/// TODO do some magic here
+		
+		// get type and scope for this binding/field
+		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
+		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
+		Set<Topic> scope = binding.getScope(getTopicMap());
+		
+		// first do some general checks
+		
+		// check own role type
+		if(!playedRole.getType().equals(roleType))
+			return false;
+		
+		// check association type
+		if(!playedRole.getParent().getType().equals(associationType))
+			return false;
+		
+		// check scope
+		if(!playedRole.getParent().getScope().equals(scope))
+			return false;
+				
+		if(binding.getKind() == AssociationKind.UNARY){
+			
+			if(playedRole.getParent().getRoles().size() != 1)
+				return false;
+			
+			else return true;
+			
+			
+		}else if(binding.getKind() == AssociationKind.BINARY){
+			
+			/// TODO
+			
+		}else if(binding.getKind() == AssociationKind.NNARY){
+			
+			/// TODO
+			
+		}
+		
+		return false;
+	}
+	
+	
+	
+	private void createAssociation(Topic topic, AssociationBinding binding, Set<Object> associationObject){
+		
+	}
+
 	
 	// adds flaggs to an set, returns an empty map of the set was null
 	private <T extends Object> Map<T, Boolean> addFlaggs(Set<T> set){
@@ -396,8 +491,6 @@ public class TopicMapHandler {
 
 		return map;
 	}
-	
-
 	
 	private Topic createTopicByIdentifier(Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException {
 		
@@ -486,6 +579,7 @@ public class TopicMapHandler {
 		return null;
 	}
 	
+			
 	// used recursively
 	@SuppressWarnings("unchecked")
 	private Set<String> getIdentifier(Object topicObject, TopicBinding binding, IdType type){
@@ -596,43 +690,105 @@ public class TopicMapHandler {
 		
 		for(AbstractFieldBinding afb:binding.getFieldBindings()){
 					
-					if(afb instanceof OccurrenceBinding){
-						
-						if(((OccurrenceBinding)afb).getValue(topicObject) != null){
-							
-							if(((OccurrenceBinding)afb).isArray()){
-								
-								for (Object obj:(Object[])((OccurrenceBinding)afb).getValue(topicObject)){
-								
-									addValueToBindingMap(map, (OccurrenceBinding)afb, obj.toString());
-								}
-							
-							}else if(((OccurrenceBinding)afb).isCollection()){
-								
-								for (Object obj:(Collection<Object>)((OccurrenceBinding)afb).getValue(topicObject)){
-									
-									addValueToBindingMap(map, (OccurrenceBinding)afb, obj.toString());
-								}
-				
-							}else{
-								
-								addValueToBindingMap(map, (OccurrenceBinding)afb, ((OccurrenceBinding)afb).getValue(topicObject).toString());
-							}
+			if (afb instanceof OccurrenceBinding) {
+
+				if (((OccurrenceBinding) afb).getValue(topicObject) != null) {
+
+					if (((OccurrenceBinding) afb).isArray()) {
+
+						for (Object obj : (Object[]) ((OccurrenceBinding) afb).getValue(topicObject)) {
+
+							addValueToBindingMap(map, (OccurrenceBinding) afb, obj.toString());
 						}
+
+					} else if (((OccurrenceBinding) afb).isCollection()) {
+
+						for (Object obj : (Collection<Object>) ((OccurrenceBinding) afb).getValue(topicObject)) {
+
+							addValueToBindingMap(map, (OccurrenceBinding) afb, obj.toString());
+						}
+
+					} else {
+
+						addValueToBindingMap(map, (OccurrenceBinding) afb,((OccurrenceBinding) afb).getValue(topicObject).toString());
 					}
 				}
+			}
+		}
 		
 		return map;
 	}
 	
-	private <T extends AbstractFieldBinding> void addValueToBindingMap(Map<T,Set<String>> map, T binding, String name){
+	// used recursively
+	@SuppressWarnings("unchecked")
+	private Map<AssociationBinding, Set<Object>> getAssociations(Object topicObject, TopicBinding binding){
+		
+		Map<AssociationBinding, Set<Object>> map = null;
+		
+		if(binding.getParent() != null)
+			map = getAssociations(topicObject, binding.getParent());
+		else map = new HashMap<AssociationBinding, Set<Object>>();
+		
+		for(AbstractFieldBinding afb:binding.getFieldBindings()){
+			
+			if(afb instanceof AssociationBinding){
+				
+				if(((AssociationBinding)afb).getValue(topicObject) != null){
+					
+					if(((AssociationBinding)afb).getValue(topicObject) instanceof Boolean){
+						
+						addValueToBindingMap(map, (AssociationBinding) afb, ((AssociationBinding)afb).getValue(topicObject));
+						
+					}else{
+						
+						if(((AssociationBinding) afb).isArray()){
+
+							for(Object obj : (Object[]) ((AssociationBinding) afb).getValue(topicObject)) {
+
+								addValueToBindingMap(map, (AssociationBinding) afb, obj);
+							}
+
+						}else if(((AssociationBinding) afb).isCollection()) {
+
+							for(Object obj : (Collection<Object>) ((AssociationBinding) afb).getValue(topicObject)) {
+
+								addValueToBindingMap(map, (AssociationBinding) afb, obj);
+							}
+
+						}else{
+
+							addValueToBindingMap(map, (AssociationBinding) afb,((AssociationBinding) afb).getValue(topicObject));
+						}
+					}
+				}
+			}
+		}
+		
+		
+		return map;
+	}
+	
+	
+	private <T extends AbstractFieldBinding> void addValueToBindingMap(Map<T,Set<String>> map, T binding, String value){
 		
 		Set<String> set = map.get(binding);
 		
 		if(set == null)
 			set = new HashSet<String>();
 		
-		set.add(name);
+		set.add(value);
+		
+		map.put(binding, set);
+	}
+	
+	private <T extends AbstractFieldBinding> void addValueToBindingMap(Map<T,Set<Object>> map, T binding, Object object){
+		
+		Set<Object> set = map.get(binding);
+		
+		if(set == null)
+			set = new HashSet<Object>();
+		
+		set.add(object);
 		
 		map.put(binding, set);
 	}
