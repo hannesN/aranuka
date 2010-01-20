@@ -31,12 +31,14 @@ import de.topicmapslab.aranuka.annotations.Generated;
 import de.topicmapslab.aranuka.annotations.Id;
 import de.topicmapslab.aranuka.annotations.Name;
 import de.topicmapslab.aranuka.annotations.Occurrence;
+import de.topicmapslab.aranuka.annotations.Role;
 import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.FieldDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.IdAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.NameAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.OccurrenceAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.TopicAnnotationDefinition;
+import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition.AssocOtherPlayers;
 import de.topicmapslab.aranuka.codegen.core.definition.enumeration.AssociationKind;
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
 import de.topicmapslab.aranuka.codegen.core.factory.DefinitionFactory;
@@ -55,17 +57,19 @@ public class CodeGenerator {
 	private JClass associationContainerAnnotation;
 	private JClass occurrenceAnnotation;
 	private JClass identifierAnnotation;
+	private JClass roleAnnotation;
 
 	private JCodeModel cm;
 	private JPackage modelPackage;
 
-	public void generateCode(TopicMap schemaMap, File directory, String packageName)
-			throws IOException {
+	public void generateCode(TopicMap schemaMap, File directory,
+			String packageName) throws IOException {
 		Set<TopicAnnotationDefinition> annotations = new DefinitionFactory(
 				schemaMap).getTopicAnnotationDefinitions();
 
 		cm = new JCodeModel();
-		topicAnnotation = cm.ref(de.topicmapslab.aranuka.annotations.Topic.class.getName());
+		topicAnnotation = cm
+				.ref(de.topicmapslab.aranuka.annotations.Topic.class.getName());
 		nameAnnotation = cm.ref(Name.class.getName());
 		occurrenceAnnotation = cm.ref(Occurrence.class.getName());
 		identifierAnnotation = cm.ref(Id.class.getName());
@@ -73,12 +77,13 @@ public class CodeGenerator {
 		associationContainerAnnotation = cm.ref(AssociationContainer.class
 				.getName());
 		generatedAnnotation = cm.ref(Generated.class);
+		roleAnnotation = cm.ref(Role.class);
 
-		if (packageName==null)
+		if (packageName == null)
 			modelPackage = cm._package("");
 		else
 			modelPackage = cm._package(packageName);
-		
+
 		for (TopicAnnotationDefinition tad : annotations) {
 			createType(tad);
 		}
@@ -138,9 +143,9 @@ public class CodeGenerator {
 	 * Used to reference a class cretaed later
 	 */
 	private JClass getModelReference(Topic t) throws POJOGenerationException {
-		return cm.ref(modelPackage.name()+"."+TypeUtility.getJavaName(t));
+		return cm.ref(modelPackage.name() + "." + TypeUtility.getJavaName(t));
 	}
-	
+
 	private void createBinaryAssociationField(JDefinedClass type,
 			AssociationAnnotationDefinition aad) {
 
@@ -149,19 +154,19 @@ public class CodeGenerator {
 					.getOtherPlayers().iterator().next();
 
 			JClass ref = getModelReference(aop.getPlayer());
-			if (aop.isMany()) {
-				JClass setRef = cm.ref(Set.class);
-				setRef.narrow(ref);
-				ref = setRef;				
+			// TODO set annotation??
+			if (aad.isMany()) {
+				JClass setRef = cm.ref(Set.class).narrow(ref);
+				ref = setRef;
 			}
-
 			JFieldVar var = createField(type, aad, ref);
 
 			JAnnotationUse assocAnnot = var.annotate(associationAnnotation);
 			assocAnnot.param("kind", AssociationKind.BINARY);
 			assocAnnot.param("type", aad.getAssociationType());
 			assocAnnot.param("played_role", aad.getRoleType());
-			assocAnnot.param("other_role", TypeUtility.getLocator(aop.getRole()).toExternalForm());
+			assocAnnot.param("other_role", TypeUtility
+					.getLocator(aop.getRole()).toExternalForm());
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -169,6 +174,38 @@ public class CodeGenerator {
 
 	private void createNnaryAssociationField(JDefinedClass type,
 			AssociationAnnotationDefinition aad) {
+		try {
+			JClass ref = getAssociationContainer(type, aad);
+			if (aad.isMany()) {
+				JClass setRef = cm.ref(Set.class).narrow(ref);
+				ref = setRef;
+			}
+			JFieldVar var = createField(type, aad, ref);
+
+			var.annotate(associationAnnotation);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private JClass getAssociationContainer(JDefinedClass type, AssociationAnnotationDefinition aad) throws Exception {
+		JDefinedClass container = type._class(aad.getContainerTypeName());
+
+		JAnnotationUse use = container.annotate(associationContainerAnnotation);
+		use.param("type", aad.getAssociationType());
+
+		for (AssocOtherPlayers aop : aad.getOtherPlayers()) {
+			JClass ref = getModelReference(aop.getPlayer());
+			if (aop.isMany()) {
+				JClass setRef = cm.ref(Set.class).narrow(ref);
+				ref = setRef;
+			}
+			JFieldVar var = createField(container, aop, ref);
+			use = var.annotate(roleAnnotation);
+			use.param("type", TypeUtility.getTypeAttribute(aop.getRole()));
+		}
+		
+		return container;
 
 	}
 
@@ -205,7 +242,8 @@ public class CodeGenerator {
 			if (typeClass != null)
 				var = type.field(JMod.PRIVATE, typeClass, def.getFieldName());
 			else
-				var = type.field(JMod.PRIVATE, def.getFieldType(), def.getFieldName());
+				var = type.field(JMod.PRIVATE, def.getFieldType(), def
+						.getFieldName());
 
 			generateSetter(type, var);
 			JMethod get = generateGetter(type, def.isMany(), var);
@@ -225,7 +263,7 @@ public class CodeGenerator {
 			fieldType = def.getFieldType();
 		JClass typeClass = null;
 		if (def.isMany()) {
-			typeClass = cm.ref(Set.class.getName()).narrow(def.getFieldType());
+			typeClass = cm.ref(Set.class).narrow(def.getFieldType());
 		} else {
 			typeClass = fieldType.isPrimitive() ? null : cm.ref(fieldType);
 		}
@@ -250,8 +288,7 @@ public class CodeGenerator {
 		JClass hashSet = cm.ref(HashSet.class).narrow(String.class);
 		String methodSuffix = TypeUtility.field2Method(var.name());
 
-		JMethod add = type
-				.method(JMod.PUBLIC, var.type(), "add" + methodSuffix);
+		JMethod add = type.method(JMod.PUBLIC, cm.VOID, "add" + methodSuffix);
 		JVar param = add
 				.param(typeClass.getTypeParameters().get(0), var.name());
 		JConditional _if = add.body()._if(fieldRef.eq(JExpr._null()));

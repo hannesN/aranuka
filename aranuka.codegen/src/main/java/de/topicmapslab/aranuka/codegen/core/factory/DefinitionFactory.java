@@ -1,6 +1,7 @@
 package de.topicmapslab.aranuka.codegen.core.factory;
 
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ASSOCIATION_TYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ASSOCIATION_ROLE_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CARD_MAX;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED_ROLE;
@@ -93,7 +94,7 @@ public class DefinitionFactory {
 //	private Topic scopeConstraint;
 //	private Topic reifierConstraint;
 //	private Topic topicReifiesConstraint;
-//	private Topic associationRoleConstraint;
+	private Topic associationRoleConstraint;
 //	private Topic roleCombinationConstraint;
 	private Topic occurrenceDatatypeConstraint;
 //	private Topic uniqueValueConstraint;
@@ -181,7 +182,7 @@ public class DefinitionFactory {
 //		scopeConstraint = createStandardTopic(SCOPE_CONSTRAINT);
 //		reifierConstraint = createStandardTopic(REIFIER_CONSTRAINT);
 //		topicReifiesConstraint = createStandardTopic(TOPIC_REIFIES_CONSTRAINT);
-//		associationRoleConstraint = createStandardTopic(ASSOCIATION_ROLE_CONSTRAINT);
+		associationRoleConstraint = createStandardTopic(ASSOCIATION_ROLE_CONSTRAINT);
 //		roleCombinationConstraint = createStandardTopic(ROLE_COMBINATION_CONSTRAINT);
 		occurrenceDatatypeConstraint = createStandardTopic(OCCURRENCE_DATATYPE_CONSTRAINT);
 //		uniqueValueConstraint = createStandardTopic(UNIQUE_VALUE_CONSTRAINT);
@@ -386,7 +387,7 @@ public class DefinitionFactory {
 			
 			if (!ttc.getTypes().contains(topicRoleConstraint))
 				continue;
-			
+	
 			Topic assocType = getAssocType(ttc);
 			
 			Topic roleType = getRoleType(ttc);
@@ -394,6 +395,11 @@ public class DefinitionFactory {
 			
 			Set<AssociationAnnotationDefinition.AssocOtherPlayers> playerSet = new HashSet<AssociationAnnotationDefinition.AssocOtherPlayers>();
 			AssociationAnnotationDefinition aad = new AssociationAnnotationDefinition(assocType, roleType, playerSet);
+					
+			// if the play cardinality says many, we set the container to many
+			// if not let it be, because another player could be set to many
+			if (isMany(ttc))
+				aad.setMany(true);
 			
 			// filling out the other players
 			Topic otherRole = null;			
@@ -405,8 +411,6 @@ public class DefinitionFactory {
 				if (!constraint.getTypes().contains(topicRoleConstraint))
 					continue;
 				
-				
-				
 				Association assoc = constraint.getRolesPlayed(constrains, constrainedRole).iterator().next().getParent();
 				// check if we have the otherRole
 				Topic tmp = assoc.getRoles(constrained).iterator().next().getPlayer();
@@ -414,7 +418,7 @@ public class DefinitionFactory {
 					continue;
 					
 				otherRole = tmp;
-				isMany = isMany(constraint);
+				isMany = isManyRole(assocType, otherRole);
 				
 				assoc = constraint.getRolesPlayed(constrains, constrainedTopicType).iterator().next().getParent();
 				
@@ -425,15 +429,39 @@ public class DefinitionFactory {
 				AssociationAnnotationDefinition.AssocOtherPlayers aop = new AssociationAnnotationDefinition.AssocOtherPlayers(otherRole, otherPlayer);
 				aop.setMany(isMany);
 				playerSet.add(aop);
-				// if the play cardinality says many, we set the container to many
-				// if not let it be, because another player could be set to many
-				if (isMany(constraint))
-					aad.setMany(true);
+	
 				
 			}
+			aad.setContainerTypeName(getTypeName(assocType));
 			aadSet.add(aad);
 		}
 		tad.addAssociationAnnotationDefinitions(aadSet);
+	}
+
+	/*
+	 * Checks if the cardmax of the association role constraint of the given assocType
+	 * using the role typ is > 1
+	 */
+	private boolean isManyRole(Topic assocType, Topic otherRole) {
+		for (Role r : assocType.getRolesPlayed(constrained, constraintStatement)) {
+			Association assoc = r.getParent();
+			//get constraint constraining the  assoctype
+			Topic constraint = assoc.getRoles(constrains).iterator().next().getPlayer();
+			
+			if (!constraint.getTypes().contains(associationRoleConstraint))
+				continue;
+			
+			// check if constraint is playing in an assoc with the given role
+			Set<Role> roles = constraint.getRolesPlayed(constrains, constrainedRole);
+			
+			Association roleAssoc = roles.iterator().next().getParent(); 
+			Topic roleType = roleAssoc.getRoles(constrained).iterator().next().getPlayer();
+			
+			if (roleType.equals(otherRole))
+				return isMany(constraint);
+			
+		}
+		return false;
 	}
 
 	private Topic getRoleType(Topic ttc) {

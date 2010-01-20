@@ -22,7 +22,8 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	private final Topic roleType;
 	
 	private final Set<AssocOtherPlayers> otherPlayers;
-	
+
+	private String containerTypeName;
 
 	public AssociationAnnotationDefinition(Topic assocType, Topic roleType, Set<AssocOtherPlayers> otherplayers) throws POJOGenerationException {
 		this.roleType = roleType;
@@ -38,6 +39,15 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public boolean isMany() {
+		if (getAssocKind()==AssociationKind.BINARY) {
+			return super.isMany() || getOtherPlayers().iterator().next().isMany();
+		}
+			
+		return super.isMany();
+	}
+	
 	public Set<AssocOtherPlayers> getOtherPlayers() {
 		return otherPlayers;
 	}
@@ -112,10 +122,18 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 		return getFieldName().hashCode() * 999999;
 	}
 	
-	static public class AssocOtherPlayers {
-		Topic otherRole = null;			
-		Topic otherPlayer = null;
-		boolean many = false;
+	public void setContainerTypeName(String containerTypeName) {
+		this.containerTypeName = containerTypeName;
+	}
+	
+	public String getContainerTypeName() {
+		return containerTypeName;
+	}
+	
+	static public class AssocOtherPlayers extends FieldDefinition {
+		private Topic otherRole = null;			
+		private Topic otherPlayer = null;
+
 		public AssocOtherPlayers(Topic otherRole, Topic otherPlayer) {
 			super();
 			this.otherRole = otherRole;
@@ -129,12 +147,29 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 		public Topic getRole() {
 			return otherRole;
 		}
-		public boolean isMany() {
-			return many;
+
+		public String getAnnotation() {
+			throw new UnsupportedOperationException();
 		}
-		
-		public void setMany(boolean many) {
-			this.many = many;
+
+		public String getAnnotationAttributes() {
+			throw new UnsupportedOperationException();
+		}
+
+		public String getFieldName() {
+			try {
+				return TypeUtility.getJavaName(otherPlayer);
+			} catch (POJOGenerationException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		public Class<?> getFieldType() {
+			throw new UnsupportedOperationException();
+		}
+
+		public String getPredefinition() {
+			throw new UnsupportedOperationException();
 		}
 		
 	}
