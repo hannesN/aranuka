@@ -35,6 +35,7 @@ import de.topicmapslab.aranuka.binding.OccurrenceBinding;
 import de.topicmapslab.aranuka.binding.RoleBinding;
 import de.topicmapslab.aranuka.binding.TopicBinding;
 import de.topicmapslab.aranuka.constants.IXsdDatatypes;
+import de.topicmapslab.aranuka.enummerations.AssociationKind;
 import de.topicmapslab.aranuka.enummerations.IdType;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
@@ -468,17 +469,36 @@ public class BindingHandler {
 		ab.setCollection(ReflectionUtil.isCollection(field));
 		ab.setPersistOnCascade(associationAnnotation.persistOnCascade());
 
-		if(isTopicAnnotated(ReflectionUtil.getGenericType(field).getClass())){ /// TODO check this check
+		if(isTopicAnnotated(ReflectionUtil.getGenericType(field))){
 			
 			// is binary association
 			ab.setOtherPlayer(getTopicBinding((ReflectionUtil.getGenericType(field).getClass())));
+			ab.setKind(AssociationKind.BINARY);
 			
-		}else if(isAssociationContainerAnnotated(ReflectionUtil.getGenericType(field).getClass())){
+		}else if(isAssociationContainerAnnotated(ReflectionUtil.getGenericType(field))){
 			
 			// is nnary association
-			/// TODO set association container binding
-			ab.setAssociationContainer(getAssociationContainerBinding(ReflectionUtil.getGenericType(field).getClass()));
+			// set association container binding
+			ab.setAssociationContainerBinding(getAssociationContainerBinding(ReflectionUtil.getGenericType(field).getClass()));
+			ab.setKind(AssociationKind.NNARY);
+			
+		}else if(ReflectionUtil.getGenericType(field) == boolean.class) {
+			
+			// is unary
+			ab.setKind(AssociationKind.UNARY);
+			
+		}else{
+			
+			throw new BadAnnotationException("Unallowed association field type: " + field.getGenericType());
+			
 		}
+		
+		// add occurrence to topic binding
+		topicBinding.addFieldBinding(ab);
+		
+		// create methods
+		addMethods(field, clazz, ab);
+		
 	}
 		
 	// create fields

@@ -5,12 +5,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.topicmapslab.aranuka.enummerations.AssociationKind;
+
 public class AssociationBinding extends AbstractFieldBinding {
 
 	@Override
 	public String toString() {
 		return "AssociationBinding [associationContainer="
-				+ associationContainer + ", associationType=" + associationType
+				+ associationContainerBinding + ", associationType=" + associationType
 				+ ", otherPlayer=" + otherPlayer
 				+ ", otherRole=" + otherRole + ", playedRole=" + playedRole
 				+ "]";
@@ -22,8 +24,10 @@ public class AssociationBinding extends AbstractFieldBinding {
 	private String playedRole;
 	private String otherRole;
 	private TopicBinding otherPlayer;
-	private AssociationContainerBinding associationContainer;
+	private AssociationContainerBinding associationContainerBinding;
 	private boolean persistOnCascade;
+	
+	private AssociationKind kind;
 	
 	// --[ public methods ]--------------------------------------------------------------------------------
 	
@@ -65,13 +69,13 @@ public class AssociationBinding extends AbstractFieldBinding {
 		this.otherPlayer = otherPlayer;
 	}
 
-	public AssociationContainerBinding getAssociationContainer() {
-		return associationContainer;
+	public AssociationContainerBinding getAssociationContainerBinding() {
+		return associationContainerBinding;
 	}
 
-	public void setAssociationContainer(
+	public void setAssociationContainerBinding(
 			AssociationContainerBinding associationContainer) {
-		this.associationContainer = associationContainer;
+		this.associationContainerBinding = associationContainer;
 	}
 
 	public boolean isPersistOnCascade() {
@@ -80,6 +84,14 @@ public class AssociationBinding extends AbstractFieldBinding {
 
 	public void setPersistOnCascade(boolean persistOnCascade) {
 		this.persistOnCascade = persistOnCascade;
+	}
+
+	public AssociationKind getKind() {
+		return kind;
+	}
+
+	public void setKind(AssociationKind kind) {
+		this.kind = kind;
 	}
 	
 	
