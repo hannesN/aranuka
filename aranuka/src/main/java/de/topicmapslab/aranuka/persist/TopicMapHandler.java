@@ -14,6 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmapi.core.Construct;
 import org.tmapi.core.Locator;
+import org.tmapi.core.Name;
+import org.tmapi.core.Occurrence;
+import org.tmapi.core.Scoped;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystemFactory;
@@ -22,6 +25,8 @@ import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.binding.AbstractClassBinding;
 import de.topicmapslab.aranuka.binding.AbstractFieldBinding;
 import de.topicmapslab.aranuka.binding.IdBinding;
+import de.topicmapslab.aranuka.binding.NameBinding;
+import de.topicmapslab.aranuka.binding.OccurrenceBinding;
 import de.topicmapslab.aranuka.binding.TopicBinding;
 import de.topicmapslab.aranuka.enummerations.IdType;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
@@ -36,7 +41,8 @@ public class TopicMapHandler {
 	private Configuration config; // the configuration
 	private BindingHandler bindingHandler; // the binding handler
 	private TopicMap topicMap; // the topic map
-	private Map<Object, Topic> topicCache;
+	
+	private Map<Object, Topic> topicCache; /// TODO fix cache
 	
 	// --[ public methods ]------------------------------------------------------------------------------
 	
@@ -87,13 +93,15 @@ public class TopicMapHandler {
 	    	
 	    	Object topicObject = itr.next();
 	    	
+	    	// get binding
+	    	TopicBinding binding = (TopicBinding)getBindingHandler().getBinding(topicObject.getClass());
+	    	
 	    	if(getTopicFromCache(topicObjects) == null)
 	    	{
 		    	// check
 		    	if(!this.config.getClasses().contains(topicObject.getClass()))
 		    		throw new ClassNotSpecifiedException("The class " + topicObject.getClass().getName() + " is not registered.");
-		    	// get binding
-		    	TopicBinding binding = (TopicBinding)getBindingHandler().getBinding(topicObject.getClass());
+		    	
 		    	// create topic
 		    	persistTopic(topicObject, topicObjects, binding);
 		    	// remove from list
@@ -101,12 +109,50 @@ public class TopicMapHandler {
 	    	
 	    	}else{
 	    		
-	    		/// TODO update topic
+	    		updateTopic(getTopicFromCache(topicObjects), topicObject, binding);
 	    	}
 	    }
 	}
 	
-	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding){
+	private Topic persistTopic(Object topicObject, List<Object> topicObjects, TopicBinding binding) throws IOException, BadAnnotationException {
+		
+		logger.info("Create new topic for " + topicObject);
+		
+		Topic newTopic = createTopicByIdentifier(topicObject, binding);
+
+		// add topic to cache
+		addTopicToCache(newTopic, topicObject);
+		
+		// update identifier
+		updateSubjectIdentifier(newTopic, topicObject, binding); 
+		updateSubjectLocator(newTopic, topicObject, binding);
+		updateItemIdentifier(newTopic, topicObject, binding);
+		
+		// update names
+		updateNames(newTopic, topicObject, binding);
+		
+		// update occurrences
+		updateOccurrences(newTopic, topicObject, binding);
+		
+		// update associations
+		
+		return newTopic;
+	}
+	
+	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
+		
+		logger.info("Update existing topic " + topicObject);
+		
+		// update identifier
+		updateSubjectIdentifier(topic, topicObject, binding); 
+		updateSubjectLocator(topic, topicObject, binding);
+		updateItemIdentifier(topic, topicObject, binding);
+		
+		// update names
+		updateNames(topic, topicObject, binding);
+		// update occurrences
+		updateOccurrences(topic, topicObject, binding);
+		// update associations
 		
 	}
 	
@@ -146,29 +192,194 @@ public class TopicMapHandler {
 		}
 	}
 	
-	private void updateSubjectLocator(Topic topic, Object topicObject, TopicBinding binding){
+	private void updateSubjectLocator(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
 		
+		Set<String> newSubjectLocator = getIdentifier(topicObject, binding, IdType.SUBJECT_LOCATOR);
+		
+		Map<Locator,Boolean> actualSubjectLocator = addFlaggs(topic.getSubjectLocators());
+		
+		for(String sl:newSubjectLocator){
+			
+			boolean found = false;
+			
+			for(Map.Entry<Locator, Boolean> entry:actualSubjectLocator.entrySet()){
+	
+				if(entry.getKey().toExternalForm() == sl){
+					entry.setValue(true); // set to found
+					found = true;
+					break;
+				}
+			}
+			
+			if(!found){
+				// add new identifier
+				topic.addSubjectLocator((getTopicMap().createLocator(sl)));
+			}
+			
+		}
+		
+		// remove obsolete identifier
+		for(Map.Entry<Locator, Boolean> entry:actualSubjectLocator.entrySet()){
+			
+			if(!entry.getValue())
+				topic.removeSubjectLocator(entry.getKey());
+		}
 	}
 
-	private void updateItemIdentifier(Topic topic, Object topicObject, TopicBinding binding){
+	private void updateItemIdentifier(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
 	
+		Set<String> newItemIdentifier = getIdentifier(topicObject, binding, IdType.ITEM_IDENTIFIER);
+		
+		Map<Locator,Boolean> actualItemIdentifier = addFlaggs(topic.getItemIdentifiers());
+		
+		for(String ii:newItemIdentifier){
+			
+			boolean found = false;
+			
+			for(Map.Entry<Locator, Boolean> entry:actualItemIdentifier.entrySet()){
+	
+				if(entry.getKey().toExternalForm() == ii){
+					entry.setValue(true); // set to found
+					found = true;
+					break;
+				}
+			}
+			
+			if(!found){
+				// add new identifier
+				topic.addItemIdentifier(getTopicMap().createLocator(ii));
+			}
+			
+		}
+		
+		// remove obsolete identifier
+		for(Map.Entry<Locator, Boolean> entry:actualItemIdentifier.entrySet()){
+			
+			if(!entry.getValue())
+				topic.removeItemIdentifier(entry.getKey());
+		}
 	}
 	
 	// modifies the topic names to represent the current java object
 	// used for create new topic as well
-	private void updateNames(){
+	private void updateNames(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
+		
+		// get new names
+		Map<NameBinding,Set<String>> newNames = getNames(topicObject, binding);
+		
+		// get actual names
+		Map<Name,Boolean> actualNames = addFlaggs(topic.getNames());
+		
+		// update
+		for(Map.Entry<NameBinding, Set<String>> newName:newNames.entrySet()){
+			
+			// get type and scope for this binding/field
+			Topic nameType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(newName.getKey().getNameType()));
+			Set<Topic> scope = newName.getKey().getScope(getTopicMap());
+			
+			
+			for(String name:newName.getValue()){
+				
+				boolean found = false;
+				
+				for (Map.Entry<Name, Boolean> actualName : actualNames
+						.entrySet()) {
+
+					if (actualName.getKey().getValue().equals(name)) { // compare value
+
+						if (actualName.getKey().getType().equals(nameType)) { // compare type
+
+							if (scope.isEmpty() || actualName.getKey().getScope().equals(scope)) { // compare scope
+	
+								found = true;
+								actualName.setValue(true);
+								break;
+							}
+						}
+					}
+				}
+				
+				if(!found){
+					
+					logger.info("Add new name " + name);
+					topic.createName(nameType, name, scope);
+					
+				}
+			}
+		}
+		
+		// remove obsolete names
+		for(Map.Entry<Name, Boolean> entry:actualNames.entrySet()){
+
+			if(!entry.getValue()){
+				logger.info("Remove obsolete name " + entry.getKey().getValue());
+				entry.getKey().remove();
+			}
+		}
 		
 	}
 	
 	// modifies the topic occurrences to represent the current java object
 	// used for create new topic as well
-	private void updateOccurrences(){
+	private void updateOccurrences(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
+		
+		// get new names
+		Map<OccurrenceBinding,Set<String>> newOccurrences = getOccurrences(topicObject, binding);
+		
+		// get actual names
+		Map<Occurrence,Boolean> actualOccurrences = addFlaggs(topic.getOccurrences());
+		
+		// update
+		for(Map.Entry<OccurrenceBinding, Set<String>> newOccurrence:newOccurrences.entrySet()){
+			
+			// get type and scope for this binding/field
+			Topic occurrenceType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(newOccurrence.getKey().getOccurrenceType()));
+			Set<Topic> scope = newOccurrence.getKey().getScope(getTopicMap());
+			
+			
+			for(String value:newOccurrence.getValue()){
+				
+				boolean found = false;
+				
+				for (Map.Entry<Occurrence, Boolean> actualOccurrence : actualOccurrences.entrySet()) {
+
+					if (actualOccurrence.getKey().getValue().equals(value)) { // compare value
+
+						if (actualOccurrence.getKey().getType().equals(occurrenceType)) { // compare type
+
+							if (scope.isEmpty() || actualOccurrence.getKey().getScope().equals(scope)) { // compare scope
+	
+								found = true;
+								actualOccurrence.setValue(true);
+								break;
+							}
+						}
+					}
+				}
+				
+				if(!found){
+					
+					logger.info("Add new occurrence " + value);
+					topic.createOccurrence(occurrenceType, value, scope);
+					
+				}
+			}
+		}
+		
+		// remove obsolete names
+		for(Map.Entry<Occurrence, Boolean> entry:actualOccurrences.entrySet()){
+
+			if(!entry.getValue()){
+				logger.info("Remove obsolete occurrence " + entry.getKey().getValue());
+				entry.getKey().remove();
+			}
+		}
 		
 	}
 	
 	// modifies the topic associations to represent the current java object
 	// used for create new topic as well
-	private void updateAssociations(){
+	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding){
 		
 	}
 	
@@ -186,23 +397,7 @@ public class TopicMapHandler {
 		return map;
 	}
 	
-	private Topic persistTopic(Object topicObject, List<Object> topicObjects, TopicBinding binding) throws IOException, BadAnnotationException {
-		
-		Topic newTopic = createTopicByIdentifier(topicObject, binding);
 
-		// add topic to cache
-		addTopicToCache(newTopic, topicObject);
-		
-		// update identifier
-		
-		// update names
-		
-		// update occurrences
-		
-		// update associations
-		
-		return newTopic;
-	}
 	
 	private Topic createTopicByIdentifier(Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException {
 		
@@ -230,22 +425,8 @@ public class TopicMapHandler {
 			// create new topic
 			topic = createNewTopic(subjectIdentifier, subjectLocator, itemIdentifier);
 			
-		}
-		
-//		// add identifier TODO move this to an update identifier method
-//		
-//		for(String si:subjectIdentifier)
-//			topic.addSubjectIdentifier(getTopicMap().createLocator(si));
-//		
-//		
-//		for(String sl:subjectLocator)
-//			topic.addSubjectLocator(getTopicMap().createLocator(sl));
-//		
-//		
-//		for(String ii:itemIdentifier)
-//			topic.addItemIdentifier(getTopicMap().createLocator(ii));
-		
-	
+		}else logger.info("Topic already exist.");
+
 		return topic;
 	}
 	
@@ -362,6 +543,100 @@ public class TopicMapHandler {
 		return identifier;
 	}
 	
+	// used recursively
+	@SuppressWarnings("unchecked")
+	private Map<NameBinding, Set<String>> getNames(Object topicObject, TopicBinding binding){
+		
+		Map<NameBinding, Set<String>> map = null;
+		
+		if(binding.getParent() != null)
+			map = getNames(topicObject, binding.getParent());
+		else map = new HashMap<NameBinding, Set<String>>();
+		
+		for(AbstractFieldBinding afb:binding.getFieldBindings()){
+			
+			if(afb instanceof NameBinding){
+				
+				if(((NameBinding)afb).getValue(topicObject) != null){
+					
+					if(((NameBinding)afb).isArray()){
+						
+						for (Object obj:(Object[])((NameBinding)afb).getValue(topicObject)){
+						
+							addValueToBindingMap(map, (NameBinding)afb, obj.toString());
+						}
+					
+					}else if(((NameBinding)afb).isCollection()){
+						
+						for (Object obj:(Collection<Object>)((NameBinding)afb).getValue(topicObject)){
+							
+							addValueToBindingMap(map, (NameBinding)afb, obj.toString());
+						}
+		
+					}else{
+						
+						addValueToBindingMap(map, (NameBinding)afb, ((NameBinding)afb).getValue(topicObject).toString());
+					}
+				}
+			}
+		}
+		
+		return map;
+	}
+	
+	// used recursively
+	@SuppressWarnings("unchecked")
+	private Map<OccurrenceBinding, Set<String>> getOccurrences(Object topicObject, TopicBinding binding){
+		
+		Map<OccurrenceBinding, Set<String>> map = null;
+		
+		if(binding.getParent() != null)
+			map = getOccurrences(topicObject, binding.getParent());
+		else map = new HashMap<OccurrenceBinding, Set<String>>();
+		
+		for(AbstractFieldBinding afb:binding.getFieldBindings()){
+					
+					if(afb instanceof OccurrenceBinding){
+						
+						if(((OccurrenceBinding)afb).getValue(topicObject) != null){
+							
+							if(((OccurrenceBinding)afb).isArray()){
+								
+								for (Object obj:(Object[])((OccurrenceBinding)afb).getValue(topicObject)){
+								
+									addValueToBindingMap(map, (OccurrenceBinding)afb, obj.toString());
+								}
+							
+							}else if(((OccurrenceBinding)afb).isCollection()){
+								
+								for (Object obj:(Collection<Object>)((OccurrenceBinding)afb).getValue(topicObject)){
+									
+									addValueToBindingMap(map, (OccurrenceBinding)afb, obj.toString());
+								}
+				
+							}else{
+								
+								addValueToBindingMap(map, (OccurrenceBinding)afb, ((OccurrenceBinding)afb).getValue(topicObject).toString());
+							}
+						}
+					}
+				}
+		
+		return map;
+	}
+	
+	private <T extends AbstractFieldBinding> void addValueToBindingMap(Map<T,Set<String>> map, T binding, String name){
+		
+		Set<String> set = map.get(binding);
+		
+		if(set == null)
+			set = new HashSet<String>();
+		
+		set.add(name);
+		
+		map.put(binding, set);
+	}
+	
 	private Topic createNewTopic(Set<String> subjectIdentifier, Set<String> subjectLocator, Set<String> itemIdentifier) throws IOException, BadAnnotationException{
 		
 		Topic topic = null;
@@ -389,7 +664,7 @@ public class TopicMapHandler {
 		
 		if(this.topicCache == null)
 			this.topicCache = new HashMap<Object, Topic>();
-		
+
 		this.topicCache.put(object, topic);
 		
 	}
@@ -398,7 +673,7 @@ public class TopicMapHandler {
 		
 		if(this.topicCache == null)
 			return null;
-		
+
 		return this.topicCache.get(object);
 	}
 	

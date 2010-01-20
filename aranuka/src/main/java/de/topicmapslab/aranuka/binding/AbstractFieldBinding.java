@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +30,7 @@ public abstract class AbstractFieldBinding{
 	private boolean isArray; 
 	private boolean isCollection;
 	
-	private List<String> themes; // scope
+	private Set<String> themes; // scope
 	
 	private Map<String,String> prefixMap;
 	
@@ -105,24 +107,24 @@ public abstract class AbstractFieldBinding{
 		return isCollection;
 	}
 
-	public List<String> getThemes() {
+	public Set<String> getThemes() {
 		if (themes==null)
-			return Collections.emptyList();
+			return Collections.emptySet();
 		return themes;
 	}
 
-	public void setThemes(List<String> themes) {
+	public void setThemes(Set<String> themes) {
 		if (this.themes==null)
-			this.themes = new ArrayList<String>();
+			this.themes = new HashSet<String>();
 		this.themes = themes;
 	}
 	
-	public Collection<Topic> getScope(TopicMap topicMap){
+	public Set<Topic> getScope(TopicMap topicMap){
 		
 		if(this.themes == null)
-			return Collections.emptyList();
+			return Collections.emptySet();
 		
-		Collection<Topic> scope = new ArrayList<Topic>();
+		Set<Topic> scope = new HashSet<Topic>();
 		
 		for(String theme:themes)
 		{
