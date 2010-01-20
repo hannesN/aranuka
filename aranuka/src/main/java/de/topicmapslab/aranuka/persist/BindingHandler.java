@@ -644,7 +644,7 @@ public class BindingHandler {
 		
 		List<String> themes = Arrays.asList(scope.themes());
 		
-		List<String> resolvedThemes = new ArrayList<String>();
+		Set<String> resolvedThemes = new HashSet<String>();
 		
 		for(String t:themes)
 			resolvedThemes.add(TopicMapsUtils.resolveURI(t, config.getPrefixMap()));
