@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <file id="91" version="1.0.0" xmlns="onotoa.topicmapslab.de">
-    <schema id="92">
+    <schema baseLocator="http://test.de" id="92">
         <topicType id="138" kind="NameType" regExp=".*">
             <name>Name</name>
             <subjectIdentifier>http://test.de/name</subjectIdentifier>
@@ -112,6 +112,45 @@
             <name>Firstname</name>
             <subjectIdentifier>http://test.de/firstname</subjectIdentifier>
         </topicType>
+        <topicType id="277" kind="TopicType">
+            <name>Person</name>
+            <subjectIdentifier>http://test.de/person</subjectIdentifier>
+        </topicType>
+        <topicType id="279" kind="TopicType">
+            <name>Project</name>
+            <subjectIdentifier>http://test.de/project</subjectIdentifier>
+        </topicType>
+        <topicType id="281" kind="TopicType">
+            <name>Corporation</name>
+            <subjectIdentifier>http://test.de/corporation</subjectIdentifier>
+        </topicType>
+        <topicType id="284" kind="AssociationType">
+            <name>works for</name>
+            <subjectIdentifier>http://test.de/works_for</subjectIdentifier>
+            <roleConstraints>
+                <roleConstraint cardMax="*" cardMin="1" id="286">
+                    <topictypeRef ref="topictypes.19"/>
+                </roleConstraint>
+                <roleConstraint cardMax="1" cardMin="1" id="288">
+                    <topictypeRef ref="topictypes.20"/>
+                </roleConstraint>
+                <roleConstraint cardMax="1" cardMin="1" id="290">
+                    <topictypeRef ref="topictypes.21"/>
+                </roleConstraint>
+            </roleConstraints>
+        </topicType>
+        <topicType id="285" kind="RoleType">
+            <name>Employee</name>
+            <subjectIdentifier>http://test.de/employee</subjectIdentifier>
+        </topicType>
+        <topicType id="287" kind="RoleType">
+            <name>Employer</name>
+            <subjectIdentifier>http://test.de/employer</subjectIdentifier>
+        </topicType>
+        <topicType id="289" kind="RoleType">
+            <name>Task</name>
+            <subjectIdentifier>http://test.de/task</subjectIdentifier>
+        </topicType>
         <associationConstraint id="141">
             <topictypeRef ref="topictypes.5"/>
             <topicRoleConstraint cardMax="1" cardMin="1" id="142">
@@ -142,6 +181,33 @@
                 </roleConstraint>
             </topicRoleConstraint>
         </associationConstraint>
+        <associationConstraint id="283">
+            <topictypeRef ref="topictypes.18"/>
+            <topicRoleConstraint cardMax="1" cardMin="1" id="292">
+                <player>
+                    <topictypeRef ref="topictypes.15"/>
+                </player>
+                <roleConstraint>
+                    <roleConstraintReference ref="topictypes.18_roleConstraints.0"/>
+                </roleConstraint>
+            </topicRoleConstraint>
+            <topicRoleConstraint cardMax="*" cardMin="1" id="324">
+                <player>
+                    <topictypeRef ref="topictypes.17"/>
+                </player>
+                <roleConstraint>
+                    <roleConstraintReference ref="topictypes.18_roleConstraints.1"/>
+                </roleConstraint>
+            </topicRoleConstraint>
+            <topicRoleConstraint cardMax="1" cardMin="1" id="337">
+                <player>
+                    <topictypeRef ref="topictypes.16"/>
+                </player>
+                <roleConstraint>
+                    <roleConstraintReference ref="topictypes.18_roleConstraints.2"/>
+                </roleConstraint>
+            </topicRoleConstraint>
+        </associationConstraint>
     </schema>
     <diagram id="181" name="Test">
         <node id="182" posX="41" posY="41" type="typeNode">
@@ -156,6 +222,18 @@
         <node id="188" posX="336" posY="306" type="associationNode">
             <assocConstraintRef ref="assocConstraints.0"/>
         </node>
+        <node id="276" posX="180" posY="511" type="typeNode">
+            <topictypeRef ref="topictypes.15"/>
+        </node>
+        <node id="278" posX="683" posY="623" type="typeNode">
+            <topictypeRef ref="topictypes.16"/>
+        </node>
+        <node id="280" posX="483" posY="390" type="typeNode">
+            <topictypeRef ref="topictypes.17"/>
+        </node>
+        <node id="282" posX="440" posY="586" type="associationNode">
+            <assocConstraintRef ref="assocConstraints.2"/>
+        </node>
         <edge id="185" source="node.2" target="node.1" topicRoleRef="associationConstraint.1_topicRoleConstraint.0" type="ROLE_CONSTRAINT_TYPE">
             <labelPosition id="186" posX="15" posY="11"/>
             <labelPosition id="187" posX="-59" posY="24"/>
@@ -167,6 +245,18 @@
         <edge id="190" source="node.3" target="node.1" topicRoleRef="associationConstraint.0_topicRoleConstraint.1" type="ROLE_CONSTRAINT_TYPE">
             <labelPosition id="193" posX="23" posY="-8"/>
             <labelPosition id="194" posX="-5" posY="17"/>
+        </edge>
+        <edge id="320" source="node.7" target="node.4" topicRoleRef="associationConstraint.2_topicRoleConstraint.0" type="ROLE_CONSTRAINT_TYPE">
+            <labelPosition id="321" posX="-76" posY="-4"/>
+            <labelPosition id="322" posX="6" posY="-26"/>
+        </edge>
+        <edge id="333" source="node.7" target="node.6" topicRoleRef="associationConstraint.2_topicRoleConstraint.1" type="ROLE_CONSTRAINT_TYPE">
+            <labelPosition id="334" posX="30" posY="-34"/>
+            <labelPosition id="335" posX="35" posY="-1"/>
+        </edge>
+        <edge id="344" source="node.7" target="node.5" topicRoleRef="associationConstraint.2_topicRoleConstraint.2" type="ROLE_CONSTRAINT_TYPE">
+            <labelPosition id="345" posX="3" posY="12"/>
+            <labelPosition id="346" posX="-33" posY="5"/>
         </edge>
     </diagram>
 </file>
