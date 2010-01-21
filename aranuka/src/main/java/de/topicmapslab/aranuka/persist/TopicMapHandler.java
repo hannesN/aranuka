@@ -1,7 +1,6 @@
 package de.topicmapslab.aranuka.persist;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,19 +12,16 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tmapi.core.Association;
 import org.tmapi.core.Construct;
 import org.tmapi.core.Locator;
 import org.tmapi.core.Name;
 import org.tmapi.core.Occurrence;
 import org.tmapi.core.Role;
-import org.tmapi.core.Scoped;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystemFactory;
 
 import de.topicmapslab.aranuka.Configuration;
-import de.topicmapslab.aranuka.binding.AbstractClassBinding;
 import de.topicmapslab.aranuka.binding.AbstractFieldBinding;
 import de.topicmapslab.aranuka.binding.AssociationBinding;
 import de.topicmapslab.aranuka.binding.IdBinding;
@@ -101,7 +97,7 @@ public class TopicMapHandler {
 	    	// get binding
 	    	TopicBinding binding = (TopicBinding)getBindingHandler().getBinding(topicObject.getClass());
 	    	
-	    	if(getTopicFromCache(topicObjects) == null)
+	    	if(getTopicFromCache(topicObject) == null)
 	    	{
 		    	// check
 		    	if(!this.config.getClasses().contains(topicObject.getClass()))
@@ -114,7 +110,7 @@ public class TopicMapHandler {
 	    	
 	    	}else{
 	    		
-	    		updateTopic(getTopicFromCache(topicObjects), topicObject, binding);
+	    		updateTopic(getTopicFromCache(topicObject), topicObject, binding);
 	    	}
 	    }
 	}
@@ -176,7 +172,7 @@ public class TopicMapHandler {
 			
 			for(Map.Entry<Locator, Boolean> entry:actualSubjectIdentifier.entrySet()){
 	
-				if(entry.getKey().toExternalForm() == si){
+				if(entry.getKey().toExternalForm().equals(si)){
 					entry.setValue(true); // set to found
 					found = true;
 					break;
@@ -184,6 +180,7 @@ public class TopicMapHandler {
 			}
 			
 			if(!found){
+				logger.info("Add new subject identifier " + si);
 				// add new identifier
 				topic.addSubjectIdentifier(getTopicMap().createLocator(si));
 			}
@@ -193,8 +190,10 @@ public class TopicMapHandler {
 		// remove obsolete identifier
 		for(Map.Entry<Locator, Boolean> entry:actualSubjectIdentifier.entrySet()){
 			
-			if(!entry.getValue())
+			if(!entry.getValue()){
+				logger.info("Remove obsolete subject identifier " + entry.getKey().toExternalForm());
 				topic.removeSubjectIdentifier(entry.getKey());
+			}
 		}
 	}
 	
@@ -210,7 +209,7 @@ public class TopicMapHandler {
 			
 			for(Map.Entry<Locator, Boolean> entry:actualSubjectLocator.entrySet()){
 	
-				if(entry.getKey().toExternalForm() == sl){
+				if(entry.getKey().toExternalForm().equals(sl)){
 					entry.setValue(true); // set to found
 					found = true;
 					break;
@@ -218,6 +217,7 @@ public class TopicMapHandler {
 			}
 			
 			if(!found){
+				logger.info("Add new subject locator " + sl);
 				// add new identifier
 				topic.addSubjectLocator((getTopicMap().createLocator(sl)));
 			}
@@ -227,8 +227,10 @@ public class TopicMapHandler {
 		// remove obsolete identifier
 		for(Map.Entry<Locator, Boolean> entry:actualSubjectLocator.entrySet()){
 			
-			if(!entry.getValue())
+			if(!entry.getValue()){
+				logger.info("Remove obsolete subject locator " + entry.getKey().toExternalForm());
 				topic.removeSubjectLocator(entry.getKey());
+			}
 		}
 	}
 
@@ -244,7 +246,8 @@ public class TopicMapHandler {
 			
 			for(Map.Entry<Locator, Boolean> entry:actualItemIdentifier.entrySet()){
 	
-				if(entry.getKey().toExternalForm() == ii){
+				if(entry.getKey().toExternalForm().equals(ii)){
+					
 					entry.setValue(true); // set to found
 					found = true;
 					break;
@@ -252,6 +255,7 @@ public class TopicMapHandler {
 			}
 			
 			if(!found){
+
 				// add new identifier
 				topic.addItemIdentifier(getTopicMap().createLocator(ii));
 			}
@@ -261,8 +265,10 @@ public class TopicMapHandler {
 		// remove obsolete identifier
 		for(Map.Entry<Locator, Boolean> entry:actualItemIdentifier.entrySet()){
 			
-			if(!entry.getValue())
+			if(!entry.getValue()){
+				logger.info("Remove obsolete item identifier " + entry.getKey().toExternalForm());
 				topic.removeItemIdentifier(entry.getKey());
+			}
 		}
 	}
 	
@@ -309,7 +315,6 @@ public class TopicMapHandler {
 					
 					logger.info("Add new name " + name);
 					topic.createName(nameType, name, scope);
-					
 				}
 			}
 		}
@@ -322,17 +327,16 @@ public class TopicMapHandler {
 				entry.getKey().remove();
 			}
 		}
-		
 	}
 	
 	// modifies the topic occurrences to represent the current java object
 	// used for create new topic as well
 	private void updateOccurrences(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
 		
-		// get new names
+		// get new occurrences
 		Map<OccurrenceBinding,Set<String>> newOccurrences = getOccurrences(topicObject, binding);
 		
-		// get actual names
+		// get actual occurrences
 		Map<Occurrence,Boolean> actualOccurrences = addFlaggs(topic.getOccurrences());
 		
 		// update
@@ -371,7 +375,7 @@ public class TopicMapHandler {
 			}
 		}
 		
-		// remove obsolete names
+		// remove obsolete occurrences
 		for(Map.Entry<Occurrence, Boolean> entry:actualOccurrences.entrySet()){
 
 			if(!entry.getValue()){
@@ -386,6 +390,10 @@ public class TopicMapHandler {
 	// used for create new topic as well
 	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
 		
+		
+		
+		
+		
 		// get new associations
 		Map<AssociationBinding, Set<Object>> newAssociations = getAssociations(topicObject, binding);
 		
@@ -394,90 +402,174 @@ public class TopicMapHandler {
 
 		for(Map.Entry<AssociationBinding, Set<Object>> newAssociation:newAssociations.entrySet()){
 
-			boolean found = false;
-			
-			// each played role represents one association
-			for(Map.Entry<Role, Boolean> playedRole:playedRoles.entrySet()){
-				
-				if(isAssociation(playedRole.getKey(), newAssociation.getKey(), newAssociation.getValue())){
-					found = true;
-					playedRole.setValue(true);
-					break;
-				}
-			}
-			
-			if(!found){
-				
-				// create new association
-				logger.info("Add new association of type " + newAssociation.getKey().getAssociationType());
-				createAssociation(topic, newAssociation.getKey(), newAssociation.getValue());
-			}
-			
-		}
-		
-		// remove obsolete associations
-		// remove the complete association
-		for(Map.Entry<Role, Boolean> entry:playedRoles.entrySet()){
+			if(newAssociation.getKey().getKind() == AssociationKind.UNARY)
+			{
+				updateUnaryAssociation(newAssociation.getKey(), newAssociation.getValue(), playedRoles);
 
-			if(!entry.getValue()){
-				logger.info("Remove obsolete association " + entry.getKey().getParent());
-				entry.getKey().getParent().remove();
+			}else if(newAssociation.getKey().getKind() == AssociationKind.BINARY){
+				
+			}else if(newAssociation.getKey().getKind() == AssociationKind.NNARY){
+				
 			}
 		}
+//			boolean found = false;
+//			for(Map.Entry<Role, Boolean> playedRole:playedRoles.entrySet()){
+//				
+//				if(isAssociation(playedRole.getKey(), newAssociation.getKey(), newAssociation.getValue())){
+//					found = true;
+//					playedRole.setValue(true);
+//					break;
+//				}
+//			}
+//			if(!found){
+//				
+//				// create new association
+//				logger.info("Add new association of type " + newAssociation.getKey().getAssociationType());
+//				createAssociation(topic, newAssociation.getKey(), newAssociation.getValue());
+//			}
+//		// remove obsolete associations
+//		// remove the complete association
+//		for(Map.Entry<Role, Boolean> entry:playedRoles.entrySet()){
+//
+//			if(!entry.getValue()){
+//				logger.info("Remove obsolete association " + entry.getKey().getParent());
+//				entry.getKey().getParent().remove();
+//			}
+//		}
 		
 	}
 	
-	private boolean isAssociation(Role playedRole, AssociationBinding binding, Set<Object> associationObject) throws IOException{
+	private void updateUnaryAssociation(AssociationBinding binding, Set<Object> associationObjects, Map<Role,Boolean> playedRoles) throws IOException{
 		
-		/// TODO do some magic here
+		if(associationObjects.size() != 1)
+			throw new RuntimeException("Unary association has more the one type."); // TODO use other exception type and better message
 		
-		// get type and scope for this binding/field
 		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
 		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
 		Set<Topic> scope = binding.getScope(getTopicMap());
 		
-		// first do some general checks
+		boolean value = (Boolean)associationObjects.iterator().next();
 		
-		// check own role type
-		if(!playedRole.getType().equals(roleType))
-			return false;
+		// try to find the association
+		Role role = null;
 		
-		// check association type
-		if(!playedRole.getParent().getType().equals(associationType))
-			return false;
-		
-		// check scope
-		if(!playedRole.getParent().getScope().equals(scope))
-			return false;
+		for(Map.Entry<Role, Boolean> playedRole:playedRoles.entrySet()){
+			
+			if(playedRole.getKey().getType().equals(roleType)){ // check role type
 				
-		if(binding.getKind() == AssociationKind.UNARY){
-			
-			if(playedRole.getParent().getRoles().size() != 1)
-				return false;
-			
-			else return true;
-			
-			
-		}else if(binding.getKind() == AssociationKind.BINARY){
-			
-			/// TODO
-			
-		}else if(binding.getKind() == AssociationKind.NNARY){
-			
-			/// TODO
-			
+				if(playedRole.getKey().getParent().getType().equals(associationType)){ // check association type
+					
+					if(playedRole.getKey().getParent().getScope().equals(scope)){ // check scope
+
+						if(playedRole.getKey().getParent().getRoles().size() == 1){ // is unary association
+							
+							role = playedRole.getKey();
+							playedRole.setValue(true);
+							break;
+						}
+					}
+				}
+			}
 		}
 		
-		return false;
+		if(role != null){
+			
+			if(value == false){
+
+				// TODO remove the role
+				
+			}
+			
+		}else{
+			
+			if(value == true){
+				
+				// TODO create new association
+			}
+			
+		}
 	}
 	
-	
-	
-	private void createAssociation(Topic topic, AssociationBinding binding, Set<Object> associationObject){
-		
+	private void updateBinaryAssociations(AssociationBinding binding, Set<Object> associationObjects, Map<Role, Boolean> playedRoles) throws IOException {
+
+		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
+		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
+		Topic otherRoleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getOtherRole()));
+		Set<Topic> scope = binding.getScope(getTopicMap());
+
+		for (Object associationObject : associationObjects) {
+
+			// check each binary association
+
+			for (Map.Entry<Role, Boolean> playedRole : playedRoles.entrySet()) {
+
+				if (playedRole.getKey().getParent().getRoles().size() == 2) {
+
+					if (playedRole.getKey().getType().equals(roleType)) { // check role type
+
+						if (playedRole.getKey().getParent().getType().equals(associationType)) { // check association type
+
+							if (playedRole.getKey().getParent().getScope().equals(scope)) { // check scope
+
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
+	private void updateNnaryAssociations(){
+		
+	}
 	
+//	
+//	private boolean isAssociation(Role playedRole, AssociationBinding binding, Set<Object> associationObject) throws IOException{
+//
+//		// get type and scope for this binding/field
+//		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
+//		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
+//		Set<Topic> scope = binding.getScope(getTopicMap());
+//		
+//		// first do some general checks
+//		
+//		// check own role type
+//		if(!playedRole.getType().equals(roleType))
+//			return false;
+//		
+//		// check association type
+//		if(!playedRole.getParent().getType().equals(associationType))
+//			return false;
+//		
+//		// check scope
+//		if(!playedRole.getParent().getScope().equals(scope))
+//			return false;
+//				
+//		if(binding.getKind() == AssociationKind.UNARY){
+//			
+//			if(playedRole.getParent().getRoles().size() != 1)
+//				return false;
+//			
+//			else return true;
+//			
+//			
+//		}else if(binding.getKind() == AssociationKind.BINARY){
+//			
+//			/// TODO
+//			
+//		}else if(binding.getKind() == AssociationKind.NNARY){
+//			
+//			/// TODO
+//			
+//		}
+//		
+//		return false;
+//	}
+//	
+//	private void createAssociation(Topic topic, AssociationBinding binding, Set<Object> associationObject){
+//		
+//	}
+
 	// adds flaggs to an set, returns an empty map of the set was null
 	private <T extends Object> Map<T, Boolean> addFlaggs(Set<T> set){
 		
