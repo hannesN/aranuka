@@ -20,12 +20,12 @@ public class AssociationBinding extends AbstractFieldBinding {
 
 	private static Logger logger = LoggerFactory.getLogger(AssociationBinding.class);
 	
-	private String associationType;
-	private String playedRole;
-	private String otherRole;
-	private TopicBinding otherPlayer;
-	private AssociationContainerBinding associationContainerBinding;
-	private boolean persistOnCascade;
+	private String associationType; // the association type as string
+	private String playedRole; // the own role type
+	private String otherRole; // the role type of the counter player (if no ass. container is used)
+	private TopicBinding otherPlayer; // the topic binding of the counter player (if no ass. container is used)
+	private AssociationContainerBinding associationContainerBinding; // binding of the ass. container
+	private boolean persistOnCascade; // persist counter player completely if this topic is persisted
 	
 	private AssociationKind kind;
 	
@@ -93,6 +93,15 @@ public class AssociationBinding extends AbstractFieldBinding {
 	public void setKind(AssociationKind kind) {
 		this.kind = kind;
 	}
+
+//	public AssociationBinding getOtherAssociationBinding() {
+//		return otherAssociationBinding;
+//	}
+//
+//	public void setOtherAssociationBinding(
+//			AssociationBinding otherAssociationBinding) {
+//		this.otherAssociationBinding = otherAssociationBinding;
+//	}
 	
 	
 	
