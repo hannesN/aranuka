@@ -472,7 +472,8 @@ public class BindingHandler {
 		if(isTopicAnnotated(ReflectionUtil.getGenericType(field))){
 			
 			// is binary association
-			ab.setOtherPlayer(getTopicBinding((ReflectionUtil.getGenericType(field).getClass())));
+			
+			ab.setOtherPlayerBinding(getTopicBinding((Class<?>)ReflectionUtil.getGenericType(field)));
 			ab.setKind(AssociationKind.BINARY);
 			
 		}else if(isAssociationContainerAnnotated(ReflectionUtil.getGenericType(field))){

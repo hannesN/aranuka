@@ -1,7 +1,14 @@
 package de.topicmapslab.aranuka.utils;
 
 import java.lang.reflect.Field;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
+import org.tmapi.core.Association;
+import org.tmapi.core.Role;
+
+import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 
 public class TopicMapsUtils {
 
@@ -40,6 +47,33 @@ public class TopicMapsUtils {
 			}
 		}
 		return uri;
+	}
+
+	public static Role getCounterPlayer(Association association, Role ownRole) throws TopicMapInconsistentException{
+		
+		if(association.getRoles().size() != 2)
+			throw new TopicMapInconsistentException("Binary association has " + association.getRoles().size()  + " roles.");
+		
+		Set<Role> roles = association.getRoles();
+		
+		for(Role role:roles)
+			if(!role.equals(ownRole))
+				return role;
+		
+		return null;
+	}
+	
+	public static Set<Role> getCounterPlayers(Association association, Role ownRole){
+		
+		Set<Role> result = new HashSet<Role>();
+		
+		Set<Role> roles = association.getRoles();
+		
+		for(Role role:roles)
+			if(!role.equals(ownRole))
+				result.add(role);
+
+		return result;
 	}
 	
 }
