@@ -78,6 +78,9 @@
             <subjectLocatorConstraints>
                 <subjectLocatorConstraint cardMax="*" cardMin="1" id="133" regExp="secret:.*"/>
             </subjectLocatorConstraints>
+            <ako>
+                <topictypeRef ref="topictypes.15"/>
+            </ako>
         </topicType>
         <topicType id="95" kind="NameType" regExp=".*">
             <name>Middle Name</name>
@@ -151,6 +154,30 @@
             <name>Task</name>
             <subjectIdentifier>http://test.de/task</subjectIdentifier>
         </topicType>
+        <topicType id="399" kind="TopicType">
+            <name>City</name>
+            <subjectIdentifier>http://test.de/city</subjectIdentifier>
+        </topicType>
+        <topicType id="402" kind="AssociationType">
+            <name>lives in</name>
+            <subjectIdentifier>http://test.de/lives_in</subjectIdentifier>
+            <roleConstraints>
+                <roleConstraint cardMax="1" cardMin="1" id="450">
+                    <topictypeRef ref="topictypes.24"/>
+                </roleConstraint>
+                <roleConstraint cardMax="1" cardMin="1" id="452">
+                    <topictypeRef ref="topictypes.25"/>
+                </roleConstraint>
+            </roleConstraints>
+        </topicType>
+        <topicType id="449" kind="RoleType">
+            <name>Habitat</name>
+            <subjectIdentifier>http://test.de/habitat</subjectIdentifier>
+        </topicType>
+        <topicType id="451" kind="RoleType">
+            <name>Habitant</name>
+            <subjectIdentifier>http://test.de/habitant</subjectIdentifier>
+        </topicType>
         <associationConstraint id="141">
             <topictypeRef ref="topictypes.5"/>
             <topicRoleConstraint cardMax="1" cardMin="1" id="142">
@@ -208,6 +235,25 @@
                 </roleConstraint>
             </topicRoleConstraint>
         </associationConstraint>
+        <associationConstraint id="401">
+            <topictypeRef ref="topictypes.23"/>
+            <topicRoleConstraint cardMax="*" cardMin="0" id="404">
+                <player>
+                    <topictypeRef ref="topictypes.15"/>
+                </player>
+                <roleConstraint>
+                    <roleConstraintReference ref="topictypes.23_roleConstraints.1"/>
+                </roleConstraint>
+            </topicRoleConstraint>
+            <topicRoleConstraint cardMax="*" cardMin="0" id="425">
+                <player>
+                    <topictypeRef ref="topictypes.22"/>
+                </player>
+                <roleConstraint>
+                    <roleConstraintReference ref="topictypes.23_roleConstraints.0"/>
+                </roleConstraint>
+            </topicRoleConstraint>
+        </associationConstraint>
     </schema>
     <diagram id="181" name="Test">
         <node id="182" posX="41" posY="41" type="typeNode">
@@ -234,6 +280,12 @@
         <node id="282" posX="440" posY="586" type="associationNode">
             <assocConstraintRef ref="assocConstraints.2"/>
         </node>
+        <node id="398" posX="291" posY="755" type="typeNode">
+            <topictypeRef ref="topictypes.22"/>
+        </node>
+        <node id="400" posX="135" posY="686" type="associationNode">
+            <assocConstraintRef ref="assocConstraints.3"/>
+        </node>
         <edge id="185" source="node.2" target="node.1" topicRoleRef="associationConstraint.1_topicRoleConstraint.0" type="ROLE_CONSTRAINT_TYPE">
             <labelPosition id="186" posX="15" posY="11"/>
             <labelPosition id="187" posX="-59" posY="24"/>
@@ -257,6 +309,15 @@
         <edge id="344" source="node.7" target="node.5" topicRoleRef="associationConstraint.2_topicRoleConstraint.2" type="ROLE_CONSTRAINT_TYPE">
             <labelPosition id="345" posX="3" posY="12"/>
             <labelPosition id="346" posX="-33" posY="5"/>
+        </edge>
+        <edge id="396" source="node.0" target="node.4" type="AKO_TYPE"/>
+        <edge id="421" source="node.9" target="node.4" topicRoleRef="associationConstraint.3_topicRoleConstraint.0" type="ROLE_CONSTRAINT_TYPE">
+            <labelPosition id="422" posX="-61" posY="-39"/>
+            <labelPosition id="423" posX="-42" posY="2"/>
+        </edge>
+        <edge id="444" source="node.9" target="node.8" topicRoleRef="associationConstraint.3_topicRoleConstraint.1" type="ROLE_CONSTRAINT_TYPE">
+            <labelPosition id="445" posX="19" posY="-29"/>
+            <labelPosition id="446" posX="-58" posY="-4"/>
         </edge>
     </diagram>
 </file>
