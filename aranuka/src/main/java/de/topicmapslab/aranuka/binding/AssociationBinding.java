@@ -13,7 +13,7 @@ public class AssociationBinding extends AbstractFieldBinding {
 	public String toString() {
 		return "AssociationBinding [associationContainer="
 				+ associationContainerBinding + ", associationType=" + associationType
-				+ ", otherPlayer=" + otherPlayer
+				+ ", otherPlayer=" + otherPlayerBinding
 				+ ", otherRole=" + otherRole + ", playedRole=" + playedRole
 				+ "]";
 	}
@@ -23,7 +23,7 @@ public class AssociationBinding extends AbstractFieldBinding {
 	private String associationType; // the association type as string
 	private String playedRole; // the own role type
 	private String otherRole; // the role type of the counter player (if no ass. container is used)
-	private TopicBinding otherPlayer; // the topic binding of the counter player (if no ass. container is used)
+	private TopicBinding otherPlayerBinding; // the topic binding of the counter player (if no ass. container is used)
 	private AssociationContainerBinding associationContainerBinding; // binding of the ass. container
 	private boolean persistOnCascade; // persist counter player completely if this topic is persisted
 	
@@ -61,12 +61,12 @@ public class AssociationBinding extends AbstractFieldBinding {
 		this.otherRole = otherRole;
 	}
 
-	public TopicBinding getOtherPlayer() {
-		return otherPlayer;
+	public TopicBinding getOtherPlayerBinding() {
+		return otherPlayerBinding;
 	}
 
-	public void setOtherPlayer(TopicBinding otherPlayer) {
-		this.otherPlayer = otherPlayer;
+	public void setOtherPlayerBinding(TopicBinding otherPlayer) {
+		this.otherPlayerBinding = otherPlayer;
 	}
 
 	public AssociationContainerBinding getAssociationContainerBinding() {

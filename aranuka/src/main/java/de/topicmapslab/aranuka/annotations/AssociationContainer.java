@@ -14,5 +14,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AssociationContainer {
 	
-	String type();
+	//String type();
 }

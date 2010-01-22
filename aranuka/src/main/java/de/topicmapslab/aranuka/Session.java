@@ -12,6 +12,7 @@ import org.tinytim.mio.CTMTopicMapWriter;
 import de.topicmapslab.aranuka.binding.AbstractClassBinding;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
+import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.persist.TopicMapHandler;
 
 public class Session {
@@ -40,7 +41,7 @@ public class Session {
 		
 	}
 
-	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, IOException {
+	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, IOException, TopicMapInconsistentException {
 		
 		getTopicMapHandler().persist(topicObject);
 	}
