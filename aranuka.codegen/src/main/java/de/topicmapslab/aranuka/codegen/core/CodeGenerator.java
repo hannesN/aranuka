@@ -187,7 +187,9 @@ public class CodeGenerator {
 			}
 			JFieldVar var = createField(type, aad, ref);
 
-			var.annotate(associationAnnotation);
+			JAnnotationUse assocAnnot = var.annotate(associationAnnotation);
+			assocAnnot.param("type", aad.getAssociationType());
+			assocAnnot.param("played_role", aad.getRoleType());
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -196,8 +198,8 @@ public class CodeGenerator {
 	private JClass getAssociationContainer(JDefinedClass type, AssociationAnnotationDefinition aad) throws Exception {
 		JDefinedClass container = type._class(aad.getContainerTypeName());
 
-		JAnnotationUse use = container.annotate(associationContainerAnnotation);
-		use.param("type", aad.getAssociationType());
+		container.annotate(associationContainerAnnotation);
+		
 
 		for (AssocOtherPlayers aop : aad.getOtherPlayers()) {
 			JClass ref = getModelReference(aop.getPlayer());
@@ -206,7 +208,7 @@ public class CodeGenerator {
 				ref = setRef;
 			}
 			JFieldVar var = createField(container, aop, ref);
-			use = var.annotate(roleAnnotation);
+			JAnnotationUse use = var.annotate(roleAnnotation);
 			use.param("type", TypeUtility.getTypeAttribute(aop.getRole()));
 		}
 		
