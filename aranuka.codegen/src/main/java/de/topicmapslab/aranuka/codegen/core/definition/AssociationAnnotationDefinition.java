@@ -38,15 +38,6 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	public String getAnnotation() {
 		throw new UnsupportedOperationException();
 	}
-
-	@Override
-	public boolean isMany() {
-		if (getAssocKind()==AssociationKind.BINARY) {
-			return super.isMany() || getOtherPlayers().iterator().next().isMany();
-		}
-			
-		return super.isMany();
-	}
 	
 	public Set<AssocOtherPlayers> getOtherPlayers() {
 		return otherPlayers;

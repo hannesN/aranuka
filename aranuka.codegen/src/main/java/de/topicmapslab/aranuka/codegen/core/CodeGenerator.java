@@ -153,6 +153,12 @@ public class CodeGenerator {
 			AssociationAnnotationDefinition.AssocOtherPlayers aop = aad
 					.getOtherPlayers().iterator().next();
 
+			if (aop.isMany()) {
+				createNnaryAssociationField(type, aad);
+				return;
+			}
+			
+			
 			JClass ref = getModelReference(aop.getPlayer());
 			// TODO set annotation??
 			if (aad.isMany()) {
@@ -162,7 +168,6 @@ public class CodeGenerator {
 			JFieldVar var = createField(type, aad, ref);
 
 			JAnnotationUse assocAnnot = var.annotate(associationAnnotation);
-			assocAnnot.param("kind", AssociationKind.BINARY);
 			assocAnnot.param("type", aad.getAssociationType());
 			assocAnnot.param("played_role", aad.getRoleType());
 			assocAnnot.param("other_role", TypeUtility
