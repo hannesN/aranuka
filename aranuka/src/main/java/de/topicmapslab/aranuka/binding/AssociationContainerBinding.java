@@ -4,48 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class AssociationContainerBinding extends AbstractClassBinding {
 
-	@Override
-	public String toString() {
-		return "AssociationContainerBinding [parent=" + parent + ", roles="
-				+ roles + "]";
-	}
-
-	private static Logger logger = LoggerFactory.getLogger(AssociationContainerBinding.class);
-	
 	private AssociationContainerBinding parent; // super type
 	private List<RoleBinding> roles; // list of related role bindings
-	
-	
-	
-//	private Map<Object, Association> cache;
-	
-	// --[ public methods ]------------------------------------------------------------------------------
-	
-//	@Deprecated
-//	public Association persist(TopicMap topicMap, Object associationContainerObject, AssociationBinding associationBinding) throws BadAnnotationException{
-//		
-//		// look in cache
-//		Association ass = getAssociation(associationContainerObject);
-//		
-//		if(ass == null){
-//			
-//			logger.info("Create new association container association.");
-//			ass = persist(topicMap, associationContainerObject, associationBinding, this);
-//			
-//			
-//		}else{
-//			
-//			if(!isUpdated(ass))
-//				updateAssociation(ass, associationContainerObject);
-//		}
-//		
-//		return  ass;
-//	}
 
 	// getter and setter
 	
@@ -64,62 +26,10 @@ public class AssociationContainerBinding extends AbstractClassBinding {
 			return Collections.emptyList();
 		return roles;
 	}
-
-	// --[ private methods ]-------------------------------------------------------------------------------
 	
-//	private void updateAssociation(Association association, Object associationContainerObject) throws BadAnnotationException{
-//		
-//		setToUpdated(association);
-//		
-//		logger.info("Update existing association container association.");
-//		
-//		if(this.parent != null)
-//			createRoles(association, associationContainerObject, this.parent);
-//		
-//		createRoles(association, associationContainerObject, this);
-//
-//	}
-//	
-//	private Association persist(TopicMap topicMap, Object associationContainerObject, AssociationBinding associationBinding, AssociationContainerBinding associationContainerBinding) throws BadAnnotationException{
-//		
-//		Association newAssociation;
-//		
-//		if(associationContainerBinding.parent != null)
-//			newAssociation = persist(topicMap, associationContainerObject, associationBinding, associationContainerBinding.parent);
-//		else newAssociation = topicMap.createAssociation(topicMap.createTopicBySubjectIdentifier(topicMap.createLocator(associationBinding.getAssociationType())),associationBinding.getScope(topicMap));
-//		
-//		// store in cache
-//		addAssociationToCache(associationContainerObject, newAssociation);
-//		
-//		// create roles
-//		createRoles(newAssociation, associationContainerObject, associationContainerBinding);
-//		
-//				
-//		return newAssociation;
-//	}
-//	
-//	private void createRoles(Association association, Object associationContainerObject, AssociationContainerBinding associationContainerBinding) throws BadAnnotationException{
-//		
-//		for(RoleBinding role:associationContainerBinding.roles)
-//			role.persist(association, associationContainerObject);
-//		
-//	}
-//	
-//	private void addAssociationToCache(Object object, Association association){
-//		
-//		if(cache == null)
-//			cache = new HashMap<Object, Association>();
-//		
-//		cache.put(object, association);
-//		
-//	}
-//	
-//	private Association getAssociation(Object object){
-//		
-//		if(cache == null)
-//			return null;
-//		
-//		return cache.get(object);
-//	}
-
+	@Override
+	public String toString() {
+		return "AssociationContainerBinding [parent=" + parent + ", roles="
+				+ roles + "]";
+	}
 }

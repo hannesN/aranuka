@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -72,17 +71,17 @@ public class BindingHandler {
 										
 				}else if(isAssociationContainerAnnotated(clazz)){
 					
-//					AssociationContainerBinding binding = createAssociationContainerBinding(clazz);
-//					addBindingToCache(clazz, binding);
+					AssociationContainerBinding binding = createAssociationContainerBinding(clazz);
+					addBindingToCache(clazz, binding);
 					
 				}else{
-					/// TODO throw exception
+					 throw new ClassNotSpecifiedException("Cannot create binding for unknown class " + clazz);
 				}
 			}
 		}
 	}
 	
-	// gets the bindings for an specific class TODO: maybe create two different methods
+	// gets the bindings for an specific class
 	public AbstractClassBinding getBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
 		
 		if(getBindingFromCache(clazz) != null)
@@ -306,8 +305,6 @@ public class BindingHandler {
 	// create field bindings
 	for (Field field : clazz.getDeclaredFields())
 		createFieldBinding(binding, field, clazz);
-
-	// TODO check association container binding?
 	
 	return binding;
 }
@@ -557,11 +554,6 @@ public class BindingHandler {
 		addMethods(field, clazz, rb);
 	}
 	
-	
-	// helper methods
-	
-	// helper
-	
 	private void addMethods(Field field, Class<?> clazz, AbstractFieldBinding fb) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
 		
 		// create binding for generic type if necessary
@@ -573,8 +565,8 @@ public class BindingHandler {
 			if(isTopicAnnotated(type))
 				getTopicBinding(type);
 			
-//			else if(isAssociationContainerAnnotated(type))
-//				getAssociationContainerBinding(type);
+			else if(isAssociationContainerAnnotated(type))
+				getAssociationContainerBinding(type);
 		}
 			
 		
@@ -690,7 +682,6 @@ public class BindingHandler {
 	
 	
 	// private getter and setter
-	
 	private void addBindingToCache(Class<?> clazz, AbstractClassBinding binding){
 		
 		if (bindingMap == null)
@@ -699,8 +690,7 @@ public class BindingHandler {
 		bindingMap.put(clazz, binding);
 		
 	}
-	
-	
+
 	private AbstractClassBinding getBindingFromCache(Class<?> clazz){
 		
 		if(bindingMap == null)

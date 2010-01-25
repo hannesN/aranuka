@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 public @interface Association {
 	
 	/**
-	 * Defines wheter an topic referenced by an association should be persited as well.
+	 * Defines whether an topic referenced by an association should be persited as well.
 	 * @return
 	 */
 	boolean persistOnCascade() default false;

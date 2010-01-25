@@ -13,6 +13,5 @@ import java.lang.annotation.Target;
 @Target(TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AssociationContainer {
-	
-	//String type();
+
 }
