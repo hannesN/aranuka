@@ -29,6 +29,7 @@ import de.topicmapslab.aranuka.binding.AssociationContainerBinding;
 import de.topicmapslab.aranuka.binding.IdBinding;
 import de.topicmapslab.aranuka.binding.NameBinding;
 import de.topicmapslab.aranuka.binding.OccurrenceBinding;
+import de.topicmapslab.aranuka.binding.RoleBinding;
 import de.topicmapslab.aranuka.binding.TopicBinding;
 import de.topicmapslab.aranuka.enummerations.AssociationKind;
 import de.topicmapslab.aranuka.enummerations.IdType;
@@ -119,7 +120,7 @@ public class TopicMapHandler {
 	    }
 	}
 	
-	private Topic persistTopic(Object topicObject, List<Object> topicObjects, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException {
+	private Topic persistTopic(Object topicObject, List<Object> topicObjects, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException, NoSuchMethodException, ClassNotSpecifiedException {
 		
 		logger.info("Create new topic for " + topicObject);
 		
@@ -145,7 +146,7 @@ public class TopicMapHandler {
 		return newTopic;
 	}
 	
-	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException{
+	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		logger.info("Update existing topic " + topicObject);
 		
@@ -391,7 +392,7 @@ public class TopicMapHandler {
 	
 	// modifies the topic associations to represent the current java object
 	// used for create new topic as well
-	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException{
+	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		// get new associations
 		Map<AssociationBinding, Set<Object>> newAssociations = getAssociations(topicObject, binding);
@@ -414,7 +415,7 @@ public class TopicMapHandler {
 				
 			}else if(newAssociation.getKey().getKind() == AssociationKind.NNARY){
 				
-				/// TODO
+				updateNnaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles);
 			}
 		}
 		
@@ -526,7 +527,7 @@ public class TopicMapHandler {
 		}
 	}
 
-	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles) throws IOException{
+	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles) throws IOException, ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException{
 
 		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
 		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
@@ -534,27 +535,152 @@ public class TopicMapHandler {
 		
 		for (Object associationObject:associationObjects) { // check each nnary association
 			
+			boolean found = false;
+			
+			// get roleplayer for container
+			Map<Topic,Set<Topic>> containerRolePlayer = getRolesFromContainer(associationObject);
+			
 			for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
 				
 				if(playedRole.getValue() != Match.INSTANCE  // ignore roles which are already flagged true
 						&& playedRole.getKey().getType().equals(roleType) 	// check role type
 						&& playedRole.getKey().getParent().getType().equals(associationType)){ // check association type
+
+					// add own role to rolePlayer
+					Map<Topic,Set<Topic>> rolePlayer = containerRolePlayer;
+					Set<Topic> ownTypePlayer = null;
+					
+					if(rolePlayer.get(playedRole.getKey().getType()) != null)
+						ownTypePlayer = rolePlayer.get(playedRole.getKey().getType());
+					else ownTypePlayer = new HashSet<Topic>();
+					
+					ownTypePlayer.add(playedRole.getKey().getPlayer());
+					rolePlayer.put(playedRole.getKey().getType(), ownTypePlayer);
 					
 					// check counter player roles
-										
-					// check counter player
+					if(matchCounterRoleTypes( playedRole.getKey(), rolePlayer)){
+						
+						playedRole.setValue(Match.BINDING);
+						
+						// check counter player
+						if(matchCounterPlayer(playedRole.getKey(), rolePlayer)){
+							
+							found = true;
+							playedRole.setValue(Match.INSTANCE);
+							break;
+						}
+					}
+				}
+			}
+			
+			if(!found){
+				
+				// create new association
+				logger.info("Create new nnary association " + associationType);
+				
+				Association ass = getTopicMap().createAssociation(associationType, scope);
+				
+				// add own player
+				ass.createRole(roleType, topic);
+				
+				// add player from container
+				for (Map.Entry<Topic, Set<Topic>> rolePlayer : containerRolePlayer.entrySet()) {
 					
+					for(Topic player:rolePlayer.getValue()){
+						
+						ass.createRole(rolePlayer.getKey(), player);
+					}
 				}
 			}
 		}
 	}
 	
-	private boolean matchCounterRoleTypes(Role playedRole, Object associationContainerInstance, AssociationContainerBinding containerBinding){
-		return false;
+	private boolean matchCounterRoleTypes(Role playedRole, Map<Topic,Set<Topic>> rolePlayers){
+		
+		Set<Topic> existingRolesTypes = playedRole.getParent().getRoleTypes();
+		
+		if(existingRolesTypes.size() != rolePlayers.keySet().size())
+			return false;
+		
+		for(Topic newRoleType:rolePlayers.keySet()){
+			
+			if(!existingRolesTypes.contains(newRoleType))
+				return false;
+		}
+
+		return true;
 	}
 
-	private boolean matchCounterPlayer(Role playedRole, Object associationContainerInstance, AssociationContainerBinding containerBinding){
-		return false;
+	private boolean matchCounterPlayer(Role playedRole, Map<Topic,Set<Topic>> rolePlayers){
+		
+		Association association = playedRole.getParent();
+		
+		for (Map.Entry<Topic, Set<Topic>> rolePlayer : rolePlayers.entrySet()) {
+		
+			Set<Role> existingRoles = association.getRoles(rolePlayer.getKey()); // get player of type
+			
+			if(existingRoles.size() != rolePlayer.getValue().size())
+				return false;
+			
+			for(Topic player:rolePlayer.getValue()){
+				
+				if(!existingRoles.contains(player))
+					return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Map<Topic,Set<Topic>> getRolesFromContainer(/*Role playedRole, */Object associationContainerInstance) throws ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException, IOException{
+		
+		Map<Topic,Set<Topic>> result = new HashMap<Topic, Set<Topic>>();
+		
+//		// add own player
+//		Set<Topic> ownPlayer = new HashSet<Topic>();
+//		ownPlayer.add(playedRole.getPlayer());
+//		result.put(playedRole.getType(), ownPlayer);
+		
+		AssociationContainerBinding binding = (AssociationContainerBinding)getBindingHandler().getBinding(associationContainerInstance.getClass());
+		
+		for(RoleBinding roleBinding:binding.getRoleBindings()){
+			
+			Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(roleBinding.getRoleType()));
+			Set<Topic> player = null;
+			if(result.get(roleType) == null)
+				player = new HashSet<Topic>();
+			else player = result.get(roleType);
+			
+			if(roleBinding.getValue(associationContainerInstance) != null){
+				
+				if (roleBinding.isArray()){
+	
+					for (Object obj : (Object[]) roleBinding.getValue(associationContainerInstance)){
+						
+						Topic topic = createTopicByIdentifier(obj, roleBinding.getPlayerBinding());
+						player.add(topic);
+					}
+		
+				}else if (roleBinding.isCollection()){
+					
+					for (Object obj : (Collection<Object>) roleBinding.getValue(associationContainerInstance)){
+							
+						Topic topic = createTopicByIdentifier(obj, roleBinding.getPlayerBinding());
+						player.add(topic);
+					}
+	
+				}else{
+					
+					Topic topic = createTopicByIdentifier(roleBinding.getValue(associationContainerInstance), roleBinding.getPlayerBinding());
+					player.add(topic);
+				}
+			}
+			
+			result.put(roleType, player);
+		}
+		
+		return result;
 	}
 	
 	// adds flags to an set, returns an empty map of the set was null
