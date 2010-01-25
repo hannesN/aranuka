@@ -4,6 +4,19 @@
   <groupId>de.topicmapslab</groupId>
   <artifactId>aranuka</artifactId>
   <version>0.1.0</version>
+  <build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.0.2</version>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
   <name>aranuka</name>
   <url>http://maven.apache.org</url>
   <repositories>
