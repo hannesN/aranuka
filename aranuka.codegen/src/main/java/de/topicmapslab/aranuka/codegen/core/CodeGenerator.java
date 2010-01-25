@@ -39,7 +39,6 @@ import de.topicmapslab.aranuka.codegen.core.definition.NameAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.OccurrenceAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.TopicAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition.AssocOtherPlayers;
-import de.topicmapslab.aranuka.codegen.core.definition.enumeration.AssociationKind;
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
 import de.topicmapslab.aranuka.codegen.core.factory.DefinitionFactory;
 import de.topicmapslab.aranuka.codegen.core.util.TypeUtility;
@@ -95,7 +94,7 @@ public class CodeGenerator {
 		try {
 			JDefinedClass type = modelPackage._class(tad.getType());
 			JAnnotationUse use = type.annotate(topicAnnotation);
-			use.param("type", tad.getSubjectIdentifer());
+			use.param("subject_identifier", tad.getSubjectIdentifer());
 
 			for (IdAnnotationDefinition idad : tad.getIdAnnotationDefinitions()) {
 				createIdFiled(type, idad);
@@ -221,9 +220,8 @@ public class CodeGenerator {
 		JFieldVar var = createField(type, aad);
 
 		JAnnotationUse assocAnnot = var.annotate(associationAnnotation);
-		assocAnnot.param("kind", AssociationKind.UNARY);
 		assocAnnot.param("type", aad.getAssociationType());
-		assocAnnot.param("played-role", aad.getRoleType());
+		assocAnnot.param("played_role", aad.getRoleType());
 	}
 
 	private void createOccurrenceField(JDefinedClass type,
@@ -292,13 +290,16 @@ public class CodeGenerator {
 	private void generateAddAndRemove(JDefinedClass type, JClass typeClass,
 			JFieldVar var, JMethod get) {
 		JFieldRef fieldRef = JExpr._this().ref(var);
-		JClass hashSet = cm.ref(HashSet.class).narrow(String.class);
+		
 		String methodSuffix = TypeUtility.field2Method(var.name());
 
 		JMethod add = type.method(JMod.PUBLIC, cm.VOID, "add" + methodSuffix);
-		JVar param = add
-				.param(typeClass.getTypeParameters().get(0), var.name());
+		JVar param = add.param(typeClass.getTypeParameters().get(0), var.name());
+		
+		JClass hashSet = cm.ref(HashSet.class).narrow(param.type());
+		
 		JConditional _if = add.body()._if(fieldRef.eq(JExpr._null()));
+		
 		_if._then().block().assign(fieldRef, JExpr._new(hashSet));
 		add.body().invoke(fieldRef, "add").arg(param);
 		add.annotate(generatedAnnotation);

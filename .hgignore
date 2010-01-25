@@ -32,6 +32,7 @@ annoTM/target
 **/*.log*
 
 aranuka.codegen/target
+aranuka/target
 **/generated
 aranuka.codegen/tmp/test_result/**
 
