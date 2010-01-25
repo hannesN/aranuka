@@ -48,7 +48,7 @@ public class TopicMapHandler {
 	private BindingHandler bindingHandler; // the binding handler
 	private TopicMap topicMap; // the topic map
 	
-	private Map<Object, Topic> topicCache; /// TODO fix cache
+	private Map<Object, Topic> topicCache;
 	
 	// --[ public methods ]------------------------------------------------------------------------------
 	
@@ -129,6 +129,9 @@ public class TopicMapHandler {
 		// add topic to cache
 		addTopicToCache(newTopic, topicObject);
 		
+		// set topic type
+		newTopic.addType(getTopicType(binding));
+		
 		// update identifier
 		updateSubjectIdentifier(newTopic, topicObject, binding); 
 		updateSubjectLocator(newTopic, topicObject, binding);
@@ -144,6 +147,29 @@ public class TopicMapHandler {
 		updateAssociations(newTopic, topicObject, binding);
 		
 		return newTopic;
+	}
+	
+	private Topic getTopicType(TopicBinding binding) throws IOException, BadAnnotationException{
+		
+		if(binding.getIdentifier().isEmpty())
+			throw new BadAnnotationException("Topic type has no identifier.");
+		
+		Topic type = null;
+		
+		// try to find type
+		for(String identifier:binding.getIdentifier()){
+			
+			type = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(identifier));
+			if(type != null)
+				return  type;
+		}
+		
+		type = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getIdentifier().iterator().next()));
+		
+		if(binding.getName() != null)
+			type.createName(binding.getName());
+		
+		return type;
 	}
 	
 	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException, NoSuchMethodException, ClassNotSpecifiedException{
@@ -451,12 +477,12 @@ public class TopicMapHandler {
 					&& playedRole.getKey().getParent().getType().equals(associationType)){ // check association type
 				
 				// binding found
-				playedRole.setValue(Match.BINDING);
+				//playedRole.setValue(Match.BINDING);
 				logger.info("Unary association matches binding.");
 				
 				if(playedRole.getKey().getParent().getScope().equals(scope)){ // check scope
 				
-					logger.info("Unary association matches instance.");
+					//logger.info("Unary association matches instance.");
 					role = playedRole.getKey();
 					playedRole.setValue(Match.INSTANCE);
 					break;
@@ -493,6 +519,7 @@ public class TopicMapHandler {
 
 			// get counter player
 			Topic counterPlayer = createTopicByIdentifier(associationObject, binding.getOtherPlayerBinding());
+			counterPlayer.addType(getTopicType(binding.getOtherPlayerBinding()));
 			
 			boolean found = false;
 
@@ -507,11 +534,11 @@ public class TopicMapHandler {
 
 					// binding found
 					playedRole.setValue(Match.BINDING);
-					logger.info("Binary association matches binding.");
+					//logger.info("Binary association matches binding.");
 					
 					if(TopicMapsUtils.getCounterPlayer(playedRole.getKey().getParent(), playedRole.getKey()).getPlayer().equals(counterPlayer)){ // check counter player
 					
-						logger.info("Binary association matches instance.");
+						//logger.info("Binary association matches instance.");
 						found = true;
 						playedRole.setValue(Match.INSTANCE);
 						break;
@@ -565,12 +592,12 @@ public class TopicMapHandler {
 					if(matchCounterRoleTypes( playedRole.getKey(), rolePlayer)){
 						
 						playedRole.setValue(Match.BINDING);
-						logger.info("Nnary association matches binding.");
+						//logger.info("Nnary association matches binding.");
 						
 						// check counter player
 						if(matchCounterPlayer(playedRole.getKey(), rolePlayer)){
 							
-							logger.info("Nnary association matches instance.");
+							//logger.info("Nnary Association matches instance.");
 							found = true;
 							playedRole.setValue(Match.INSTANCE);
 							break;
@@ -634,12 +661,6 @@ public class TopicMapHandler {
 					return false;
 				
 			}
-			
-//			for(Topic player:rolePlayer.getValue()){
-//				
-//				if(!existingRoles.contains(player))
-//					return false;
-//			}
 		}
 		
 		return true;
@@ -667,6 +688,7 @@ public class TopicMapHandler {
 					for (Object obj : (Object[]) roleBinding.getValue(associationContainerInstance)){
 						
 						Topic topic = createTopicByIdentifier(obj, roleBinding.getPlayerBinding());
+						topic.addType(getTopicType(roleBinding.getPlayerBinding()));
 						player.add(topic);
 					}
 		
@@ -675,12 +697,14 @@ public class TopicMapHandler {
 					for (Object obj : (Collection<Object>) roleBinding.getValue(associationContainerInstance)){
 							
 						Topic topic = createTopicByIdentifier(obj, roleBinding.getPlayerBinding());
+						topic.addType(getTopicType(roleBinding.getPlayerBinding()));
 						player.add(topic);
 					}
 	
 				}else{
 					
 					Topic topic = createTopicByIdentifier(roleBinding.getValue(associationContainerInstance), roleBinding.getPlayerBinding());
+					topic.addType(getTopicType(roleBinding.getPlayerBinding()));
 					player.add(topic);
 				}
 			}
@@ -792,6 +816,7 @@ public class TopicMapHandler {
 		return null;
 	}
 	
+	
 	// used recursively
 	@SuppressWarnings("unchecked")
 	private Set<String> getIdentifier(Object topicObject, TopicBinding binding, IdType type){
@@ -848,6 +873,7 @@ public class TopicMapHandler {
 		
 		return identifier;
 	}
+	
 	
 	// used recursively
 	@SuppressWarnings("unchecked")
@@ -931,6 +957,7 @@ public class TopicMapHandler {
 		return map;
 	}
 	
+	
 	// used recursively
 	@SuppressWarnings("unchecked")
 	private Map<AssociationBinding, Set<Object>> getAssociations(Object topicObject, TopicBinding binding){
@@ -981,6 +1008,7 @@ public class TopicMapHandler {
 	}
 	
 	
+	
 	private <T extends AbstractFieldBinding> void addValueToBindingMap(Map<T,Set<String>> map, T binding, String value){
 		
 		Set<String> set = map.get(binding);
@@ -993,6 +1021,7 @@ public class TopicMapHandler {
 		map.put(binding, set);
 	}
 	
+	
 	private <T extends AbstractFieldBinding> void addValueToBindingMap(Map<T,Set<Object>> map, T binding, Object object){
 		
 		Set<Object> set = map.get(binding);
@@ -1004,6 +1033,7 @@ public class TopicMapHandler {
 		
 		map.put(binding, set);
 	}
+	
 	
 	private Topic createNewTopic(Set<String> subjectIdentifier, Set<String> subjectLocator, Set<String> itemIdentifier) throws IOException, BadAnnotationException{
 		
@@ -1021,7 +1051,7 @@ public class TopicMapHandler {
 		}else{
 			throw new BadAnnotationException("Topic class has no identifier");
 		}
-
+				
 		return topic;
 	}
 	
