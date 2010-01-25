@@ -452,9 +452,11 @@ public class TopicMapHandler {
 				
 				// binding found
 				playedRole.setValue(Match.BINDING);
+				logger.info("Unary association matches binding.");
 				
 				if(playedRole.getKey().getParent().getScope().equals(scope)){ // check scope
 				
+					logger.info("Unary association matches instance.");
 					role = playedRole.getKey();
 					playedRole.setValue(Match.INSTANCE);
 					break;
@@ -505,9 +507,11 @@ public class TopicMapHandler {
 
 					// binding found
 					playedRole.setValue(Match.BINDING);
+					logger.info("Binary association matches binding.");
 					
-					if(TopicMapsUtils.getCounterPlayer(playedRole.getKey().getParent(), playedRole.getKey()).equals(counterPlayer)){ // check counter player
+					if(TopicMapsUtils.getCounterPlayer(playedRole.getKey().getParent(), playedRole.getKey()).getPlayer().equals(counterPlayer)){ // check counter player
 					
+						logger.info("Binary association matches instance.");
 						found = true;
 						playedRole.setValue(Match.INSTANCE);
 						break;
@@ -561,10 +565,12 @@ public class TopicMapHandler {
 					if(matchCounterRoleTypes( playedRole.getKey(), rolePlayer)){
 						
 						playedRole.setValue(Match.BINDING);
+						logger.info("Nnary association matches binding.");
 						
 						// check counter player
 						if(matchCounterPlayer(playedRole.getKey(), rolePlayer)){
 							
+							logger.info("Nnary association matches instance.");
 							found = true;
 							playedRole.setValue(Match.INSTANCE);
 							break;
@@ -587,7 +593,7 @@ public class TopicMapHandler {
 				for (Map.Entry<Topic, Set<Topic>> rolePlayer : containerRolePlayer.entrySet()) {
 					
 					for(Topic player:rolePlayer.getValue()){
-						
+						logger.info("Create role " +  player + " with type " + rolePlayer.getKey());
 						ass.createRole(rolePlayer.getKey(), player);
 					}
 				}
@@ -622,11 +628,18 @@ public class TopicMapHandler {
 			if(existingRoles.size() != rolePlayer.getValue().size())
 				return false;
 			
-			for(Topic player:rolePlayer.getValue()){
+			for(Role existingRole:existingRoles){
 				
-				if(!existingRoles.contains(player))
+				if(!rolePlayer.getValue().contains(existingRole.getPlayer()))
 					return false;
+				
 			}
+			
+//			for(Topic player:rolePlayer.getValue()){
+//				
+//				if(!existingRoles.contains(player))
+//					return false;
+//			}
 		}
 		
 		return true;
@@ -636,11 +649,6 @@ public class TopicMapHandler {
 	private Map<Topic,Set<Topic>> getRolesFromContainer(/*Role playedRole, */Object associationContainerInstance) throws ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException, IOException{
 		
 		Map<Topic,Set<Topic>> result = new HashMap<Topic, Set<Topic>>();
-		
-//		// add own player
-//		Set<Topic> ownPlayer = new HashSet<Topic>();
-//		ownPlayer.add(playedRole.getPlayer());
-//		result.put(playedRole.getType(), ownPlayer);
 		
 		AssociationContainerBinding binding = (AssociationContainerBinding)getBindingHandler().getBinding(associationContainerInstance.getClass());
 		
