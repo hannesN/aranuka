@@ -7,22 +7,24 @@ import java.io.File;
 
 /**
  * @author niederhausen
- * 
+ *
  */
-public class AbstractGenerationTest {
-
+public abstract class AbstractGeneratorTest {
 	protected File getDir() {
-		File dir = new File("tmp/test_result");
-		if (dir.exists()) {
-			System.out.println("delete dir");
-			delete(dir);
-		}
+		File dir = deleteTestDir();
 
 		dir.mkdirs();
-		System.out.println("created dir");
 		return dir;
 
 	}
+
+	protected File deleteTestDir() {
+	    File dir = new File("tmp/test_result");
+		if (dir.exists()) {
+			delete(dir);
+		}
+	    return dir;
+    }
 
 	private void delete(File file) {
 		if (file.isDirectory()) {
