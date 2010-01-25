@@ -10,7 +10,7 @@ import java.io.File;
  *
  */
 public abstract class AbstractGeneratorTest {
-	protected File getDir() {
+	static  protected File getDir() {
 		File dir = deleteTestDir();
 
 		dir.mkdirs();
@@ -18,7 +18,7 @@ public abstract class AbstractGeneratorTest {
 
 	}
 
-	protected File deleteTestDir() {
+	static  protected File deleteTestDir() {
 	    File dir = new File("tmp/test_result");
 		if (dir.exists()) {
 			delete(dir);
@@ -26,7 +26,7 @@ public abstract class AbstractGeneratorTest {
 	    return dir;
     }
 
-	private void delete(File file) {
+	static private void delete(File file) {
 		if (file.isDirectory()) {
 			for (File f : file.listFiles()) {
 				delete(f);
