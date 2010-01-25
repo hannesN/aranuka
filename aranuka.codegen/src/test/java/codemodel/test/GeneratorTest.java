@@ -8,14 +8,23 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
+import junit.framework.Assert;
+
+import org.apache.commons.beanutils.PropertyUtils;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
@@ -32,23 +41,23 @@ import de.topicmapslab.tmcl_loader.TMCLLoader;
  */
 public class GeneratorTest extends AbstractGeneratorTest {
 
-	TopicMap topicMap;
-	File path = null;
+	static TopicMap topicMap;
+	static File path = null;
 
 
-	@Before
-	public void prepare() throws Exception {
+	@BeforeClass
+	public static void prepare() throws Exception {
 		path = getDir();
 		init();
 		generateCode();
 	}
 
-	@After
-	public void shutdown() {
-		deleteTestDir();
+	@AfterClass
+	public static void shutdown() {
+	//	deleteTestDir();
 	}
 
-	public void generateCode() throws IOException {
+	static public void generateCode() throws IOException {
 		new CodeGenerator().generateCode(topicMap, path, "test.model");
 	}
 
@@ -81,7 +90,27 @@ public class GeneratorTest extends AbstractGeneratorTest {
 		}
 	}
 
-	private void init() throws Exception {
+	@Test
+	public void testPersonClass() throws URISyntaxException {
+		String urlString = "file://"+path.getAbsolutePath()+"/";
+		
+		try { 
+			URL uri = new URL(urlString);
+			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
+			Class<?> clazz = loader.loadClass("test.model.Person");
+			
+			Object o = clazz.getConstructor().newInstance();
+			PropertyUtils.setProperty(o, "firstname", "Hans");
+			
+			assertEquals("Hans", PropertyUtils.getProperty(o, "firstname"));
+			
+		} catch (Exception e) {
+			Assert.fail("Could not load Person.class");
+			
+		}
+	}
+	
+	static private void init() throws Exception {
 		TopicMapSystem topicMapSystem = TopicMapSystemFactory.newInstance().newTopicMapSystem();
 		topicMap = topicMapSystem.createTopicMap("http://www.topicmapslab.de/aranuka-codegen");
 

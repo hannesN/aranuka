@@ -118,10 +118,26 @@
         <topicType id="277" kind="TopicType">
             <name>Person</name>
             <subjectIdentifier>http://test.de/person</subjectIdentifier>
+            <nameConstraints>
+                <nameConstraint cardMax="1" cardMin="1" id="595">
+                    <topictypeRef ref="topictypes.14"/>
+                </nameConstraint>
+                <nameConstraint cardMax="1" cardMin="1" id="596">
+                    <topictypeRef ref="topictypes.3"/>
+                </nameConstraint>
+                <nameConstraint cardMax="*" cardMin="0" id="597">
+                    <topictypeRef ref="topictypes.8"/>
+                </nameConstraint>
+            </nameConstraints>
         </topicType>
         <topicType id="279" kind="TopicType">
             <name>Project</name>
             <subjectIdentifier>http://test.de/project</subjectIdentifier>
+            <nameConstraints>
+                <nameConstraint cardMax="1" cardMin="1" id="598">
+                    <topictypeRef ref="topictypes.0"/>
+                </nameConstraint>
+            </nameConstraints>
         </topicType>
         <topicType id="281" kind="TopicType">
             <name>Corporation</name>
