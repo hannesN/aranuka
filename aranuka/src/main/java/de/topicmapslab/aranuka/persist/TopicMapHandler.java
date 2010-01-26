@@ -3,6 +3,7 @@ package de.topicmapslab.aranuka.persist;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -21,6 +22,7 @@ import org.tmapi.core.Role;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystemFactory;
+import org.tmapi.index.TypeInstanceIndex;
 
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.binding.AbstractFieldBinding;
@@ -37,6 +39,7 @@ import de.topicmapslab.aranuka.enummerations.Match;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
+import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 // handles interaction with the topic map, i.e. creating topics and associations, updating, etc.
@@ -55,6 +58,12 @@ public class TopicMapHandler {
 	public TopicMapHandler(Configuration config){
 
 		this.config = config;
+	}
+	
+	public TopicMapHandler(Configuration config, TopicMap topicMap){
+
+		this.config = config;
+		this.topicMap = topicMap;
 	}
 	
 	public void invokeBinding()  throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException{
@@ -86,6 +95,241 @@ public class TopicMapHandler {
 		}
 		catch (Exception e) {
 			throw new IOException("Could not create topic map (" + e.getMessage() + ")");
+		}
+	}
+	
+	@Deprecated
+	public void setTopicMap(TopicMap topicMap) throws IOException{
+		
+		if(this.topicMap != null)
+			throw new IOException("The session has already a topic map, possible data lost.");
+		
+		this.topicMap = topicMap;
+		
+	}
+	
+	
+	public Set<Object> getTopicsByType(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException, IOException{
+		
+		TopicBinding binding = null;
+		
+		try{
+			// return empty set if anything goes wrong, i.e. clazz is bad annotated or cast goes wrong... etc....
+			binding = (TopicBinding)getBindingHandler().getBinding(clazz);
+		}
+		catch (Exception e) {
+			return Collections.emptySet();
+		}
+		
+		
+		Topic type = null;
+		
+		for(String id:binding.getIdentifier()){
+			
+			type = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(id));
+			if(type != null)
+				break;
+		}
+		
+		if(type == null)
+			return Collections.emptySet();
+		
+		// type exist, get instances
+		TypeInstanceIndex index = getTopicMap().getIndex(TypeInstanceIndex.class);
+		
+		Set<Topic> topicInstances = new HashSet<Topic>(index.getTopics(type));
+		
+		Set<Object> instances = getInstancesFromTopics(topicInstances, binding, clazz);
+		
+		return instances;
+	}
+	
+	private Set<Object> getInstancesFromTopics(Set<Topic> topics, TopicBinding binding, Class<?> clazz) throws IOException{
+		
+		if(topics.isEmpty())
+			return Collections.emptySet();
+		
+		Set<Object> objects = new HashSet<Object>();
+		
+		for(Topic topic:topics){
+			
+			objects.add(getInstanceFromTopic(topic, binding, clazz));
+			
+		}
+		
+		return objects;
+	}
+	
+	// used recursively
+	private Object getInstanceFromTopic(Topic topic, TopicBinding binding, Class<?> clazz) throws IOException{
+		
+		try{
+			
+			Object object = null;
+			
+			if(binding.getParent() != null)
+				object = getInstanceFromTopic(topic, binding.getParent(), clazz);
+			else object = clazz.getConstructor().newInstance();
+			
+			// get identifier
+			
+			addIdentifier(topic, object, binding);
+			
+			// get names
+			
+			// get occurrences
+			
+			// get associations
+			
+			return object;
+			
+		}
+		catch (Exception e) {
+			throw new IOException("Could not instanciate topic: " + e.getMessage()); /// TODO change exception type, maybe create new one
+		}
+	}
+	
+	private void addIdentifier(Topic topic, Object object, TopicBinding binding) throws TopicMapInconsistentException{
+		
+		for(AbstractFieldBinding afb:binding.getFieldBindings()){
+			
+			if(afb instanceof IdBinding){
+				
+				IdBinding idBinding = (IdBinding)afb;
+				
+				if(idBinding.getIdtype() == IdType.ITEM_IDENTIFIER){
+					
+					Set<Locator> identifier = topic.getItemIdentifiers();
+					addIdentifier(topic, object, idBinding, identifier);
+					
+				}else if(idBinding.getIdtype() == IdType.SUBJECT_IDENTIFIER){
+					
+					Set<Locator> identifier = topic.getSubjectIdentifiers();
+					addIdentifier(topic, object, idBinding, identifier);
+					
+				}else if(idBinding.getIdtype() == IdType.SUBJECT_LOCATOR){
+					
+					Set<Locator> identifier = topic.getSubjectIdentifiers();
+					addIdentifier(topic, object, idBinding, identifier);
+					
+				}else{
+					
+					/// TODO handle uhnknown idtype
+				}
+					
+			}
+		}
+	}
+	
+	private void addIdentifier(Topic topic, Object object, IdBinding idBinding, Set<Locator> identifiers) throws TopicMapInconsistentException{
+		
+		if(identifiers.isEmpty())
+			return;
+		
+		Set<String> typeIdentifier = ((TopicBinding)idBinding.getParent()).getIdentifier();
+			
+		// create set
+		Set<String> existingIds = new HashSet<String>();
+		
+		for(Locator identifier:identifiers){
+			
+			String iri = identifier.getReference();
+			
+			// check and remove type identifier
+			for(String typeId:typeIdentifier){
+				
+				if(iri.startsWith(typeId + "/")){
+					
+					logger.info("Reduce identifier from " + iri);
+					iri = iri.replace(typeId + "/", ""); // remove the start
+					logger.info("to " + iri);
+					break;
+				}
+			}
+			
+			existingIds.add(iri);
+		}
+		
+		// add ids to field
+		
+//		logger.info("Field type: " + idBinding.getFieldType().toString());
+//		logger.info("Generic field type: " + idBinding.getGenericType().toString());
+		
+		if(!idBinding.isArray() && !idBinding.isCollection()){
+			
+			if(existingIds.size() > 1)
+				throw new TopicMapInconsistentException("Cannot add multiple identifier to an non container field.");
+			
+			if(idBinding.getFieldType() == int.class){
+				
+				idBinding.setValue(Integer.parseInt(existingIds.iterator().next()), object);
+				
+			}else{
+				
+				idBinding.setValue(existingIds.iterator().next(), object);
+			}
+			
+		}else{
+			
+			
+			if(idBinding.isArray()){
+
+				if(idBinding.getGenericType() == int.class){
+					
+					List<Integer> list = new ArrayList<Integer>();
+					
+					for(String id:existingIds)
+						list.add(Integer.parseInt(id));
+					
+					idBinding.setValue(list.toArray(new Integer[list.size()]), object);
+					
+					
+				}else{
+
+					idBinding.setValue(existingIds.toArray(new String[existingIds.size()]), object);
+				}
+				
+			}else{
+				
+				// set an collection
+				if(idBinding.getGenericType() == int.class){
+					
+					Collection<Integer> collection;
+					
+					if(idBinding.getFieldType() == Set.class){ // is set
+						
+						collection = new HashSet<Integer>();
+						
+					}else{ // is list
+						
+						collection = new ArrayList<Integer>();
+					}
+					
+					for(String id:existingIds)
+						collection.add(Integer.parseInt(id));
+					
+					idBinding.setValue(collection, object);
+
+				}else{
+					
+					Collection<String> collection;
+					
+					if(idBinding.getFieldType() == Set.class){ // is set
+						
+						collection = new HashSet<String>();
+						
+					}else{ // is list
+						
+						collection = new ArrayList<String>();
+					}
+					
+					for(String id:existingIds)
+						collection.add(id);
+					
+					idBinding.setValue(collection, object);
+					
+				}
+			}
 		}
 	}
 	
@@ -122,7 +366,7 @@ public class TopicMapHandler {
 	
 	private Topic persistTopic(Object topicObject, List<Object> topicObjects, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException, NoSuchMethodException, ClassNotSpecifiedException {
 		
-		logger.info("Create new topic for " + topicObject);
+		logger.info("Persist topic object " + topicObject);
 		
 		Topic newTopic = createTopicByIdentifier(topicObject, binding);
 
@@ -149,6 +393,7 @@ public class TopicMapHandler {
 		return newTopic;
 	}
 	
+	
 	private Topic getTopicType(TopicBinding binding) throws IOException, BadAnnotationException{
 		
 		if(binding.getIdentifier().isEmpty())
@@ -172,6 +417,7 @@ public class TopicMapHandler {
 		return type;
 	}
 	
+	
 	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		logger.info("Update existing topic " + topicObject);
@@ -188,6 +434,7 @@ public class TopicMapHandler {
 		// update associations
 		updateAssociations(topic, topicObject, binding);
 	}
+	
 	
 	// modifies the topic subject identifier to represent the current java object
 	// used for create new topic as well
@@ -228,6 +475,7 @@ public class TopicMapHandler {
 		}
 	}
 	
+	
 	private void updateSubjectLocator(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
 		
 		Set<String> newSubjectLocator = getIdentifier(topicObject, binding, IdType.SUBJECT_LOCATOR);
@@ -264,6 +512,7 @@ public class TopicMapHandler {
 			}
 		}
 	}
+	
 
 	private void updateItemIdentifier(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
 	
@@ -286,7 +535,7 @@ public class TopicMapHandler {
 			}
 			
 			if(!found){
-
+				logger.info("Add new Item identifier " + ii);
 				// add new identifier
 				topic.addItemIdentifier(getTopicMap().createLocator(ii));
 			}
@@ -302,6 +551,7 @@ public class TopicMapHandler {
 			}
 		}
 	}
+	
 	
 	// modifies the topic names to represent the current java object
 	// used for create new topic as well
@@ -358,6 +608,7 @@ public class TopicMapHandler {
 			}
 		}
 	}
+	
 	
 	// modifies the topic occurrences to represent the current java object
 	// used for create new topic as well
@@ -416,6 +667,7 @@ public class TopicMapHandler {
 		
 	}
 	
+	
 	// modifies the topic associations to represent the current java object
 	// used for create new topic as well
 	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException, NoSuchMethodException, ClassNotSpecifiedException{
@@ -449,11 +701,16 @@ public class TopicMapHandler {
 		for(Map.Entry<Role, Match> entry:playedRoles.entrySet()){
 		
 			if(entry.getValue() == Match.BINDING){ // only binding match found but no instance
-				logger.info("Remove obsolete association " + entry.getKey().getParent());
-				entry.getKey().getParent().remove();
+				Association obsolete = entry.getKey().getParent();
+				
+				if(obsolete != null){ // do an additional check
+					logger.info("Remove obsolete association " + obsolete.getType());
+					obsolete.remove();
+				}
 			}
 		}
 	}
+	
 	
 	private void updateUnaryAssociation(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role,Match> playedRoles) throws IOException{
 		
@@ -508,6 +765,7 @@ public class TopicMapHandler {
 		}
 	}
 	
+	
 	private void updateBinaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles) throws IOException, BadAnnotationException, TopicMapInconsistentException {
 
 		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
@@ -557,6 +815,7 @@ public class TopicMapHandler {
 			}
 		}
 	}
+	
 
 	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles) throws IOException, ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException{
 
@@ -628,6 +887,7 @@ public class TopicMapHandler {
 		}
 	}
 	
+	
 	private boolean matchCounterRoleTypes(Role playedRole, Map<Topic,Set<Topic>> rolePlayers){
 		
 		Set<Topic> existingRolesTypes = playedRole.getParent().getRoleTypes();
@@ -643,6 +903,7 @@ public class TopicMapHandler {
 
 		return true;
 	}
+	
 
 	private boolean matchCounterPlayer(Role playedRole, Map<Topic,Set<Topic>> rolePlayers){
 		
@@ -665,6 +926,7 @@ public class TopicMapHandler {
 		
 		return true;
 	}
+	
 	
 	@SuppressWarnings("unchecked")
 	private Map<Topic,Set<Topic>> getRolesFromContainer(/*Role playedRole, */Object associationContainerInstance) throws ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException, IOException{
@@ -715,6 +977,7 @@ public class TopicMapHandler {
 		return result;
 	}
 	
+	
 	// adds flags to an set, returns an empty map of the set was null
 	private <T extends Object> Map<T, Match> addFlags(Set<T> set){
 		
@@ -728,6 +991,7 @@ public class TopicMapHandler {
 
 		return map;
 	}
+	
 	
 	private Topic createTopicByIdentifier(Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException {
 		
@@ -760,6 +1024,7 @@ public class TopicMapHandler {
 		return topic;
 	}
 	
+	
 	// tries to find an existing topic by a list of subject identifiers
 	private Topic getTopicBySubjectIdentifier(Set<String> subjectIdentifier)throws IOException{
 		
@@ -776,6 +1041,7 @@ public class TopicMapHandler {
 		return null;
 	}
 	
+	
 	// tries to find an existing topic by a list of subject locators
 	private Topic getTopicBySubjectLocator(Set<String> subjectLocator)throws IOException{
 		
@@ -791,6 +1057,7 @@ public class TopicMapHandler {
 		
 		return null;
 	}
+	
 	
 	// tries to find an existing topic by a list of item identifiers
 	private Topic getTopicByItemIdentifier(Set<String> itemIdentifier)throws IOException{
@@ -828,7 +1095,10 @@ public class TopicMapHandler {
 		else identifier = new HashSet<String>();
 
 		// create base locator
-		String baseLocator = TopicMapsUtils.resolveURI("base_locator:", this.config.getPrefixMap()) + topicObject.getClass().getName().replaceAll("\\.", "/") + "/";
+		//String baseLocator = TopicMapsUtils.resolveURI("base_locator:", this.config.getPrefixMap()) + topicObject.getClass().getName().replaceAll("\\.", "/") + "/";
+
+		String typeLocator = binding.getIdentifier().iterator().next(); // get first
+		
 		
 		// add all subject identifier
 		
@@ -845,7 +1115,8 @@ public class TopicMapHandler {
 							if (obj instanceof String){
 								identifier.add(obj.toString());
 							}else{
-								identifier.add(baseLocator + obj.toString());
+								//identifier.add(baseLocator + obj.toString());
+								identifier.add(typeLocator + "/" + obj.toString());
 							}
 						}
 					
@@ -856,7 +1127,8 @@ public class TopicMapHandler {
 							if (obj instanceof String){
 								identifier.add(obj.toString());
 							}else{
-								identifier.add(baseLocator + obj.toString());
+								//identifier.add(baseLocator + obj.toString());
+								identifier.add(typeLocator + "/" + obj.toString());
 							}
 						}
 		
@@ -864,7 +1136,8 @@ public class TopicMapHandler {
 						if (((IdBinding)afb).getValue(topicObject) instanceof String){
 							identifier.add(((IdBinding)afb).getValue(topicObject).toString());
 						}else{
-							identifier.add(baseLocator + ((IdBinding)afb).getValue(topicObject).toString());
+							//identifier.add(baseLocator + ((IdBinding)afb).getValue(topicObject).toString());
+							identifier.add(typeLocator + "/" + ((IdBinding)afb).getValue(topicObject).toString());
 						}
 					}
 				}
@@ -915,6 +1188,7 @@ public class TopicMapHandler {
 		
 		return map;
 	}
+	
 	
 	// used recursively
 	@SuppressWarnings("unchecked")
@@ -1007,8 +1281,7 @@ public class TopicMapHandler {
 		return map;
 	}
 	
-	
-	
+		
 	private <T extends AbstractFieldBinding> void addValueToBindingMap(Map<T,Set<String>> map, T binding, String value){
 		
 		Set<String> set = map.get(binding);
@@ -1067,6 +1340,7 @@ public class TopicMapHandler {
 		
 	}
 	
+	
 	private Topic getTopicFromCache(Object object){
 		
 		if(this.topicCache == null)
@@ -1074,6 +1348,7 @@ public class TopicMapHandler {
 
 		return this.topicCache.get(object);
 	}
+	
 	
 	private BindingHandler getBindingHandler(){
 		

@@ -1,5 +1,6 @@
 package de.topicmapslab.aranuka;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,6 +9,8 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tmapi.core.FactoryConfigurationException;
+import org.tmapi.core.TMAPIException;
 
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
@@ -85,7 +88,7 @@ public class Configuration {
 	}
 	
 	// property
-	public String getProperty(Property key) {
+	public String getProperty(Property key){
 		
 		if(propertyMap == null)
 			return null;
@@ -103,7 +106,7 @@ public class Configuration {
 	
 	// session
 	
-	public Session getSession(boolean lasyBinding) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	public Session getSession(boolean lasyBinding) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException, IOException, FactoryConfigurationException, TMAPIException {
 		
 		/// TODO implement
 		if(session != null)

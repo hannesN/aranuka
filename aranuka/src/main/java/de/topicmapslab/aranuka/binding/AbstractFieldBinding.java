@@ -1,6 +1,7 @@
 package de.topicmapslab.aranuka.binding;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +27,8 @@ public abstract class AbstractFieldBinding{
 		
 	private boolean isArray; 
 	private boolean isCollection;
+	
+	private Type genericType;
 	
 	private Set<String> themes; // scope
 	
@@ -77,6 +80,12 @@ public abstract class AbstractFieldBinding{
 	}
 	
 	public Type getFieldType() {
+		
+//		if(getter.getGenericReturnType() instanceof ParameterizedType){
+//			
+//			ParameterizedType para = (ParameterizedType)getter.getGenericReturnType();
+//
+//		}
 		
 		return getter.getGenericReturnType();
 	}
@@ -133,6 +142,14 @@ public abstract class AbstractFieldBinding{
 
 	public Map<String, String> getPrefixMap() {
 		return prefixMap;
+	}
+
+	public Type getGenericType() {
+		return genericType;
+	}
+
+	public void setGenericType(Type genericType) {
+		this.genericType = genericType;
 	}
 
 	@Override
