@@ -98,17 +98,6 @@ public class TopicMapHandler {
 		}
 	}
 	
-	@Deprecated
-	public void setTopicMap(TopicMap topicMap) throws IOException{
-		
-		if(this.topicMap != null)
-			throw new IOException("The session has already a topic map, possible data lost.");
-		
-		this.topicMap = topicMap;
-		
-	}
-	
-	
 	public Set<Object> getTopicsByType(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException, IOException{
 		
 		TopicBinding binding = null;
@@ -171,15 +160,16 @@ public class TopicMapHandler {
 				object = getInstanceFromTopic(topic, binding.getParent(), clazz);
 			else object = clazz.getConstructor().newInstance();
 			
-			// get identifier
+			// add identifier
 			
 			addIdentifier(topic, object, binding);
 			
-			// get names
+			// add names
+			addNames(topic, object, binding);
 			
-			// get occurrences
+			// add occurrences
 			
-			// get associations
+			// add associations
 			
 			return object;
 			
@@ -331,6 +321,68 @@ public class TopicMapHandler {
 				}
 			}
 		}
+	}
+	
+	
+	private void addNames(Topic topic, Object object, TopicBinding binding) throws IOException, TopicMapInconsistentException{
+		
+		for(AbstractFieldBinding afb:binding.getFieldBindings()){
+			
+			if(afb instanceof NameBinding){
+				
+				NameBinding nameBinding = (NameBinding)afb;
+				// get name type
+				Topic nameType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(nameBinding.getNameType()));
+				
+				if(nameType == null)
+					continue; // get to next binding if type don't exist
+				
+				Set<Name> names = topic.getNames(nameType);
+				
+				if(names.isEmpty())
+					continue; // get to next binding if no names of this type are found
+				
+				Set<String> existingNames = new HashSet<String>();
+				
+				for(Name name:names)
+					existingNames.add(name.getValue());
+				
+				if(!nameBinding.isArray() && !nameBinding.isCollection()){
+					
+					if(existingNames.size() > 1)
+						throw new TopicMapInconsistentException("Cannot add multiple names to an non container field.");
+					
+					nameBinding.setValue(existingNames.iterator().next(), object);
+					
+				}else{
+					
+					if(nameBinding.isArray()){
+						
+						nameBinding.setValue(existingNames.toArray(new String[existingNames.size()]), object);
+						
+					}else{
+						
+						Collection<String> collection;
+						
+						if(nameBinding.getFieldType() == Set.class){ // is set
+							
+							collection = new HashSet<String>();
+							
+						}else{ // is list
+							
+							collection = new ArrayList<String>();
+						}
+						
+						for(String name:existingNames)
+							collection.add(name);
+						
+						nameBinding.setValue(collection, object);
+						
+					}
+				}
+			}
+		}
+
 	}
 	
 	// --[ private methods ]-------------------------------------------------------------------------------

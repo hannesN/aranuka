@@ -374,6 +374,7 @@ public class BindingHandler {
 		
 		ib.setArray(field.getType().isArray());
 		ib.setCollection(ReflectionUtil.isCollection(field));
+		/// TODO throw exception when generic type is not int or string?
 		ib.setGenericType(ReflectionUtil.getGenericType(field));
 
 		/// add id to topic binding
