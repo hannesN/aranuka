@@ -27,9 +27,4 @@ public class AssociationContainerBinding extends AbstractClassBinding {
 		return roles;
 	}
 	
-	@Override
-	public String toString() {
-		return "AssociationContainerBinding [parent=" + parent + ", roles="
-				+ roles + "]";
-	}
 }

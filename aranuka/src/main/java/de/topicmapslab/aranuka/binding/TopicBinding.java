@@ -60,10 +60,10 @@ public class TopicBinding extends AbstractClassBinding{
 		
 	}
 
-	@Override
-	public String toString() {
-		return "TopicBinding [fieldBindings=" + fieldBindings
-				+ ", identifiers=" + identifiers + ", name=" + name
-				+ ", parent=" + parent + "]";
-	}
+//	@Override
+//	public String toString() {
+//		return "TopicBinding [fieldBindings=" + fieldBindings
+//				+ ", identifiers=" + identifiers + ", name=" + name
+//				+ ", parent=" + parent + "]";
+//	}
 }
