@@ -6,6 +6,7 @@ package codemodel.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -13,7 +14,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -100,12 +103,111 @@ public class GeneratorTest extends AbstractGeneratorTest {
 			Class<?> clazz = loader.loadClass("test.model.Person");
 			
 			Object o = clazz.getConstructor().newInstance();
-			PropertyUtils.setProperty(o, "firstname", "Hans");
 			
+			PropertyUtils.setProperty(o, "firstname", "Hans");
 			assertEquals("Hans", PropertyUtils.getProperty(o, "firstname"));
 			
+			PropertyUtils.setProperty(o, "lastname", "Meyer");
+			assertEquals("Meyer", PropertyUtils.getProperty(o, "lastname"));
+			
+			Set<String> middleNames = new HashSet<String>();
+			middleNames.add("Gerd");
+			middleNames.add("Max");
+			PropertyUtils.setProperty(o, "middlename", middleNames);
+			
+			assertEquals(middleNames, PropertyUtils.getProperty(o, "middlename"));
 		} catch (Exception e) {
 			Assert.fail("Could not load Person.class");
+			
+		}
+	}
+	
+	@Test
+	public void testCityClass() throws URISyntaxException {
+		String urlString = "file://"+path.getAbsolutePath()+"/";
+		
+		try { 
+			URL uri = new URL(urlString);
+			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
+			Class<?> clazz = loader.loadClass("test.model.City");
+			Assert.assertNotNull(clazz);
+			Object o = clazz.getConstructor().newInstance();
+			
+			Assert.assertNotNull(o);
+		} catch (Exception e) {
+			Assert.fail("Could not load City.class");
+			
+		}
+	}
+	
+	@Test
+	public void testCorporationClass() throws URISyntaxException {
+		String urlString = "file://"+path.getAbsolutePath()+"/";
+		
+		try { 
+			URL uri = new URL(urlString);
+			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
+			Class<?> clazz = loader.loadClass("test.model.Corporation");
+			Assert.assertNotNull(clazz);
+			Object o = clazz.getConstructor().newInstance();
+			
+			Assert.assertNotNull(o);
+		} catch (Exception e) {
+			Assert.fail("Could not load Corporation.class");
+			
+		}
+	}
+	
+	@Test
+	public void testAuthorClass() throws URISyntaxException {
+		String urlString = "file://"+path.getAbsolutePath()+"/";
+		
+		try { 
+			URL uri = new URL(urlString);
+			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
+			Class<?> clazz = loader.loadClass("test.model.Author");
+			Assert.assertNotNull(clazz);
+			Object o = clazz.getConstructor().newInstance();
+			
+			Assert.assertNotNull(o);
+		} catch (Exception e) {
+			Assert.fail("Could not load Author.class");
+			
+		}
+	}
+	
+	@Test
+	public void testProjectClass() throws URISyntaxException {
+		String urlString = "file://"+path.getAbsolutePath()+"/";
+		
+		try { 
+			URL uri = new URL(urlString);
+			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
+			Class<?> clazz = loader.loadClass("test.model.Project");
+			Assert.assertNotNull(clazz);
+			Object o = clazz.getConstructor().newInstance();
+			
+			Assert.assertNotNull(o);
+		} catch (Exception e) {
+			Assert.fail("Could not load Project.class");
+			
+		}
+	}
+	
+	@Test
+	public void testDocumentClass() throws URISyntaxException {
+		String urlString = "file://"+path.getAbsolutePath()+"/";
+		
+		try { 
+			URL uri = new URL(urlString);
+			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
+			Class<?> clazz = loader.loadClass("test.model.Document");
+			Assert.assertNotNull(clazz);
+			Object o = clazz.getConstructor().newInstance();
+			
+			Assert.assertNotNull(o);
+		} catch (Exception e) {
+			Assert.fail("Could not load Document.class");
 			
 		}
 	}
