@@ -6,10 +6,8 @@ package codemodel.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -24,9 +22,7 @@ import javax.tools.ToolProvider;
 import junit.framework.Assert;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.tmapi.core.TopicMap;
