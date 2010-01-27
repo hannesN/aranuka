@@ -49,7 +49,7 @@ public class TopicMapsUtils {
 		return uri;
 	}
 
-	public static Role getCounterPlayer(Association association, Role ownRole) throws TopicMapInconsistentException{
+	public static Role getCounterRole(Association association, Role ownRole) throws TopicMapInconsistentException{
 		
 		if(association.getRoles().size() != 2)
 			throw new TopicMapInconsistentException("Binary association has " + association.getRoles().size()  + " roles.");
