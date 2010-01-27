@@ -11,14 +11,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinytim.mio.CTMTopicMapReader;
 import org.tinytim.mio.CTMTopicMapWriter;
-import org.tmapi.core.FactoryConfigurationException;
-import org.tmapi.core.TMAPIException;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
 
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
+import de.topicmapslab.aranuka.exception.TopicMapException;
+import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.persist.TopicMapHandler;
 
@@ -31,7 +31,7 @@ public class Session {
 	
 	// --[ public methods ]------------------------------------------------------------------------------
 	
-	public Session(Configuration config, boolean leazyBinding) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException, IOException, FactoryConfigurationException, TMAPIException{
+	public Session(Configuration config, boolean leazyBinding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{
 		
 		if(config == null)
 			throw new RuntimeException("Config must not be null."); /// TODO change exception type
@@ -45,7 +45,7 @@ public class Session {
 		}
 	}
 
-	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, IOException, TopicMapInconsistentException, FactoryConfigurationException, TMAPIException {
+	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException, TopicMapException {
 		
 		getTopicMapHandler().persist(topicObject);
 	}
@@ -117,37 +117,45 @@ public class Session {
 	
 	// --[ private methods ]-------------------------------------------------------------------------------
 	
-	private TopicMapHandler getTopicMapHandler() throws IOException, FactoryConfigurationException, TMAPIException{
+	private TopicMapHandler getTopicMapHandler() throws TopicMapException{
 
 		if(this.topicMapHandler == null){
-			
-			TopicMap topicMap = null;
-			
-			// check if topic map exist
-			if(this.config.getProperty(Property.FILENAME) != ""){
-				
-				 File f = new File(this.config.getProperty(Property.FILENAME));
-				 if(f.exists()){
-				 
-					 logger.info("Load existing topic map from " + this.config.getProperty(Property.FILENAME));
-					 
-					 TopicMapSystemFactory factory = TopicMapSystemFactory.newInstance();
-					 TopicMapSystem system = factory.newTopicMapSystem();
+		
+			try{
 
-					 topicMap = system.createTopicMap(this.config.getProperty(Property.BASE_LOCATOR));
+				TopicMap topicMap = null;
+				
+				// check if topic map exist
+				if(this.config.getProperty(Property.FILENAME) != ""){
+					
+					 File f = new File(this.config.getProperty(Property.FILENAME));
+					 if(f.exists()){
 					 
-					 CTMTopicMapReader reader = new CTMTopicMapReader(topicMap, f);
-					 reader.read();
+						 logger.info("Load existing topic map from " + this.config.getProperty(Property.FILENAME));
+						 
+						 TopicMapSystemFactory factory = TopicMapSystemFactory.newInstance();
+						 TopicMapSystem system = factory.newTopicMapSystem();
+	
+						 topicMap = system.createTopicMap(this.config.getProperty(Property.BASE_LOCATOR));
+						 
+						 CTMTopicMapReader reader = new CTMTopicMapReader(topicMap, f);
+						 reader.read();
+						 
+						 if(topicMap == null)
+							 throw new IOException("Reade topic map file " + this.config.getProperty(Property.FILENAME) + " failed!");
+					 }
 					 
-					 if(topicMap == null)
-						 throw new IOException("Reade topic map file " + this.config.getProperty(Property.FILENAME) + " failed!");
-				 }
-			}
-			
-			if(topicMap != null)
+				}else{
+					
+					topicMap = TopicMapSystemFactory.newInstance().newTopicMapSystem().createTopicMap(this.config.getBaseLocator());
+				}
+	
 				topicMapHandler = new TopicMapHandler(config, topicMap);
-			else
-				topicMapHandler = new TopicMapHandler(config);
+
+			}
+			catch (Exception e) {
+				throw new TopicMapException(e.getMessage());
+			}
 		}
 			
 		
