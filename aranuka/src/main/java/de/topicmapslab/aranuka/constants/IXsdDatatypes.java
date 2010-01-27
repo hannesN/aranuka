@@ -6,5 +6,7 @@ public interface IXsdDatatypes {
 	public static final String XSD_INTEGER = "http://www.w3.org/2001/XMLSchema#int";
 	public static final String XSD_DATE = "http://www.w3.org/2001/XMLSchema#dateTime";
 	public static final String XSD_BOOLEAN = "http://www.w3.org/2001/XMLSchema#boolean";
+	public static final String XSD_FLOAT = "http://www.w3.org/2001/XMLSchema#float ";
+	public static final String XSD_DOUBLE = "http://www.w3.org/2001/XMLSchema#double";
 	
 }

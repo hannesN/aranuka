@@ -1,9 +1,13 @@
 package de.topicmapslab.aranuka.persist;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -39,7 +43,6 @@ import de.topicmapslab.aranuka.enummerations.Match;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
-import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 // handles interaction with the topic map, i.e. creating topics and associations, updating, etc.
@@ -168,6 +171,7 @@ public class TopicMapHandler {
 			addNames(topic, object, binding);
 			
 			// add occurrences
+			addOccurrences(topic, object, binding);
 			
 			// add associations
 			
@@ -264,7 +268,7 @@ public class TopicMapHandler {
 			
 			if(idBinding.isArray()){
 
-				if(idBinding.getGenericType() == int.class){
+				if(idBinding.getGenericType().equals(Integer.class)){
 					
 					List<Integer> list = new ArrayList<Integer>();
 					
@@ -282,11 +286,11 @@ public class TopicMapHandler {
 			}else{
 				
 				// set an collection
-				if(idBinding.getGenericType() == int.class){
+				if(idBinding.getGenericType().equals(Integer.class)){
 					
 					Collection<Integer> collection;
 					
-					if(idBinding.getFieldType() == Set.class){ // is set
+					if(idBinding.getFieldType().equals(Set.class)){ // is set
 						
 						collection = new HashSet<Integer>();
 						
@@ -304,7 +308,7 @@ public class TopicMapHandler {
 					
 					Collection<String> collection;
 					
-					if(idBinding.getFieldType() == Set.class){ // is set
+					if(idBinding.getFieldType().equals(Set.class)){ // is set
 						
 						collection = new HashSet<String>();
 						
@@ -322,8 +326,7 @@ public class TopicMapHandler {
 			}
 		}
 	}
-	
-	
+
 	private void addNames(Topic topic, Object object, TopicBinding binding) throws IOException, TopicMapInconsistentException{
 		
 		for(AbstractFieldBinding afb:binding.getFieldBindings()){
@@ -382,6 +385,89 @@ public class TopicMapHandler {
 				}
 			}
 		}
+
+	}
+	
+	private void addOccurrences(Topic topic, Object object, TopicBinding binding) throws IOException, TopicMapInconsistentException, ParseException{
+		
+		for(AbstractFieldBinding afb:binding.getFieldBindings()){
+			
+			if(afb instanceof OccurrenceBinding){
+				
+				OccurrenceBinding occurrenceBinding = (OccurrenceBinding)afb;
+				
+				// get occurrence type
+				Topic occurrenceType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(occurrenceBinding.getOccurrenceType()));
+				
+				if(occurrenceType == null)
+					continue; // get to next binding if type don't exist
+				
+				Set<Occurrence> occurrences = topic.getOccurrences(occurrenceType);
+				
+				if(occurrences.isEmpty())
+					continue; // get to next binding if no occurrence of this type are found
+				
+				if(!occurrenceBinding.isArray() && !occurrenceBinding.isCollection()){
+					
+					if(occurrences.size() > 1)
+						throw new TopicMapInconsistentException("Cannot add multiple occurrences to an non container field.");
+					
+					occurrenceBinding.setValue(getValue(occurrences.iterator().next(),occurrenceBinding.getGenericType()), object);
+					
+				}else{
+					
+					Set values = new HashSet();
+					
+					for(Occurrence occurrence:occurrences)
+						values.add(getValue(occurrence,occurrenceBinding.getGenericType()));
+
+					if(occurrenceBinding.isArray()){
+
+						occurrenceBinding.setValue(values.toArray(), object);
+						
+//						if(occurrenceBinding.getGenericType().equals(Integer.class))
+//							occurrenceBinding.setValue(values.toArray(new Integer[values.size()]), object);
+//						else if(occurrenceBinding.getGenericType().equals(Float.class))
+//							occurrenceBinding.setValue(values.toArray(new Float[values.size()]), object);
+//						else if(occurrenceBinding.getGenericType().equals(Double.class))
+//							occurrenceBinding.setValue(values.toArray(new Double[values.size()]), object);
+//						else if(occurrenceBinding.getGenericType().equals(Date.class))
+//							occurrenceBinding.setValue(values.toArray(new Date[values.size()]), object);
+//						else if(occurrenceBinding.getGenericType().equals(Boolean.class))
+//							occurrenceBinding.setValue(values.toArray(new Boolean[values.size()]), object);
+//						else if(occurrenceBinding.getGenericType().equals(String.class))
+//							occurrenceBinding.setValue(values.toArray(new String[values.size()]), object);
+//						else
+//							throw new IOException("Unexspected datatype " + occurrenceBinding.getGenericType());
+
+					}else{
+						
+						occurrenceBinding.setValue(values, object);
+						
+					}
+				}
+			}
+		}
+		
+	}
+	
+	private Object getValue(Occurrence occurrence, Type type) throws ParseException, IOException{
+
+		
+		if(type.equals(int.class))
+			return Integer.parseInt(occurrence.getValue());
+		else if(type.equals(float.class))
+			return Float.parseFloat(occurrence.getValue());
+		else if(type.equals(double.class))
+			return Double.parseDouble(occurrence.getValue());
+		else if(type.equals(Date.class))
+			return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(occurrence.getValue());
+		else if(type.equals(boolean.class))
+			return Boolean.valueOf(occurrence.getValue());
+		else if(type.equals(String.class))
+			return occurrence.getValue();
+		else 
+			throw new IOException("Unexspected datatype " + type);
 
 	}
 	
@@ -701,7 +787,7 @@ public class TopicMapHandler {
 				
 				if(!found){
 					
-					logger.info("Add new occurrence " + value);
+					logger.info("Add new occurrence " + value); 
 					topic.createOccurrence(occurrenceType, value, scope);
 					
 				}
@@ -786,12 +872,10 @@ public class TopicMapHandler {
 					&& playedRole.getKey().getParent().getType().equals(associationType)){ // check association type
 				
 				// binding found
-				//playedRole.setValue(Match.BINDING);
 				logger.info("Unary association matches binding.");
 				
 				if(playedRole.getKey().getParent().getScope().equals(scope)){ // check scope
 				
-					//logger.info("Unary association matches instance.");
 					role = playedRole.getKey();
 					playedRole.setValue(Match.INSTANCE);
 					break;
@@ -844,11 +928,9 @@ public class TopicMapHandler {
 
 					// binding found
 					playedRole.setValue(Match.BINDING);
-					//logger.info("Binary association matches binding.");
 					
 					if(TopicMapsUtils.getCounterPlayer(playedRole.getKey().getParent(), playedRole.getKey()).getPlayer().equals(counterPlayer)){ // check counter player
-					
-						//logger.info("Binary association matches instance.");
+
 						found = true;
 						playedRole.setValue(Match.INSTANCE);
 						break;
@@ -879,7 +961,7 @@ public class TopicMapHandler {
 			
 			boolean found = false;
 			
-			// get roleplayer for container
+			// get role-player for container
 			Map<Topic,Set<Topic>> containerRolePlayer = getRolesFromContainer(associationObject);
 			
 			for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
@@ -903,12 +985,10 @@ public class TopicMapHandler {
 					if(matchCounterRoleTypes( playedRole.getKey(), rolePlayer)){
 						
 						playedRole.setValue(Match.BINDING);
-						//logger.info("Nnary association matches binding.");
-						
+					
 						// check counter player
 						if(matchCounterPlayer(playedRole.getKey(), rolePlayer)){
 							
-							//logger.info("Nnary Association matches instance.");
 							found = true;
 							playedRole.setValue(Match.INSTANCE);
 							break;
@@ -980,8 +1060,8 @@ public class TopicMapHandler {
 	}
 	
 	
-	@SuppressWarnings("unchecked")
-	private Map<Topic,Set<Topic>> getRolesFromContainer(/*Role playedRole, */Object associationContainerInstance) throws ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException, IOException{
+	@SuppressWarnings("unchecked") /// TODO add recursively!!!
+	private Map<Topic,Set<Topic>> getRolesFromContainer(Object associationContainerInstance) throws ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException, IOException{
 		
 		Map<Topic,Set<Topic>> result = new HashMap<Topic, Set<Topic>>();
 		
@@ -1137,7 +1217,7 @@ public class TopicMapHandler {
 	
 	
 	// used recursively
-	@SuppressWarnings("unchecked")
+@SuppressWarnings("unchecked")
 	private Set<String> getIdentifier(Object topicObject, TopicBinding binding, IdType type){
 		
 		Set<String> identifier = null;
@@ -1201,7 +1281,7 @@ public class TopicMapHandler {
 	
 	
 	// used recursively
-	@SuppressWarnings("unchecked")
+@SuppressWarnings("unchecked")
 	private Map<NameBinding, Set<String>> getNames(Object topicObject, TopicBinding binding){
 		
 		Map<NameBinding, Set<String>> map = null;
@@ -1243,7 +1323,7 @@ public class TopicMapHandler {
 	
 	
 	// used recursively
-	@SuppressWarnings("unchecked")
+@SuppressWarnings("unchecked")
 	private Map<OccurrenceBinding, Set<String>> getOccurrences(Object topicObject, TopicBinding binding){
 		
 		Map<OccurrenceBinding, Set<String>> map = null;
@@ -1262,19 +1342,29 @@ public class TopicMapHandler {
 
 						for (Object obj : (Object[]) ((OccurrenceBinding) afb).getValue(topicObject)) {
 
-							addValueToBindingMap(map, (OccurrenceBinding) afb, obj.toString());
+							if(obj instanceof Date)
+								addValueToBindingMap(map, (OccurrenceBinding) afb, new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(obj));
+							else
+								addValueToBindingMap(map, (OccurrenceBinding) afb, obj.toString());
 						}
 
 					} else if (((OccurrenceBinding) afb).isCollection()) {
 
 						for (Object obj : (Collection<Object>) ((OccurrenceBinding) afb).getValue(topicObject)) {
 
-							addValueToBindingMap(map, (OccurrenceBinding) afb, obj.toString());
+							if(obj instanceof Date)
+								addValueToBindingMap(map, (OccurrenceBinding) afb, new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(obj));
+							else
+								addValueToBindingMap(map, (OccurrenceBinding) afb, obj.toString());
 						}
 
 					} else {
 
-						addValueToBindingMap(map, (OccurrenceBinding) afb,((OccurrenceBinding) afb).getValue(topicObject).toString());
+						if(((OccurrenceBinding) afb).getValue(topicObject) instanceof Date)
+							addValueToBindingMap(map, (OccurrenceBinding) afb, new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(((OccurrenceBinding) afb).getValue(topicObject)));
+						else
+							addValueToBindingMap(map, (OccurrenceBinding) afb,((OccurrenceBinding) afb).getValue(topicObject).toString());
+
 					}
 				}
 			}
@@ -1285,7 +1375,7 @@ public class TopicMapHandler {
 	
 	
 	// used recursively
-	@SuppressWarnings("unchecked")
+@SuppressWarnings("unchecked")
 	private Map<AssociationBinding, Set<Object>> getAssociations(Object topicObject, TopicBinding binding){
 		
 		Map<AssociationBinding, Set<Object>> map = null;
