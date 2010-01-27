@@ -15,6 +15,10 @@ public class AssociationContainerBinding extends AbstractClassBinding {
 		this.parent = parent;
 	}
 	
+	public AssociationContainerBinding getParent() {
+		return parent;
+	}
+
 	public void addRoleBinding(RoleBinding rb) {
 		if (roles==null)
 			roles = new ArrayList<RoleBinding>();

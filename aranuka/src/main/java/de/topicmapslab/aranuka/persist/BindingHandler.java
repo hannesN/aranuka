@@ -680,6 +680,12 @@ public class BindingHandler {
 		
 		if (type.equals(Date.class))
 			return IXsdDatatypes.XSD_DATE;
+		
+		if (type.equals(Float.class))
+			return IXsdDatatypes.XSD_FLOAT;
+		
+		if (type.equals(Double.class))
+			return IXsdDatatypes.XSD_DOUBLE;
 				
 		return IXsdDatatypes.XSD_STRING;
 	}
