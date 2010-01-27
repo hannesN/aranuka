@@ -36,6 +36,7 @@ import de.topicmapslab.aranuka.binding.TopicBinding;
 import de.topicmapslab.aranuka.constants.IXsdDatatypes;
 import de.topicmapslab.aranuka.enummerations.AssociationKind;
 import de.topicmapslab.aranuka.enummerations.IdType;
+import de.topicmapslab.aranuka.enummerations.Match;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
@@ -110,6 +111,20 @@ public class BindingHandler {
 		
 		return binding;
 		
+	}
+	
+	public Class<?> getClassForBinding(AbstractClassBinding binding){
+		
+		if(bindingMap == null)
+			return null;
+		
+		for (Map.Entry<Class<?>, AbstractClassBinding> entry : bindingMap.entrySet()) {
+			
+			if(entry.getValue().equals(binding))
+				return entry.getKey();
+		}
+		
+		return null;
 	}
 	
 	// for debug

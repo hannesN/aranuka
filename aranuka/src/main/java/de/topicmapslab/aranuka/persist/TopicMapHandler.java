@@ -56,8 +56,11 @@ public class TopicMapHandler {
 	
 	private Map<Object, Topic> topicCache;
 	
-	// --[ public methods ]------------------------------------------------------------------------------
+	private Map<Topic, Object> objectCache;
 	
+	
+	// --[ public methods ]------------------------------------------------------------------------------
+		
 	public TopicMapHandler(Configuration config, TopicMap topicMap){
 
 		if(config == null)
@@ -132,7 +135,7 @@ public class TopicMapHandler {
 		
 		if(topics.isEmpty())
 			return Collections.emptySet();
-		
+				
 		Set<Object> objects = new HashSet<Object>();
 		
 		for(Topic topic:topics){
@@ -141,14 +144,19 @@ public class TopicMapHandler {
 			
 		}
 		
+		clearObjectCache(); // free object cache at end of session
+		
 		return objects;
 	}
 	
 	// used recursively
 	private Object getInstanceFromTopic(Topic topic, TopicBinding binding, Class<?> clazz) throws TopicMapIOException{
 
-		Object object = null;
+		Object object = getObjectFromCache(topic);
 
+		if(object != null)
+			return object;
+		
 		if(binding.getParent() != null){
 			
 			object = getInstanceFromTopic(topic, binding.getParent(), clazz);
@@ -162,6 +170,8 @@ public class TopicMapHandler {
 				throw new TopicMapIOException("Cannot instanciate new object: " + e.getMessage());
 			}
 		}
+		
+		addObjectToCache(object, topic);
 
 		// add identifier
 		
@@ -213,6 +223,7 @@ public class TopicMapHandler {
 			}
 		}
 	}
+	
 	
 	private void addIdentifier(Topic topic, Object object, IdBinding idBinding, Set<Locator> identifiers) throws TopicMapIOException{
 		
@@ -322,6 +333,7 @@ public class TopicMapHandler {
 			}
 		}
 	}
+	
 
 	private void addNames(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException{
 		
@@ -383,6 +395,7 @@ public class TopicMapHandler {
 		}
 	}
 	
+	
 	@SuppressWarnings("unchecked")
 	private void addOccurrences(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException{
 		
@@ -442,6 +455,7 @@ public class TopicMapHandler {
 		
 	}
 	
+	
 	private Object getOccurrenceValue(Occurrence occurrence, Type type) throws TopicMapIOException{
 
 		try{
@@ -466,6 +480,144 @@ public class TopicMapHandler {
 		}
 		
 
+	}
+	
+	
+	private void addAssociations(Topic topic, Object object, TopicBinding binding) throws TopicMapInconsistentException, TopicMapIOException{
+		
+		for(AbstractFieldBinding afb:binding.getFieldBindings()){
+			
+			if(afb instanceof AssociationBinding){
+				
+				AssociationBinding associationBinding = (AssociationBinding)afb;
+
+				if(associationBinding.getKind() == AssociationKind.UNARY){
+						
+					addUnaryAssociation(topic, object, associationBinding);
+					
+				}else if(associationBinding.getKind() == AssociationKind.BINARY){
+						
+					addBinaryAssociation(topic, object, associationBinding);
+						
+				}else{
+		
+					addNnaryAssociation(topic, object, associationBinding);
+
+				}
+			}
+		}
+	}
+	
+	private void addUnaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws TopicMapInconsistentException{
+		
+		// get role type
+		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getPlayedRole()));
+		
+		if(roleType == null){
+			
+			associationBinding.setValue(false, object);
+			return;
+		}
+		
+		Set<Role> rolesPlayed = topic.getRolesPlayed(roleType);
+		
+		if(rolesPlayed.isEmpty()){
+			associationBinding.setValue(false, object);
+			return;
+		}
+		
+		// get association type
+		Topic associationType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getAssociationType()));
+		
+		if(associationType == null){
+			associationBinding.setValue(false, object);
+			return;
+		}
+		
+		// get matching roles
+		Set<Role> matchingRoles = new HashSet<Role>();
+		
+		for(Role role:rolesPlayed){
+			
+			if(role.getParent().getType().equals(associationType) && role.getParent().getRoles().size() == 1)
+				matchingRoles.add(role);
+		}
+		
+		if(matchingRoles.size() > 1)
+			throw new TopicMapInconsistentException("Topic playes more the one time in an unary association of type " + associationBinding.getAssociationType());
+		
+		associationBinding.setValue(true, object);
+		
+	}
+	
+	private void addBinaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws TopicMapInconsistentException, TopicMapIOException{
+		
+		// get role type
+		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getPlayedRole()));
+		
+		if(roleType == null)
+			return;
+		
+		Set<Role> rolesPlayed = topic.getRolesPlayed(roleType);
+		
+		if(rolesPlayed.isEmpty())
+			return;
+		
+		// get association type
+		Topic associationType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getAssociationType()));
+		
+		if(associationType == null)
+			return;
+		
+		// get counter player type
+		Topic counterType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getOtherRole()));
+		
+		if(counterType == null)
+			return;
+		
+		// get matching roles
+		Set<Role> matchingRoles = new HashSet<Role>();
+		
+		for(Role role:rolesPlayed){
+			
+			if(role.getParent().getType().equals(associationType) 
+					&& role.getParent().getRoles().size() == 2
+					&& TopicMapsUtils.getCounterRole(role.getParent(), role).getType().equals(counterType)){
+				
+				matchingRoles.add(role);
+			}
+		}
+		
+		if(matchingRoles.isEmpty())
+			return;
+		
+		if(!associationBinding.isArray() && !associationBinding.isCollection()){
+			
+			if(matchingRoles.size() > 1)
+				throw new TopicMapIOException("Cannot add multiple association to an non container field.");
+			
+			Class<?> counterClass = getBindingHandler().getClassForBinding(associationBinding.getOtherPlayerBinding());
+			
+			if(counterClass == null)
+				throw new TopicMapIOException("Unable to resolve counter player type ");
+			
+			Object counterPlayer = getInstanceFromTopic(TopicMapsUtils.getCounterRole(matchingRoles.iterator().next().getParent(), matchingRoles.iterator().next()).getPlayer(), associationBinding.getOtherPlayerBinding(), counterClass);
+			
+			associationBinding.setValue(counterPlayer, object);
+			
+		}else{
+			
+			
+			
+		}
+		
+		
+	}
+	
+	private void addNnaryAssociation(Topic topic, Object object, AssociationBinding associationBinding){
+		
+		
+		
 	}
 	
 
@@ -499,6 +651,7 @@ public class TopicMapHandler {
 	    	}
 	    }
 	}
+	
 	
 	private Topic persistTopic(Object topicObject, List<Object> topicObjects, TopicBinding binding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
@@ -922,12 +1075,12 @@ public class TopicMapHandler {
 						&& playedRole.getKey().getType().equals(roleType) 	// check role type
 						&& playedRole.getKey().getParent().getType().equals(associationType) // check association type
 						&& playedRole.getKey().getParent().getScope().equals(scope) // check scope
-						&& TopicMapsUtils.getCounterPlayer(playedRole.getKey().getParent(), playedRole.getKey()).getType().equals(otherRoleType)){ // check counter player role
+						&& TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey()).getType().equals(otherRoleType)){ // check counter player role
 
 					// binding found
 					playedRole.setValue(Match.BINDING);
 					
-					if(TopicMapsUtils.getCounterPlayer(playedRole.getKey().getParent(), playedRole.getKey()).getPlayer().equals(counterPlayer)){ // check counter player
+					if(TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey()).getPlayer().equals(counterPlayer)){ // check counter player
 
 						found = true;
 						playedRole.setValue(Match.INSTANCE);
@@ -1502,5 +1655,24 @@ public class TopicMapHandler {
 	}
 
 	
+	private void addObjectToCache(Object object, Topic topic){
+		
+		if(this.objectCache == null)
+			this.objectCache = new HashMap<Topic, Object>();
+		
+		this.objectCache.put(topic, object);
+	}
+	
+	private Object getObjectFromCache(Topic topic){
+		
+		if(this.objectCache == null)
+			return null;
+		
+		return this.objectCache.get(topic);
+	}
+	
+	private void clearObjectCache(){
+		this.objectCache = null;
+	}
 	
 }
