@@ -1,6 +1,5 @@
 package de.topicmapslab.aranuka.persist;
 
-import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.text.ParseException;
@@ -26,7 +25,6 @@ import org.tmapi.core.Occurrence;
 import org.tmapi.core.Role;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
-import org.tmapi.core.TopicMapSystemFactory;
 import org.tmapi.index.TypeInstanceIndex;
 
 import de.topicmapslab.aranuka.Configuration;
@@ -43,6 +41,7 @@ import de.topicmapslab.aranuka.enummerations.IdType;
 import de.topicmapslab.aranuka.enummerations.Match;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
+import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
@@ -59,50 +58,42 @@ public class TopicMapHandler {
 	
 	// --[ public methods ]------------------------------------------------------------------------------
 	
-	public TopicMapHandler(Configuration config){
-
-		this.config = config;
-	}
-	
 	public TopicMapHandler(Configuration config, TopicMap topicMap){
 
+		if(config == null)
+			throw new RuntimeException("Configuration is null.");
+		
+		if(topicMap == null)
+			throw new RuntimeException("Topic map is null.");
+		
 		this.config = config;
 		this.topicMap = topicMap;
 	}
 	
-	public void invokeBinding()  throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException{
+	public void invokeBinding() throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		getBindingHandler().createBindingsForAllClasses();
-		
-//		// test
-//		getBindingHandler().printBindings();
+
 	}
 	
 	/// TODO persist only topics or association container as well?
-	public void persist(Object topicObject) throws IOException, BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException, TopicMapInconsistentException {
+	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
 		List<Object> topicToPersist = new ArrayList<Object>();
 				
 		topicToPersist.add(topicObject);
 		persistTopics(topicToPersist);
 	}
-	
-	
-	public TopicMap getTopicMap() throws IOException /// TODO change exception type?
+		
+	public TopicMap getTopicMap()
 	{
-		try{
+		if(this.topicMap == null)
+			throw new RuntimeException("Topic Map is null.");
 			
-			if(this.topicMap == null)
-				this.topicMap = TopicMapSystemFactory.newInstance().newTopicMapSystem().createTopicMap(this.config.getBaseLocator());
-			
-			return this.topicMap;
-		}
-		catch (Exception e) {
-			throw new IOException("Could not create topic map (" + e.getMessage() + ")");
-		}
+		return this.topicMap;
 	}
 	
-	public Set<Object> getTopicsByType(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException, IOException{
+	public Set<Object> getTopicsByType(Class<?> clazz) throws TopicMapIOException{
 		
 		TopicBinding binding = null;
 		
@@ -137,7 +128,7 @@ public class TopicMapHandler {
 		return instances;
 	}
 	
-	private Set<Object> getInstancesFromTopics(Set<Topic> topics, TopicBinding binding, Class<?> clazz) throws IOException{
+	private Set<Object> getInstancesFromTopics(Set<Topic> topics, TopicBinding binding, Class<?> clazz) throws TopicMapIOException{
 		
 		if(topics.isEmpty())
 			return Collections.emptySet();
@@ -154,37 +145,44 @@ public class TopicMapHandler {
 	}
 	
 	// used recursively
-	private Object getInstanceFromTopic(Topic topic, TopicBinding binding, Class<?> clazz) throws IOException{
+	private Object getInstanceFromTopic(Topic topic, TopicBinding binding, Class<?> clazz) throws TopicMapIOException{
+
+		Object object = null;
+
+		if(binding.getParent() != null){
+			
+			object = getInstanceFromTopic(topic, binding.getParent(), clazz);
 		
-		try{
+		}else{
 			
-			Object object = null;
-			
-			if(binding.getParent() != null)
-				object = getInstanceFromTopic(topic, binding.getParent(), clazz);
-			else object = clazz.getConstructor().newInstance();
-			
-			// add identifier
-			
-			addIdentifier(topic, object, binding);
-			
-			// add names
-			addNames(topic, object, binding);
-			
-			// add occurrences
-			addOccurrences(topic, object, binding);
-			
-			// add associations
-			
-			return object;
-			
+			try{
+				object = clazz.getConstructor().newInstance();
+			}
+			catch (Exception e){
+				throw new TopicMapIOException("Cannot instanciate new object: " + e.getMessage());
+			}
 		}
-		catch (Exception e) {
-			throw new IOException("Could not instanciate topic: " + e.getMessage()); /// TODO change exception type, maybe create new one
-		}
+
+		// add identifier
+		
+		addIdentifier(topic, object, binding);
+		
+		// add names
+		addNames(topic, object, binding);
+		
+		// add occurrences
+		addOccurrences(topic, object, binding);
+		
+		// add associations
+		
+		return object;
+
 	}
 	
-	private void addIdentifier(Topic topic, Object object, TopicBinding binding) throws TopicMapInconsistentException{
+	
+	// update instance from topic map
+	
+	private void addIdentifier(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException{
 		
 		for(AbstractFieldBinding afb:binding.getFieldBindings()){
 			
@@ -216,7 +214,7 @@ public class TopicMapHandler {
 		}
 	}
 	
-	private void addIdentifier(Topic topic, Object object, IdBinding idBinding, Set<Locator> identifiers) throws TopicMapInconsistentException{
+	private void addIdentifier(Topic topic, Object object, IdBinding idBinding, Set<Locator> identifiers) throws TopicMapIOException{
 		
 		if(identifiers.isEmpty())
 			return;
@@ -246,14 +244,11 @@ public class TopicMapHandler {
 		}
 		
 		// add ids to field
-		
-//		logger.info("Field type: " + idBinding.getFieldType().toString());
-//		logger.info("Generic field type: " + idBinding.getGenericType().toString());
-		
+
 		if(!idBinding.isArray() && !idBinding.isCollection()){
 			
 			if(existingIds.size() > 1)
-				throw new TopicMapInconsistentException("Cannot add multiple identifier to an non container field.");
+				throw new TopicMapIOException("Cannot add multiple identifier to an non container field.");
 			
 			if(idBinding.getFieldType() == int.class){
 				
@@ -328,7 +323,7 @@ public class TopicMapHandler {
 		}
 	}
 
-	private void addNames(Topic topic, Object object, TopicBinding binding) throws IOException, TopicMapInconsistentException{
+	private void addNames(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException{
 		
 		for(AbstractFieldBinding afb:binding.getFieldBindings()){
 			
@@ -354,7 +349,7 @@ public class TopicMapHandler {
 				if(!nameBinding.isArray() && !nameBinding.isCollection()){
 					
 					if(existingNames.size() > 1)
-						throw new TopicMapInconsistentException("Cannot add multiple names to an non container field.");
+						throw new TopicMapIOException("Cannot add multiple names to an non container field.");
 					
 					nameBinding.setValue(existingNames.iterator().next(), object);
 					
@@ -386,11 +381,10 @@ public class TopicMapHandler {
 				}
 			}
 		}
-
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void addOccurrences(Topic topic, Object object, TopicBinding binding) throws IOException, TopicMapInconsistentException, ParseException{
+	private void addOccurrences(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException{
 		
 		for(AbstractFieldBinding afb:binding.getFieldBindings()){
 			
@@ -412,7 +406,7 @@ public class TopicMapHandler {
 				if(!occurrenceBinding.isArray() && !occurrenceBinding.isCollection()){
 					
 					if(occurrences.size() > 1)
-						throw new TopicMapInconsistentException("Cannot add multiple occurrences to an non container field.");
+						throw new TopicMapIOException("Cannot add multiple occurrences to an non container field.");
 					
 					occurrenceBinding.setValue(getOccurrenceValue(occurrences.iterator().next(),occurrenceBinding.getGenericType()), object);
 					
@@ -448,29 +442,36 @@ public class TopicMapHandler {
 		
 	}
 	
-	private Object getOccurrenceValue(Occurrence occurrence, Type type) throws ParseException, IOException{
+	private Object getOccurrenceValue(Occurrence occurrence, Type type) throws TopicMapIOException{
 
+		try{
+			
+			if(type.equals(int.class))
+				return Integer.parseInt(occurrence.getValue());
+			else if(type.equals(float.class))
+				return Float.parseFloat(occurrence.getValue());
+			else if(type.equals(double.class))
+				return Double.parseDouble(occurrence.getValue());
+			else if(type.equals(Date.class))
+				return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(occurrence.getValue());
+			else if(type.equals(Boolean.class))
+				return Boolean.valueOf(occurrence.getValue());
+			else if(type.equals(String.class))
+				return occurrence.getValue();
+			else 
+				throw new RuntimeException("Unexspected datatype " + type);
+		}
+		catch (ParseException e) {
+			throw new TopicMapIOException("Occurrence value cannot be parst to date type.");
+		}
 		
-		if(type.equals(int.class))
-			return Integer.parseInt(occurrence.getValue());
-		else if(type.equals(float.class))
-			return Float.parseFloat(occurrence.getValue());
-		else if(type.equals(double.class))
-			return Double.parseDouble(occurrence.getValue());
-		else if(type.equals(Date.class))
-			return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(occurrence.getValue());
-		else if(type.equals(Boolean.class))
-			return Boolean.valueOf(occurrence.getValue());
-		else if(type.equals(String.class))
-			return occurrence.getValue();
-		else 
-			throw new IOException("Unexspected datatype " + type);
 
 	}
 	
+
 	// --[ private methods ]-------------------------------------------------------------------------------
 
-	private void persistTopics(List<Object> topicObjects) throws IOException, BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException, TopicMapInconsistentException {
+	private void persistTopics(List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
 		Iterator<Object> itr = topicObjects.iterator();
 		
@@ -499,7 +500,7 @@ public class TopicMapHandler {
 	    }
 	}
 	
-	private Topic persistTopic(Object topicObject, List<Object> topicObjects, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException, NoSuchMethodException, ClassNotSpecifiedException {
+	private Topic persistTopic(Object topicObject, List<Object> topicObjects, TopicBinding binding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
 		logger.info("Persist topic object " + topicObject);
 		
@@ -529,7 +530,7 @@ public class TopicMapHandler {
 	}
 	
 	
-	private Topic getTopicType(TopicBinding binding) throws IOException, BadAnnotationException{
+	private Topic getTopicType(TopicBinding binding) throws BadAnnotationException{
 		
 		if(binding.getIdentifier().isEmpty())
 			throw new BadAnnotationException("Topic type has no identifier.");
@@ -553,7 +554,7 @@ public class TopicMapHandler {
 	}
 	
 	
-	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException, NoSuchMethodException, ClassNotSpecifiedException{
+	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
 		logger.info("Update existing topic " + topicObject);
 		
@@ -573,7 +574,7 @@ public class TopicMapHandler {
 	
 	// modifies the topic subject identifier to represent the current java object
 	// used for create new topic as well
-	private void updateSubjectIdentifier(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
+	private void updateSubjectIdentifier(Topic topic, Object topicObject, TopicBinding binding){
 		
 		Set<String> newSubjectIdentifier = getIdentifier(topicObject, binding, IdType.SUBJECT_IDENTIFIER);
 		
@@ -611,7 +612,7 @@ public class TopicMapHandler {
 	}
 	
 	
-	private void updateSubjectLocator(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
+	private void updateSubjectLocator(Topic topic, Object topicObject, TopicBinding binding){
 		
 		Set<String> newSubjectLocator = getIdentifier(topicObject, binding, IdType.SUBJECT_LOCATOR);
 		
@@ -649,7 +650,7 @@ public class TopicMapHandler {
 	}
 	
 
-	private void updateItemIdentifier(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
+	private void updateItemIdentifier(Topic topic, Object topicObject, TopicBinding binding){
 	
 		Set<String> newItemIdentifier = getIdentifier(topicObject, binding, IdType.ITEM_IDENTIFIER);
 		
@@ -690,7 +691,7 @@ public class TopicMapHandler {
 	
 	// modifies the topic names to represent the current java object
 	// used for create new topic as well
-	private void updateNames(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
+	private void updateNames(Topic topic, Object topicObject, TopicBinding binding){
 		
 		// get new names
 		Map<NameBinding,Set<String>> newNames = getNames(topicObject, binding);
@@ -747,7 +748,7 @@ public class TopicMapHandler {
 	
 	// modifies the topic occurrences to represent the current java object
 	// used for create new topic as well
-	private void updateOccurrences(Topic topic, Object topicObject, TopicBinding binding) throws IOException{
+	private void updateOccurrences(Topic topic, Object topicObject, TopicBinding binding){
 		
 		// get new occurrences
 		Map<OccurrenceBinding,Set<String>> newOccurrences = getOccurrences(topicObject, binding);
@@ -805,7 +806,7 @@ public class TopicMapHandler {
 	
 	// modifies the topic associations to represent the current java object
 	// used for create new topic as well
-	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException, TopicMapInconsistentException, NoSuchMethodException, ClassNotSpecifiedException{
+	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
 		// get new associations
 		Map<AssociationBinding, Set<Object>> newAssociations = getAssociations(topicObject, binding);
@@ -847,7 +848,7 @@ public class TopicMapHandler {
 	}
 	
 	
-	private void updateUnaryAssociation(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role,Match> playedRoles) throws IOException{
+	private void updateUnaryAssociation(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role,Match> playedRoles){
 		
 		if(associationObjects.size() != 1)
 			throw new RuntimeException("Unary association has more the one type."); // TODO use other exception type and better message
@@ -899,7 +900,7 @@ public class TopicMapHandler {
 	}
 	
 	
-	private void updateBinaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles) throws IOException, BadAnnotationException, TopicMapInconsistentException {
+	private void updateBinaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException{
 
 		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
 		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
@@ -949,7 +950,7 @@ public class TopicMapHandler {
 	
 	
 
-	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles) throws IOException, ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException{
+	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException{
 
 		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
 		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
@@ -1060,7 +1061,7 @@ public class TopicMapHandler {
 	
 	
 	@SuppressWarnings("unchecked") /// TODO add recursively!!!
-	private Map<Topic,Set<Topic>> getRolesFromContainer(Object associationContainerInstance) throws ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException, IOException{
+	private Map<Topic,Set<Topic>> getRolesFromContainer(Object associationContainerInstance) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException{
 		
 		Map<Topic,Set<Topic>> result = new HashMap<Topic, Set<Topic>>();
 		
@@ -1124,7 +1125,7 @@ public class TopicMapHandler {
 	}
 	
 	
-	private Topic createTopicByIdentifier(Object topicObject, TopicBinding binding) throws IOException, BadAnnotationException {
+	private Topic createTopicByIdentifier(Object topicObject, TopicBinding binding) throws TopicMapIOException{
 		
 		// get subject identifier
 		Set<String> subjectIdentifier = getIdentifier(topicObject, binding, IdType.SUBJECT_IDENTIFIER);
@@ -1157,7 +1158,7 @@ public class TopicMapHandler {
 	
 	
 	// tries to find an existing topic by a list of subject identifiers
-	private Topic getTopicBySubjectIdentifier(Set<String> subjectIdentifier)throws IOException{
+	private Topic getTopicBySubjectIdentifier(Set<String> subjectIdentifier){
 		
 		Topic topic = null;
 		
@@ -1174,7 +1175,7 @@ public class TopicMapHandler {
 	
 	
 	// tries to find an existing topic by a list of subject locators
-	private Topic getTopicBySubjectLocator(Set<String> subjectLocator)throws IOException{
+	private Topic getTopicBySubjectLocator(Set<String> subjectLocator){
 		
 		Topic topic = null;
 		
@@ -1191,7 +1192,7 @@ public class TopicMapHandler {
 	
 	
 	// tries to find an existing topic by a list of item identifiers
-	private Topic getTopicByItemIdentifier(Set<String> itemIdentifier)throws IOException{
+	private Topic getTopicByItemIdentifier(Set<String> itemIdentifier){
 		
 		Construct construct = null;
 		
@@ -1449,7 +1450,7 @@ public class TopicMapHandler {
 	}
 	
 	
-	private Topic createNewTopic(Set<String> subjectIdentifier, Set<String> subjectLocator, Set<String> itemIdentifier) throws IOException, BadAnnotationException{
+	private Topic createNewTopic(Set<String> subjectIdentifier, Set<String> subjectLocator, Set<String> itemIdentifier) throws TopicMapIOException{
 		
 		Topic topic = null;
 		
@@ -1463,7 +1464,7 @@ public class TopicMapHandler {
 			topic = getTopicMap().createTopicByItemIdentifier(getTopicMap().createLocator(itemIdentifier.iterator().next()));
 			
 		}else{
-			throw new BadAnnotationException("Topic class has no identifier");
+			throw new TopicMapIOException("Cannot create an new topic without an identifier.");
 		}
 				
 		return topic;

@@ -58,7 +58,7 @@ public class BindingHandler {
 	}
 	
 	// pre-creates bindings for a set of classes
-	public void createBindingsForAllClasses() throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException{
+	public void createBindingsForAllClasses() throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		for(Class<?> clazz:config.getClasses()){
 		
@@ -82,7 +82,7 @@ public class BindingHandler {
 	}
 	
 	// gets the bindings for an specific class
-	public AbstractClassBinding getBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	public AbstractClassBinding getBinding(Class<?> clazz) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		if(getBindingFromCache(clazz) != null)
 			return getBindingFromCache(clazz);
@@ -130,7 +130,7 @@ public class BindingHandler {
 	
 	// topic bindings
 	
-	private TopicBinding getTopicBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	private TopicBinding getTopicBinding(Class<?> clazz) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 
 		if(!isTopicAnnotated(clazz))
 			return null;
@@ -144,7 +144,7 @@ public class BindingHandler {
 		return binding;
 	}
 	
-	private TopicBinding createTopicBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	private TopicBinding createTopicBinding(Class<?> clazz) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		logger.info("Create topic binding for " + clazz.getName());
 		
@@ -254,7 +254,7 @@ public class BindingHandler {
 		
 	// association  container bindings
 	
-	private AssociationContainerBinding getAssociationContainerBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException{
+	private AssociationContainerBinding getAssociationContainerBinding(Class<?> clazz) throws ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException{
 		
 		if(!isAssociationContainerAnnotated(clazz))
 			return null;
@@ -269,7 +269,7 @@ public class BindingHandler {
 		
 	}
 		
-	private AssociationContainerBinding createAssociationContainerBinding(Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	private AssociationContainerBinding createAssociationContainerBinding(Class<?> clazz) throws ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException{
 	
 	logger.info("Create association container binding for " + clazz.getName());
 	
@@ -311,7 +311,7 @@ public class BindingHandler {
 		
 	// --[ create binding of topic fields ]-------------------------------------------------
 	
-	private void createFieldBinding(TopicBinding binding, Field field, Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	private void createFieldBinding(TopicBinding binding, Field field, Class<?> clazz) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
 		
 		// ignore transient fields
 		if(isTransient(field)){
@@ -362,7 +362,7 @@ public class BindingHandler {
 		}
 	}
 	
-	private void createIdBinding(TopicBinding topicBinding, Field field, Class<?> clazz, Id idAnnotation) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	private void createIdBinding(TopicBinding topicBinding, Field field, Class<?> clazz, Id idAnnotation) throws NoSuchMethodException, BadAnnotationException, ClassNotSpecifiedException {
 		
 		logger.info("Create id-binding for field: " + field.getName());
 		
@@ -384,7 +384,7 @@ public class BindingHandler {
 		addMethods(field, clazz, ib);
 	}
 	
-	private void createNameBinding(TopicBinding topicBinding, Field field, Class<?> clazz, Name nameAnnotation) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	private void createNameBinding(TopicBinding topicBinding, Field field, Class<?> clazz, Name nameAnnotation) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		logger.info("Create name-binding for field: " + field.getName());
 		
@@ -401,7 +401,7 @@ public class BindingHandler {
 		
 		// check field type
 		if(ReflectionUtil.getGenericType(field) != String.class)
-			throw new BadAnnotationException("Type of name " + field.getName() + " is not String.");
+			throw new BadAnnotationException("@name annotated field " + field.getName() + " has to be of type 'String'.");
 		
 		// add scope
 		addScope(field, nb);
@@ -416,7 +416,7 @@ public class BindingHandler {
 		addMethods(field, clazz, nb);
 	}
 	
-	private void createOccurrenceBinding(TopicBinding topicBinding, Field field, Class<?> clazz, Occurrence occurrenceAnnotation) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	private void createOccurrenceBinding(TopicBinding topicBinding, Field field, Class<?> clazz, Occurrence occurrenceAnnotation) throws NoSuchMethodException, BadAnnotationException, ClassNotSpecifiedException {
 		
 		logger.info("Create occurrence-binding for field: " + field.getName());
 		
@@ -446,7 +446,7 @@ public class BindingHandler {
 		addMethods(field, clazz, ob);
 	}
 
-	private void createAssociationBinding(TopicBinding topicBinding, Field field, Class<?> clazz,  Association associationAnnotation) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException{
+	private void createAssociationBinding(TopicBinding topicBinding, Field field, Class<?> clazz,  Association associationAnnotation) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		logger.info("Create association-binding for field: " + field.getName());
 		
@@ -507,7 +507,7 @@ public class BindingHandler {
 	
 	// --[ create binding for association container fields ]---------------------------------
 	
-	private void createFieldBinding(AssociationContainerBinding binding, Field field, Class<?> clazz) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	private void createFieldBinding(AssociationContainerBinding binding, Field field, Class<?> clazz) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		// ignore transient fields
 		if(isTransient(field)){
@@ -524,12 +524,12 @@ public class BindingHandler {
 			
 		}else{
 			
-			throw new BadAnnotationException("Non transient field " + field.getName() + " has no valid annotaton.");
+			throw new BadAnnotationException("Non transient field " + field.getName() + " of an association container class has to be @Role annotated.");
 		}
 	}
 	
 	
-	private void createRoleBinding(AssociationContainerBinding associationContainerBinding, Field field, Class<?> clazz,  Role roleAnnotation) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	private void createRoleBinding(AssociationContainerBinding associationContainerBinding, Field field, Class<?> clazz,  Role roleAnnotation) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
 		
 		logger.info("Create role-binding for field: " + field.getName());
 		
@@ -558,7 +558,7 @@ public class BindingHandler {
 		addMethods(field, clazz, rb);
 	}
 	
-	private void addMethods(Field field, Class<?> clazz, AbstractFieldBinding fb) throws BadAnnotationException, ClassNotSpecifiedException, NoSuchMethodException {
+	private void addMethods(Field field, Class<?> clazz, AbstractFieldBinding fb) throws NoSuchMethodException, BadAnnotationException, ClassNotSpecifiedException{
 		
 		// create binding for generic type if necessary
 		Class<?> type = ReflectionUtil.getGenericType(field);
