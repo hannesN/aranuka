@@ -496,7 +496,10 @@ public class BindingHandler {
 			
 			// is nnary association
 			// set association container binding
-			ab.setAssociationContainerBinding(getAssociationContainerBinding(ReflectionUtil.getGenericType(field).getClass()));
+			
+			AssociationContainerBinding binding = getAssociationContainerBinding(ReflectionUtil.getGenericType(field));
+			
+			ab.setAssociationContainerBinding(binding);
 			ab.setKind(AssociationKind.NNARY);
 			
 		}else if(ReflectionUtil.getGenericType(field) == boolean.class) {
