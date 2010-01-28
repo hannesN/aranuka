@@ -43,11 +43,31 @@ public class ReflectionUtil {
 
 	public static Class<?> getGenericType(Field field) {
 		
-		Type returnType = field.getGenericType();
+		Type type = field.getGenericType();
 		
-		if (returnType instanceof ParameterizedType) {
+		return getGenericType(type);
+//		
+//		if (returnType instanceof ParameterizedType) {
+//			
+//			ParameterizedType pt = (ParameterizedType) returnType;
+//			Type[] args = pt.getActualTypeArguments();
+//			
+//			for (Type typeArg : args) {
+//				
+//				Class<?> typeArgClass = (Class<?>) typeArg;
+//				
+//				return typeArgClass;
+//			}
+//		}
+//
+//		return (Class<?>) returnType;
+	}
+	
+	public static Class<?> getGenericType(Type type){
+		
+		if (type instanceof ParameterizedType) {
 			
-			ParameterizedType pt = (ParameterizedType) returnType;
+			ParameterizedType pt = (ParameterizedType) type;
 			Type[] args = pt.getActualTypeArguments();
 			
 			for (Type typeArg : args) {
@@ -57,8 +77,9 @@ public class ReflectionUtil {
 				return typeArgClass;
 			}
 		}
-
-		return (Class<?>) returnType;
+		
+		return (Class<?>)type;
+		
 	}
 
 }

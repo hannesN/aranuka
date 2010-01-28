@@ -43,6 +43,7 @@ import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
+import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 // handles interaction with the topic map, i.e. creating topics and associations, updating, etc.
@@ -96,7 +97,7 @@ public class TopicMapHandler {
 		return this.topicMap;
 	}
 	
-	public Set<Object> getTopicsByType(Class<?> clazz) throws TopicMapIOException{
+	public Set<Object> getTopicsByType(Class<?> clazz) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		TopicBinding binding = null;
 		
@@ -131,7 +132,7 @@ public class TopicMapHandler {
 		return instances;
 	}
 	
-	private Set<Object> getInstancesFromTopics(Set<Topic> topics, TopicBinding binding, Class<?> clazz) throws TopicMapIOException{
+	private Set<Object> getInstancesFromTopics(Set<Topic> topics, TopicBinding binding, Class<?> clazz) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		if(topics.isEmpty())
 			return Collections.emptySet();
@@ -150,7 +151,7 @@ public class TopicMapHandler {
 	}
 	
 	// used recursively
-	private Object getInstanceFromTopic(Topic topic, TopicBinding binding, Class<?> clazz) throws TopicMapIOException{
+	private Object getInstanceFromTopic(Topic topic, TopicBinding binding, Class<?> clazz) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 
 		Object object = getObjectFromCache(topic);
 
@@ -184,6 +185,7 @@ public class TopicMapHandler {
 		addOccurrences(topic, object, binding);
 		
 		// add associations
+		addAssociations(topic, object, binding);
 		
 		return object;
 
@@ -483,7 +485,7 @@ public class TopicMapHandler {
 	}
 	
 	
-	private void addAssociations(Topic topic, Object object, TopicBinding binding) throws TopicMapInconsistentException, TopicMapIOException{
+	private void addAssociations(Topic topic, Object object, TopicBinding binding) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		for(AbstractFieldBinding afb:binding.getFieldBindings()){
 			
@@ -550,7 +552,7 @@ public class TopicMapHandler {
 		
 	}
 	
-	private void addBinaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws TopicMapInconsistentException, TopicMapIOException{
+	private void addBinaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		// get role type
 		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getPlayedRole()));
@@ -591,65 +593,246 @@ public class TopicMapHandler {
 		if(matchingRoles.isEmpty())
 			return;
 		
+		// get class type of counter player
+		Class<?> counterClass = getBindingHandler().getClassForBinding(associationBinding.getOtherPlayerBinding());
+		
+		if(counterClass == null)
+			throw new TopicMapIOException("Unable to resolve counter player type ");
+		
 		if(!associationBinding.isArray() && !associationBinding.isCollection()){
 			
 			if(matchingRoles.size() > 1)
 				throw new TopicMapIOException("Cannot add multiple association to an non container field.");
-			
-			Class<?> counterClass = getBindingHandler().getClassForBinding(associationBinding.getOtherPlayerBinding());
-			
-			if(counterClass == null)
-				throw new TopicMapIOException("Unable to resolve counter player type ");
-			
+
 			Object counterPlayer = getInstanceFromTopic(TopicMapsUtils.getCounterRole(matchingRoles.iterator().next().getParent(), matchingRoles.iterator().next()).getPlayer(), associationBinding.getOtherPlayerBinding(), counterClass);
 			
 			associationBinding.setValue(counterPlayer, object);
 			
 		}else{
 			
+			Set<Object> counterPlayers = new HashSet<Object>();
 			
+			for(Role role:matchingRoles){
+				
+				Object counterPlayer = getInstanceFromTopic(TopicMapsUtils.getCounterRole(matchingRoles.iterator().next().getParent(), role).getPlayer(), associationBinding.getOtherPlayerBinding(), counterClass);
+				counterPlayers.add(counterPlayer);
+			}
 			
+			if(associationBinding.isArray()){
+				
+				// is array
+				associationBinding.setValue(counterPlayers.toArray(), object);
+				
+			}else{
+				
+				// is collection
+				if(((ParameterizedType)associationBinding.getFieldType()).getRawType().equals(Set.class)){ 
+					
+					// is set
+					associationBinding.setValue(counterPlayers, object);
+					
+				}else{
+					
+					// is list
+					List<Object> list = new ArrayList<Object>(counterPlayers);
+					associationBinding.setValue(list, object);
+					
+				}
+			}
 		}
-		
-		
 	}
 	
-	private void addNnaryAssociation(Topic topic, Object object, AssociationBinding associationBinding){
+	private void addNnaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
+		if(associationBinding.getAssociationContainerBinding() == null)
+			throw new RuntimeException("An nnary association has to be defined via a association container.");
 		
+		// get role type
+		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getPlayedRole()));
+		
+		if(roleType == null)
+			return;
+		
+		Set<Role> rolesPlayed = topic.getRolesPlayed(roleType);
+		
+		if(rolesPlayed.isEmpty())
+			return;
+		
+		// get association type
+		Topic associationType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getAssociationType()));
+		
+		if(associationType == null)
+			return;
+		
+		// check if the counter player roles match
+		
+		Set<Topic> containerRoles = getRoleTypesFromContainer(associationBinding.getAssociationContainerBinding());
+		
+		Type fieldType = associationBinding.getFieldType();
+		Class<?> containerClass = ReflectionUtil.getGenericType(fieldType);
+
+		logger.info("Container class is " + containerClass);
+		
+		Set<Object> counterSet = new HashSet<Object>();
+		
+		for(Role rolePlayed:rolesPlayed)
+		{
+			if(rolePlayed.getParent().getType().equals(associationType)){ // skip those where the roletype matches but the association don't
+				
+				// get counter player
+				Set<Role> counterPlayers = TopicMapsUtils.getCounterPlayers(rolePlayed.getParent(), rolePlayed);
+				
+				// check if binding covers all counterplayer
+				
+				boolean isCovered = true;
+				
+				for(Role counterPlayer:counterPlayers){
+					if(!containerRoles.contains(counterPlayer.getType())){
+						isCovered = false;
+						break;
+					}
+				}
+				
+				if(isCovered){
+	
+					// create association container
+					Object container = null; 
+					
+					try{
+						container = containerClass.getConstructor().newInstance();
+					}
+					catch (Exception e){
+						throw new TopicMapIOException("Cannot instanciate new object: " + e.getMessage());
+					}
+					
+					// add roles to container
+					fillContainer(container, associationBinding.getAssociationContainerBinding(), counterPlayers);
+					
+					// add container to set
+					counterSet.add(container);
+				}
+			}
+		}
+		
+		// add container to topic instance
 		
 	}
 	
 
+	private void fillContainer(Object container, AssociationContainerBinding binding, Set<Role> counterPlayer) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
+		
+		if(counterPlayer.isEmpty())
+			return;
+		
+		for(RoleBinding roleBinding:binding.getRoleBindings()){
+			
+			Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(roleBinding.getRoleType()));
+			
+			Set<Topic> counterTopics = new HashSet<Topic>();
+			
+			for(Role counter:counterPlayer){
+				
+				if(counter.getType().equals(roleType)){
+					
+					counterTopics.add(counter.getPlayer());
+				}
+			}
+
+			// create instances
+			
+			Set<Object> counterObjects = new HashSet<Object>();
+			Class<?> playerClass = ReflectionUtil.getGenericType(roleBinding.getFieldType());
+			
+			logger.info("Add instances of class " + playerClass + " to countainer...");
+			
+			for(Topic topic:counterTopics){
+				
+				Object obj = getInstanceFromTopic(topic,(TopicBinding)getBindingHandler().getBinding(playerClass), playerClass);
+				counterObjects.add(obj);
+			}
+			
+			// add the new objects to the container field
+			addObjectsToContainerField(container, counterObjects, roleBinding);
+
+		}
+	}
+	
+	private void addObjectsToContainerField(Object container, Set<Object> objects, RoleBinding roleBinding) throws TopicMapIOException{
+		
+		if(objects.isEmpty())
+			return;
+		
+		if(!roleBinding.isArray() && !roleBinding.isCollection()){
+			
+			if(objects.size() > 1)
+				throw new TopicMapIOException("Cannot add multiple instances to an non container field.");
+		
+			roleBinding.setValue(objects.iterator().next(), container);
+			
+		}else{
+			
+			if(roleBinding.isArray())
+			{
+				roleBinding.setValue(objects.toArray(), container);
+				
+			}else{
+				
+				if(((ParameterizedType)roleBinding.getFieldType()).getRawType().equals(Set.class)){ // is set
+					
+					roleBinding.setValue(objects, container);
+					
+				}else{
+					
+					List<Object> list = new ArrayList<Object>(objects);
+					roleBinding.setValue(list, container);
+				}
+			}
+		}
+		
+	}
+	
 	// --[ private methods ]-------------------------------------------------------------------------------
 
 	private void persistTopics(List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
-		Iterator<Object> itr = topicObjects.iterator();
 		
-	    while(itr.hasNext()){
-	    	
-	    	Object topicObject = itr.next();
-	    	
-	    	// get binding
-	    	TopicBinding binding = (TopicBinding)getBindingHandler().getBinding(topicObject.getClass());
-	    	
-	    	if(getTopicFromCache(topicObject) == null)
-	    	{
-		    	// check
-		    	if(!this.config.getClasses().contains(topicObject.getClass()))
-		    		throw new ClassNotSpecifiedException("The class " + topicObject.getClass().getName() + " is not registered.");
+		List<Object> toInstanciateTopicObjects = topicObjects;
+		List<Object> cascadingTopicObjects = new ArrayList<Object>();
+		
+		do{
+		
+			Iterator<Object> itr = toInstanciateTopicObjects.iterator();
+			
+		    while(itr.hasNext()){
 		    	
-		    	// create topic
-		    	persistTopic(topicObject, topicObjects, binding);
-		    	// remove from list
-		    	itr.remove();
-	    	
-	    	}else{
-	    		
-	    		updateTopic(getTopicFromCache(topicObject), topicObject, binding);
-	    	}
-	    }
+		    	Object topicObject = itr.next();
+		    	
+		    	// get binding
+		    	TopicBinding binding = (TopicBinding)getBindingHandler().getBinding(topicObject.getClass());
+		    	
+		    	if(getTopicFromCache(topicObject) == null)
+		    	{
+			    	// check
+			    	if(!this.config.getClasses().contains(topicObject.getClass()))
+			    		throw new ClassNotSpecifiedException("The class " + topicObject.getClass().getName() + " is not registered.");
+			    	
+			    	// create topic
+			    	persistTopic(topicObject, cascadingTopicObjects, binding);
+		    	
+		    	}else{
+		    		
+		    		updateTopic(getTopicFromCache(topicObject), topicObject, binding, cascadingTopicObjects);
+		    	}
+		    }
+		    
+		    toInstanciateTopicObjects = new ArrayList<Object>(cascadingTopicObjects);
+		    cascadingTopicObjects.clear();
+	    
+		}while(!toInstanciateTopicObjects.isEmpty());
+	    
+	    
+	    
+	    
 	}
 	
 	
@@ -677,7 +860,7 @@ public class TopicMapHandler {
 		updateOccurrences(newTopic, topicObject, binding);
 		
 		// update associations
-		updateAssociations(newTopic, topicObject, binding);
+		updateAssociations(newTopic, topicObject, binding, topicObjects);
 		
 		return newTopic;
 	}
@@ -707,7 +890,7 @@ public class TopicMapHandler {
 	}
 	
 	
-	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
+	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
 		logger.info("Update existing topic " + topicObject);
 		
@@ -721,7 +904,7 @@ public class TopicMapHandler {
 		// update occurrences
 		updateOccurrences(topic, topicObject, binding);
 		// update associations
-		updateAssociations(topic, topicObject, binding);
+		updateAssociations(topic, topicObject, binding, topicObjects);
 	}
 	
 	
@@ -959,7 +1142,7 @@ public class TopicMapHandler {
 	
 	// modifies the topic associations to represent the current java object
 	// used for create new topic as well
-	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
+	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
 		// get new associations
 		Map<AssociationBinding, Set<Object>> newAssociations = getAssociations(topicObject, binding);
@@ -978,11 +1161,11 @@ public class TopicMapHandler {
 
 			}else if(newAssociation.getKey().getKind() == AssociationKind.BINARY){
 				
-				updateBinaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles);
+				updateBinaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles, topicObjects);
 				
 			}else if(newAssociation.getKey().getKind() == AssociationKind.NNARY){
 				
-				updateNnaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles);
+				updateNnaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles, topicObjects);
 			}
 		}
 		
@@ -1051,9 +1234,8 @@ public class TopicMapHandler {
 			}
 		}
 	}
-	
-	
-	private void updateBinaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException{
+
+	private void updateBinaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles, List<Object> topicObjects) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException{
 
 		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
 		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
@@ -1097,13 +1279,17 @@ public class TopicMapHandler {
 				
 				ass.createRole(roleType, topic);
 				ass.createRole(otherRoleType, counterPlayer);
+				
+				if(binding.isPersistOnCascade()){
+					
+					topicObjects.add(associationObject);
+					logger.info("Persist/Update " + associationObject + " on cascade.");
+				}
 			}
 		}
 	}
-	
-	
 
-	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException{
+	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException{
 
 		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
 		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
@@ -1167,6 +1353,46 @@ public class TopicMapHandler {
 						ass.createRole(rolePlayer.getKey(), player);
 					}
 				}
+				
+				if(binding.isPersistOnCascade()){
+
+					addCascadingRole(associationObject, topicObjects);
+					
+				}
+			}
+		}
+	}
+	
+	private void addCascadingRole(Object associationContainer, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
+		
+		AssociationContainerBinding binding = (AssociationContainerBinding)getBindingHandler().getBinding(associationContainer.getClass());
+		
+		for(RoleBinding roleBinding:binding.getRoleBindings()){
+			
+			// get the objects
+			
+			if(roleBinding.isArray()){
+				
+				Object[] objects = (Object[])roleBinding.getValue(associationContainer);
+				
+				for(Object obj:objects){
+					topicObjects.add(obj);
+					logger.info("Persist/Update " + obj + " on cascade.");
+				}
+
+			}else if(roleBinding.isCollection()){
+				
+				Collection<Object> objects = (Collection<Object>)roleBinding.getValue(associationContainer);
+				
+				for(Object obj:objects){
+					topicObjects.add(obj);
+					logger.info("Persist/Update " + obj + " on cascade.");
+				}
+				
+			}else{
+				
+				topicObjects.add(roleBinding.getValue(associationContainer));
+				logger.info("Persist/Update " + roleBinding.getValue(associationContainer) + " on cascade.");
 			}
 		}
 	}
@@ -1187,8 +1413,6 @@ public class TopicMapHandler {
 
 		return true;
 	}
-	
-	
 
 	private boolean matchCounterPlayer(Role playedRole, Map<Topic,Set<Topic>> rolePlayers){
 		
@@ -1262,6 +1486,17 @@ public class TopicMapHandler {
 		return result;
 	}
 	
+	private Set<Topic> getRoleTypesFromContainer(AssociationContainerBinding containerBinding){
+		
+		Set<Topic> types = new HashSet<Topic>();
+		
+		for(RoleBinding roleBinding:containerBinding.getRoleBindings()){
+			Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(roleBinding.getRoleType()));
+			types.add(roleType);
+		}
+		
+		return types;
+	}
 	
 	// adds flags to an set, returns an empty map of the set was null
 	private <T extends Object> Map<T, Match> addFlags(Set<T> set){

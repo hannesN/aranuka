@@ -143,7 +143,10 @@ public class Session {
 						 
 						 if(topicMap == null)
 							 throw new IOException("Reade topic map file " + this.config.getProperty(Property.FILENAME) + " failed!");
-					 }
+					}else{
+							
+						topicMap = TopicMapSystemFactory.newInstance().newTopicMapSystem().createTopicMap(this.config.getBaseLocator());
+					}
 					 
 				}else{
 					
