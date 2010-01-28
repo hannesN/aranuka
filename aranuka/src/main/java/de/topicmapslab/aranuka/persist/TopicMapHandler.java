@@ -715,6 +715,41 @@ public class TopicMapHandler {
 		}
 		
 		// add container to topic instance
+		addContainer(object, associationBinding, counterSet);
+		
+	}
+	
+	private void addContainer(Object object, AssociationBinding binding, Set<Object> containerSet) throws TopicMapIOException{
+		
+		if(containerSet.isEmpty())
+			return;
+		
+		if(!binding.isArray() && !binding.isCollection()){
+			
+			if(containerSet.size() > 1)
+				throw new TopicMapIOException("Cannot add multiple instances to an non container field.");
+		
+			binding.setValue(containerSet.iterator().next(), object);
+			
+		}else{
+			
+			if(binding.isArray())
+			{
+				binding.setValue(containerSet.toArray(), object);
+				
+			}else{
+				
+				if(((ParameterizedType)binding.getFieldType()).getRawType().equals(Set.class)){ // is set
+					
+					binding.setValue(containerSet, object);
+					
+				}else{
+					
+					List<Object> list = new ArrayList<Object>(containerSet);
+					binding.setValue(list, object);
+				}
+			}
+		}
 		
 	}
 	
