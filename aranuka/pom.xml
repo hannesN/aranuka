@@ -74,9 +74,14 @@
     </dependency>
     <dependency>
     	<groupId>semagia</groupId>
-    	<artifactId>semagia-mio-snello</artifactId>
-    	<version>0.9.3</version>
+    	<artifactId>semagia-mio</artifactId>
+    	<version>0.9.5</version>
     	<scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>semagia</groupId>
+    	<artifactId>semagia-mio-ctm</artifactId>
+    	<version>0.9.3</version>
     </dependency>
   </dependencies>
 </project>

@@ -11,4 +11,8 @@ public class TopicMapException extends Exception {
 	public TopicMapException(String msg) {
 		super(msg);
 	}
+	
+	public TopicMapException(String msg, Throwable e) {
+		super(msg, e);
+	}
 }
