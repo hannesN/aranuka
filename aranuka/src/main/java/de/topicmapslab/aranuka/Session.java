@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tinytim.mio.CTMTopicMapWriter;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
@@ -19,7 +21,7 @@ import de.topicmapslab.aranuka.exception.TopicMapException;
 import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.persist.TopicMapHandler;
-import de.topicmapslab.ctm.writer.core.CTMTopicMapWriter;
+
 
 public class Session {
 
@@ -60,18 +62,18 @@ public class Session {
 			writer = new CTMTopicMapWriter(new FileOutputStream(filename), config.getBaseLocator());
 			
 			
-			//writer.setExportItemIdentifiers(true);
+			writer.setExportItemIdentifiers(true);
 
-			//Map<String, String> prefixMap = config.getPrefixMap();
-//			for (String key : prefixMap.keySet()) {
-//				writer.addPrefix(key, prefixMap.get(key));
-//			}
+			Map<String, String> prefixMap = config.getPrefixMap();
+			for (String key : prefixMap.keySet()) {
+				writer.addPrefix(key, prefixMap.get(key));
+			}
 			
-//			String bl = config.getBaseLocator();
-//			for (Class<?> clazz : config.getClasses()) {
-//				String prefix = bl+clazz.getName().replaceAll("\\.", "/")+"/";
-//				writer.addPrefix(clazz.getSimpleName().toLowerCase(), prefix);
-//			}
+			String bl = config.getBaseLocator();
+			for (Class<?> clazz : config.getClasses()) {
+				String prefix = bl+clazz.getName().replaceAll("\\.", "/")+"/";
+				writer.addPrefix(clazz.getSimpleName().toLowerCase(), prefix);
+			}
 
 			writer.write(getTopicMapHandler().getTopicMap());
 			
@@ -112,12 +114,13 @@ public class Session {
 	
 	public boolean remove(Object object) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{
 		
-		return getTopicMapHandler().removeTopic(object);
+		throw new UnsupportedOperationException();
+		//return getTopicMapHandler().removeTopic(object);
 		
 	}
 	
 	public void count(Class<?> clazz){ 
-		
+		throw new UnsupportedOperationException();
 	}
 	
 	// getter and setter
