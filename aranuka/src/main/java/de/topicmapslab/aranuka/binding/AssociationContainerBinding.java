@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Binding of an association container class.
+ * @author christian haß
+ *
+ */
 public class AssociationContainerBinding extends AbstractClassBinding {
 
 	private AssociationContainerBinding parent; // super type
