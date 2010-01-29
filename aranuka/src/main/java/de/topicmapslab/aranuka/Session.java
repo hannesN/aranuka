@@ -164,7 +164,7 @@ public class Session {
 
 			}
 			catch (Exception e) {
-				throw new TopicMapException(e.getMessage());
+				throw new TopicMapException(e.getMessage(), e);
 			}
 		}
 			
