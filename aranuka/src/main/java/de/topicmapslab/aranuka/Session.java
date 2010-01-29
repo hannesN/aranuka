@@ -4,16 +4,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tinytim.mio.CTMTopicMapReader;
-import org.tinytim.mio.CTMTopicMapWriter;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
+import org.tmapix.io.CTMTopicMapReader;
 
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
@@ -21,6 +19,7 @@ import de.topicmapslab.aranuka.exception.TopicMapException;
 import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.persist.TopicMapHandler;
+import de.topicmapslab.ctm.writer.core.CTMTopicMapWriter;
 
 public class Session {
 
@@ -59,18 +58,20 @@ public class Session {
 			String filename = config.getProperty(Property.FILENAME);
 			logger.info("Writing to "+filename);
 			writer = new CTMTopicMapWriter(new FileOutputStream(filename), config.getBaseLocator());
-			writer.setExportItemIdentifiers(true);
-
-			Map<String, String> prefixMap = config.getPrefixMap();
-			for (String key : prefixMap.keySet()) {
-				writer.addPrefix(key, prefixMap.get(key));
-			}
 			
-			String bl = config.getBaseLocator();
-			for (Class<?> clazz : config.getClasses()) {
-				String prefix = bl+clazz.getName().replaceAll("\\.", "/")+"/";
-				writer.addPrefix(clazz.getSimpleName().toLowerCase(), prefix);
-			}
+			
+			//writer.setExportItemIdentifiers(true);
+
+			//Map<String, String> prefixMap = config.getPrefixMap();
+//			for (String key : prefixMap.keySet()) {
+//				writer.addPrefix(key, prefixMap.get(key));
+//			}
+			
+//			String bl = config.getBaseLocator();
+//			for (Class<?> clazz : config.getClasses()) {
+//				String prefix = bl+clazz.getName().replaceAll("\\.", "/")+"/";
+//				writer.addPrefix(clazz.getSimpleName().toLowerCase(), prefix);
+//			}
 
 			writer.write(getTopicMapHandler().getTopicMap());
 			
@@ -93,19 +94,25 @@ public class Session {
 		}
 	}
 	
-	public void getBySubjectIdentifier(String si){ //	returns instance of topic with si as subject identifier
+	public Object getBySubjectIdentifier(String si) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{ //	returns instance of topic with si as subject identifier
+	
+		return getTopicMapHandler().getObjectBySubjectIdentifier(si);
 		
 	}
 	
-	public void getBySubjectLocator(String sl){ //	returns instance of topic with si as subject locator
-		
+	public Object getBySubjectLocator(String sl) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{ //	returns instance of topic with si as subject locator
+	
+		return getTopicMapHandler().getObjectBySubjectLocator(sl);
 	}
 	
-	public void getByItemIdentifier(String si){ //	returns instance of topic with si as item identifier
+	public Object getByItemIdentifier(String ii) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{ //	returns instance of topic with si as item identifier
 		
+		return getTopicMapHandler().getObjectByItemIdentifier(ii);
 	}
 	
-	public void remove(Object object){ //	removes instance from the topic map
+	public boolean remove(Object object) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{
+		
+		return getTopicMapHandler().removeTopic(object);
 		
 	}
 	
@@ -137,7 +144,7 @@ public class Session {
 						 TopicMapSystem system = factory.newTopicMapSystem();
 	
 						 topicMap = system.createTopicMap(this.config.getProperty(Property.BASE_LOCATOR));
-						 
+
 						 CTMTopicMapReader reader = new CTMTopicMapReader(topicMap, f);
 						 reader.read();
 						 
