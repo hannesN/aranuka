@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,7 +37,6 @@ import de.topicmapslab.aranuka.binding.TopicBinding;
 import de.topicmapslab.aranuka.constants.IXsdDatatypes;
 import de.topicmapslab.aranuka.enummerations.AssociationKind;
 import de.topicmapslab.aranuka.enummerations.IdType;
-import de.topicmapslab.aranuka.enummerations.Match;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
@@ -111,6 +111,22 @@ public class BindingHandler {
 		
 		return binding;
 		
+	}
+
+	public Set<TopicBinding> getAllTopicBindings(){
+		
+		if(this.bindingMap == null)
+			return Collections.emptySet();
+		
+		Set<TopicBinding> result = new HashSet<TopicBinding>();
+		
+		for (Map.Entry<Class<?>, AbstractClassBinding> entry : bindingMap.entrySet()) {
+			
+			if(entry.getValue() instanceof TopicBinding)
+				result.add((TopicBinding)entry.getValue());
+		}
+
+		return result;
 	}
 	
 	public Class<?> getClassForBinding(AbstractClassBinding binding){

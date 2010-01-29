@@ -24,23 +24,17 @@
   		<id>tmlab</id>
   		<url>http://maven.topicmapslab.de/third_party</url>
   	</repository>
+  	<repository>
+      <id>ontopia</id>
+      <url>http://ontopia.googlecode.com/svn/maven-repository</url>
+    </repository>
   </repositories>
-  <dependencies>
+    <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>3.8.1</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.tinytim</groupId>
-    	<artifactId>tinytim</artifactId>
-    	<version>2.0.0a6</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.tinytim</groupId>
-    	<artifactId>tinytim-mio</artifactId>
-    	<version>2.0.0a6</version>
     </dependency>
     <dependency>
     	<groupId>org.slf4j</groupId>
@@ -59,14 +53,30 @@
     	<version>2.0.4</version>
     </dependency>
     <dependency>
-    	<groupId>semagia</groupId>
-    	<artifactId>semagia-mio-ctm</artifactId>
-    	<version>0.9.3</version>
-    </dependency>
-    <dependency>
     	<groupId>org.tmapi</groupId>
     	<artifactId>tmapi</artifactId>
     	<version>2.0a2</version>
+    </dependency>
+    <dependency>
+    	<groupId>net.ontopia</groupId>
+    	<artifactId>ontopia-engine</artifactId>
+    	<version>5.1.0-b1</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.tmapix</groupId>
+    	<artifactId>tmapix-io</artifactId>
+    	<version>0.3.0</version>
+    </dependency>
+    <dependency>
+    	<groupId>de.topicmapslab</groupId>
+    	<artifactId>ctm-writer</artifactId>
+    	<version>1.0.0a</version>
+    </dependency>
+    <dependency>
+    	<groupId>semagia</groupId>
+    	<artifactId>semagia-mio-snello</artifactId>
+    	<version>0.9.3</version>
+    	<scope>test</scope>
     </dependency>
   </dependencies>
 </project>

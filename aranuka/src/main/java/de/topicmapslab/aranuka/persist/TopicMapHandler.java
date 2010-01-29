@@ -56,7 +56,6 @@ public class TopicMapHandler {
 	private TopicMap topicMap; // the topic map
 	
 	private Map<Object, Topic> topicCache;
-	
 	private Map<Topic, Object> objectCache;
 	
 	
@@ -79,8 +78,7 @@ public class TopicMapHandler {
 		getBindingHandler().createBindingsForAllClasses();
 
 	}
-	
-	/// TODO persist only topics or association container as well?
+
 	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
 		List<Object> topicToPersist = new ArrayList<Object>();
@@ -132,6 +130,806 @@ public class TopicMapHandler {
 		return instances;
 	}
 	
+	public Object getObjectBySubjectIdentifier(String si) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
+		
+		Topic topic = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(si));
+		
+		if(topic == null)
+			return null;
+		
+		return getObject(topic);
+	}
+	
+	public Object getObjectBySubjectLocator(String sl) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
+	
+		Topic topic = getTopicMap().getTopicBySubjectLocator(getTopicMap().createLocator(sl));
+		
+		if(topic == null)
+			return null;
+		
+		return getObject(topic);
+	}
+	
+	public Object getObjectByItemIdentifier(String ii) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
+		
+		Construct construct = getTopicMap().getConstructByItemIdentifier(getTopicMap().createLocator(ii));
+		
+		if(construct == null)
+			return null;
+		
+		Topic topic = null;
+		
+		try{
+			topic = (Topic)construct;
+		}
+		catch (Exception e) {
+			return null;
+		}
+		
+		return getObject(topic);
+		
+	}
+	
+	public boolean removeTopic(Object object) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
+		
+		
+		Topic topic = getTopic(object);
+		
+		if(topic != null){
+			
+			topic.remove();
+			return true;
+		}
+				
+		return false;
+	}
+	
+	private Topic getTopic(Object object) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
+		
+		Topic topic = getTopicFromCache(object);
+		
+		if(topic != null)
+			return topic;
+		
+		TopicBinding binding = (TopicBinding)getBindingHandler().getBinding(object.getClass());
+
+		return getTopicByIdentifier(object, binding);
+	}
+	
+	// --[ private methods ]-------------------------------------------------------------------------------
+	
+	private Object getObject(Topic topic) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
+		
+		TopicBinding binding = getTopicBinding(topic);
+		
+		if(binding == null)
+			return null;
+		
+		Class<?> clazz = getBindingHandler().getClassForBinding(binding);
+		
+		if(clazz == null)
+			return null;
+		
+		Object obj =  getInstanceFromTopic(topic, binding, clazz);
+		
+		return obj;
+	}
+	
+	private TopicBinding getTopicBinding(Topic topic){
+		
+		if(topic == null)
+			return null;
+		
+		if(topic.getTypes().isEmpty()) 
+			return null; // cannot instantiate types
+		
+		Set<TopicBinding> bindings = getBindingHandler().getAllTopicBindings(); /// TODO maybe invoke binding creation for all registered classes
+		
+		for(Topic type:topic.getTypes()){
+			
+			Set<Locator> identifiers = type.getSubjectIdentifiers();
+			
+			for(Locator identifier:identifiers){
+				
+				for(TopicBinding binding:bindings){
+
+					if(binding.getIdentifier().contains(identifier.getReference()))
+						return binding;
+				}
+			}
+		}
+
+		return null;
+	}
+	
+	private void persistTopics(List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
+
+		List<Object> toInstanciateTopicObjects = topicObjects;
+		List<Object> cascadingTopicObjects = new ArrayList<Object>();
+		
+		do{
+		
+			Iterator<Object> itr = toInstanciateTopicObjects.iterator();
+			
+		    while(itr.hasNext()){
+		    	
+		    	Object topicObject = itr.next();
+		    	
+		    	// get binding
+		    	TopicBinding binding = (TopicBinding)getBindingHandler().getBinding(topicObject.getClass());
+		    	
+		    	if(getTopicFromCache(topicObject) == null)
+		    	{
+			    	// check
+			    	if(!this.config.getClasses().contains(topicObject.getClass()))
+			    		throw new ClassNotSpecifiedException("The class " + topicObject.getClass().getName() + " is not registered.");
+			    	
+			    	// create topic
+			    	persistTopic(topicObject, cascadingTopicObjects, binding);
+		    	
+		    	}else{
+		    		
+		    		updateTopic(getTopicFromCache(topicObject), topicObject, binding, cascadingTopicObjects);
+		    	}
+		    }
+		    
+		    toInstanciateTopicObjects = new ArrayList<Object>(cascadingTopicObjects);
+		    cascadingTopicObjects.clear();
+	    
+		}while(!toInstanciateTopicObjects.isEmpty());
+	    
+	    
+	    
+	    
+	}
+	
+	private Topic persistTopic(Object topicObject, List<Object> topicObjects, TopicBinding binding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
+		
+		logger.info("Persist topic object " + topicObject);
+		
+		Topic newTopic = createTopicByIdentifier(topicObject, binding);
+
+		// add topic to cache
+		addTopicToCache(newTopic, topicObject);
+		
+		// set topic type
+		newTopic.addType(getTopicType(binding));
+		
+		// update identifier
+		updateSubjectIdentifier(newTopic, topicObject, binding); 
+		updateSubjectLocator(newTopic, topicObject, binding);
+		updateItemIdentifier(newTopic, topicObject, binding);
+		
+		// update names
+		updateNames(newTopic, topicObject, binding);
+		
+		// update occurrences
+		updateOccurrences(newTopic, topicObject, binding);
+		
+		// update associations
+		updateAssociations(newTopic, topicObject, binding, topicObjects);
+		
+		return newTopic;
+	}
+	
+	private Topic getTopicType(TopicBinding binding) throws BadAnnotationException{
+		
+		if(binding.getIdentifier().isEmpty())
+			throw new BadAnnotationException("Topic type has no identifier.");
+		
+		Topic type = null;
+		
+		// try to find type
+		for(String identifier:binding.getIdentifier()){
+			
+			type = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(identifier));
+			if(type != null)
+				return  type;
+		}
+		
+		type = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getIdentifier().iterator().next()));
+		
+		if(binding.getName() != null)
+			type.createName(binding.getName());
+		
+		return type;
+	}
+	
+	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
+		
+		logger.info("Update existing topic " + topicObject);
+		
+		// update identifier
+		updateSubjectIdentifier(topic, topicObject, binding); 
+		updateSubjectLocator(topic, topicObject, binding);
+		updateItemIdentifier(topic, topicObject, binding);
+		
+		// update names
+		updateNames(topic, topicObject, binding);
+		// update occurrences
+		updateOccurrences(topic, topicObject, binding);
+		// update associations
+		updateAssociations(topic, topicObject, binding, topicObjects);
+	}
+	
+	// modifies the topic subject identifier to represent the current java object
+	// used for create new topic as well
+	private void updateSubjectIdentifier(Topic topic, Object topicObject, TopicBinding binding){
+		
+		Set<String> newSubjectIdentifier = getIdentifier(topicObject, binding, IdType.SUBJECT_IDENTIFIER);
+		
+		Map<Locator,Match> actualSubjectIdentifier = addFlags(topic.getSubjectIdentifiers());
+		
+		for(String si:newSubjectIdentifier){
+			
+			boolean found = false;
+			
+			for(Map.Entry<Locator, Match> entry:actualSubjectIdentifier.entrySet()){
+	
+				if(entry.getKey().toExternalForm().equals(si)){
+					entry.setValue(Match.INSTANCE); // set to found
+					found = true;
+					break;
+				}
+			}
+			
+			if(!found){
+				logger.info("Add new subject identifier " + si);
+				// add new identifier
+				topic.addSubjectIdentifier(getTopicMap().createLocator(si));
+			}
+			
+		}
+		
+		// remove obsolete identifier
+		for(Map.Entry<Locator, Match> entry:actualSubjectIdentifier.entrySet()){
+			
+			if(entry.getValue() != Match.INSTANCE){
+				logger.info("Remove obsolete subject identifier " + entry.getKey().toExternalForm());
+				topic.removeSubjectIdentifier(entry.getKey());
+			}
+		}
+	}
+	
+	private void updateSubjectLocator(Topic topic, Object topicObject, TopicBinding binding){
+		
+		Set<String> newSubjectLocator = getIdentifier(topicObject, binding, IdType.SUBJECT_LOCATOR);
+		
+		Map<Locator,Match> actualSubjectLocator = addFlags(topic.getSubjectLocators());
+		
+		for(String sl:newSubjectLocator){
+			
+			boolean found = false;
+			
+			for(Map.Entry<Locator, Match> entry:actualSubjectLocator.entrySet()){
+	
+				if(entry.getKey().toExternalForm().equals(sl)){
+					entry.setValue(Match.INSTANCE); // set to found
+					found = true;
+					break;
+				}
+			}
+			
+			if(!found){
+				logger.info("Add new subject locator " + sl);
+				// add new identifier
+				topic.addSubjectLocator((getTopicMap().createLocator(sl)));
+			}
+			
+		}
+		
+		// remove obsolete identifier
+		for(Map.Entry<Locator, Match> entry:actualSubjectLocator.entrySet()){
+			
+			if(entry.getValue() != Match.INSTANCE){
+				logger.info("Remove obsolete subject locator " + entry.getKey().toExternalForm());
+				topic.removeSubjectLocator(entry.getKey());
+			}
+		}
+	}
+	
+	private void updateItemIdentifier(Topic topic, Object topicObject, TopicBinding binding){
+	
+		Set<String> newItemIdentifier = getIdentifier(topicObject, binding, IdType.ITEM_IDENTIFIER);
+		
+		Map<Locator,Match> actualItemIdentifier = addFlags(topic.getItemIdentifiers());
+		
+		for(String ii:newItemIdentifier){
+			
+			boolean found = false;
+			
+			for(Map.Entry<Locator, Match> entry:actualItemIdentifier.entrySet()){
+	
+				if(entry.getKey().toExternalForm().equals(ii)){
+					
+					entry.setValue(Match.INSTANCE); // set to found
+					found = true;
+					break;
+				}
+			}
+			
+			if(!found){
+				logger.info("Add new Item identifier " + ii);
+				// add new identifier
+				topic.addItemIdentifier(getTopicMap().createLocator(ii));
+			}
+			
+		}
+		
+		// remove obsolete identifier
+		for(Map.Entry<Locator, Match> entry:actualItemIdentifier.entrySet()){
+			
+			if(entry.getValue() != Match.INSTANCE){
+				logger.info("Remove obsolete item identifier " + entry.getKey().toExternalForm());
+				topic.removeItemIdentifier(entry.getKey());
+			}
+		}
+	}
+	
+	// modifies the topic names to represent the current java object
+	// used for create new topic as well
+	private void updateNames(Topic topic, Object topicObject, TopicBinding binding){
+		
+		// get new names
+		Map<NameBinding,Set<String>> newNames = getNames(topicObject, binding);
+		
+		// get actual names
+		Map<Name,Match> actualNames = addFlags(topic.getNames());
+		
+		// update
+		for(Map.Entry<NameBinding, Set<String>> newName:newNames.entrySet()){
+			
+			// get type and scope for this binding/field
+			Topic nameType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(newName.getKey().getNameType()));
+			Set<Topic> scope = newName.getKey().getScope(getTopicMap());
+			
+			
+			for(String name:newName.getValue()){
+				
+				boolean found = false;
+				
+				for (Map.Entry<Name, Match> actualName : actualNames.entrySet()) {
+
+					if (actualName.getKey().getValue().equals(name)) { // compare value
+
+						if (actualName.getKey().getType().equals(nameType)) { // compare type
+
+							if (scope.isEmpty() || actualName.getKey().getScope().equals(scope)) { // compare scope
+	
+								found = true;
+								actualName.setValue(Match.INSTANCE);
+								break;
+							}
+						}
+					}
+				}
+				
+				if(!found){
+					
+					logger.info("Add new name " + name);
+					topic.createName(nameType, name, scope);
+				}
+			}
+		}
+		
+		// remove obsolete names
+		for(Map.Entry<Name, Match> entry:actualNames.entrySet()){
+
+			if(entry.getValue() != Match.INSTANCE){
+				logger.info("Remove obsolete name " + entry.getKey().getValue());
+				entry.getKey().remove();
+			}
+		}
+	}
+	
+	// modifies the topic occurrences to represent the current java object
+	// used for create new topic as well
+	private void updateOccurrences(Topic topic, Object topicObject, TopicBinding binding){
+		
+		// get new occurrences
+		Map<OccurrenceBinding,Set<String>> newOccurrences = getOccurrences(topicObject, binding);
+		
+		// get actual occurrences
+		Map<Occurrence,Match> actualOccurrences = addFlags(topic.getOccurrences());
+		
+		// update
+		for(Map.Entry<OccurrenceBinding, Set<String>> newOccurrence:newOccurrences.entrySet()){
+			
+			// get type and scope for this binding/field
+			Topic occurrenceType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(newOccurrence.getKey().getOccurrenceType()));
+			Set<Topic> scope = newOccurrence.getKey().getScope(getTopicMap());
+
+			for(String value:newOccurrence.getValue()){
+				
+				boolean found = false;
+				
+				for (Map.Entry<Occurrence, Match> actualOccurrence : actualOccurrences.entrySet()) {
+
+					if (actualOccurrence.getKey().getValue().equals(value)) { // compare value
+
+						if (actualOccurrence.getKey().getType().equals(occurrenceType)) { // compare type
+
+							if (scope.isEmpty() || actualOccurrence.getKey().getScope().equals(scope)) { // compare scope
+	
+								found = true;
+								actualOccurrence.setValue(Match.INSTANCE);
+								break;
+							}
+						}
+					}
+				}
+				
+				if(!found){
+					
+					logger.info("Add new occurrence " + value); 
+					topic.createOccurrence(occurrenceType, value, scope);
+					
+				}
+			}
+		}
+		
+		// remove obsolete occurrences
+		for(Map.Entry<Occurrence, Match> entry:actualOccurrences.entrySet()){
+
+			if(entry.getValue() != Match.INSTANCE){
+				logger.info("Remove obsolete occurrence " + entry.getKey().getValue());
+				entry.getKey().remove();
+			}
+		}
+		
+	}
+	
+	// modifies the topic associations to represent the current java object
+	// used for create new topic as well
+	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
+		
+		// get new associations
+		Map<AssociationBinding, Set<Object>> newAssociations = getAssociations(topicObject, binding);
+		
+		if(newAssociations.isEmpty())
+			return;
+		
+		// get existing associartions, i.e. played roles
+		Map<Role,Match> playedRoles = addFlags(topic.getRolesPlayed());
+
+		for(Map.Entry<AssociationBinding, Set<Object>> newAssociation:newAssociations.entrySet()){
+
+			if(newAssociation.getKey().getKind() == AssociationKind.UNARY)
+			{
+				updateUnaryAssociation(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles);
+
+			}else if(newAssociation.getKey().getKind() == AssociationKind.BINARY){
+				
+				updateBinaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles, topicObjects);
+				
+			}else if(newAssociation.getKey().getKind() == AssociationKind.NNARY){
+				
+				updateNnaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles, topicObjects);
+			}
+		}
+		
+		// remove obsolete roles
+		for(Map.Entry<Role, Match> entry:playedRoles.entrySet()){
+		
+			if(entry.getValue() == Match.BINDING){ // only binding match found but no instance
+				Association obsolete = entry.getKey().getParent();
+				
+				if(obsolete != null){ // do an additional check
+					logger.info("Remove obsolete association " + obsolete.getType());
+					obsolete.remove();
+				}
+			}
+		}
+	}
+	
+	private void updateUnaryAssociation(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role,Match> playedRoles){
+		
+		if(associationObjects.size() != 1)
+			throw new RuntimeException("Unary association has more the one type."); // TODO use other exception type and better message
+		
+		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
+		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
+		Set<Topic> scope = binding.getScope(getTopicMap());
+		
+		boolean value = (Boolean)associationObjects.iterator().next();
+		
+		// try to find the association
+		Role role = null;
+		
+		for(Map.Entry<Role, Match> playedRole:playedRoles.entrySet()){
+			
+			if(playedRole.getValue() != Match.INSTANCE // ignore roles which are already flagged true
+					&& playedRole.getKey().getParent().getRoles().size() == 1 // is unary association
+					&& playedRole.getKey().getType().equals(roleType) // check role type
+					&& playedRole.getKey().getParent().getType().equals(associationType)){ // check association type
+				
+				// binding found
+				logger.info("Unary association matches binding.");
+				
+				if(playedRole.getKey().getParent().getScope().equals(scope)){ // check scope
+				
+					role = playedRole.getKey();
+					playedRole.setValue(Match.INSTANCE);
+					break;
+				
+				}
+			}
+		}
+		
+		if(role != null){
+			
+			if(value == false){
+				logger.info("Remove unary association " + role.getParent());
+				role.getParent().remove();
+			}
+			
+		}else{
+			
+			if(value == true){
+				logger.info("Creare new unary association " + associationType);
+				Association ass = getTopicMap().createAssociation(associationType, scope);
+				ass.createRole(roleType, topic);
+			}
+		}
+	}
+
+	private void updateBinaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles, List<Object> topicObjects) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException{
+
+		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
+		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
+		Topic otherRoleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getOtherRole()));
+		Set<Topic> scope = binding.getScope(getTopicMap());
+
+		for (Object associationObject : associationObjects) { // check each binary association
+
+			// get counter player
+			Topic counterPlayer = createTopicByIdentifier(associationObject, binding.getOtherPlayerBinding());
+			counterPlayer.addType(getTopicType(binding.getOtherPlayerBinding()));
+			
+			boolean found = false;
+
+			for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
+
+				if(playedRole.getValue() != Match.INSTANCE  // ignore roles which are already flagged true
+						&& playedRole.getKey().getParent().getRoles().size() == 2  	// check if the association is binary
+						&& playedRole.getKey().getType().equals(roleType) 	// check role type
+						&& playedRole.getKey().getParent().getType().equals(associationType) // check association type
+						&& playedRole.getKey().getParent().getScope().equals(scope) // check scope
+						&& TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey()).getType().equals(otherRoleType)){ // check counter player role
+
+					// binding found
+					playedRole.setValue(Match.BINDING);
+					
+					if(TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey()).getPlayer().equals(counterPlayer)){ // check counter player
+
+						found = true;
+						playedRole.setValue(Match.INSTANCE);
+						break;
+					}
+				}
+			}
+			
+			if(!found){
+				
+				logger.info("Create new binary association " + associationType);
+				
+				Association ass = getTopicMap().createAssociation(associationType, scope);
+				
+				ass.createRole(roleType, topic);
+				ass.createRole(otherRoleType, counterPlayer);
+				
+				if(binding.isPersistOnCascade()){
+					
+					topicObjects.add(associationObject);
+					logger.info("Persist/Update " + associationObject + " on cascade.");
+				}
+			}
+		}
+	}
+
+	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException{
+
+		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
+		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
+		Set<Topic> scope = binding.getScope(getTopicMap());
+		
+		for (Object associationObject:associationObjects) { // check each nnary association
+			
+			boolean found = false;
+			
+			// get role-player for container
+			Map<Topic,Set<Topic>> containerRolePlayer = getRolesFromContainer(associationObject);
+			
+			for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
+				
+				if(playedRole.getValue() != Match.INSTANCE  // ignore roles which are already flagged true
+						&& playedRole.getKey().getType().equals(roleType) 	// check role type
+						&& playedRole.getKey().getParent().getType().equals(associationType)){ // check association type
+
+					// add own role to rolePlayer
+					Map<Topic,Set<Topic>> rolePlayer = containerRolePlayer;
+					Set<Topic> ownTypePlayer = null;
+					
+					if(rolePlayer.get(playedRole.getKey().getType()) != null)
+						ownTypePlayer = rolePlayer.get(playedRole.getKey().getType());
+					else ownTypePlayer = new HashSet<Topic>();
+					
+					ownTypePlayer.add(playedRole.getKey().getPlayer());
+					rolePlayer.put(playedRole.getKey().getType(), ownTypePlayer);
+					
+					// check counter player roles
+					if(matchCounterRoleTypes( playedRole.getKey(), rolePlayer)){
+						
+						playedRole.setValue(Match.BINDING);
+					
+						// check counter player
+						if(matchCounterPlayer(playedRole.getKey(), rolePlayer)){
+							
+							found = true;
+							playedRole.setValue(Match.INSTANCE);
+							break;
+						}
+					}
+				}
+			}
+			
+			if(!found){
+				
+				// create new association
+				logger.info("Create new nnary association " + associationType);
+				
+				Association ass = getTopicMap().createAssociation(associationType, scope);
+				
+				// add own player
+				ass.createRole(roleType, topic);
+				
+				// add player from container
+				for (Map.Entry<Topic, Set<Topic>> rolePlayer : containerRolePlayer.entrySet()) {
+					
+					for(Topic player:rolePlayer.getValue()){
+						logger.info("Create role " +  player + " with type " + rolePlayer.getKey());
+						ass.createRole(rolePlayer.getKey(), player);
+					}
+				}
+				
+				if(binding.isPersistOnCascade()){
+
+					addCascadingRole(associationObject, topicObjects);
+					
+				}
+			}
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void addCascadingRole(Object associationContainer, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
+		
+		AssociationContainerBinding binding = (AssociationContainerBinding)getBindingHandler().getBinding(associationContainer.getClass());
+		
+		for(RoleBinding roleBinding:binding.getRoleBindings()){
+			
+			// get the objects
+			
+			if(roleBinding.isArray()){
+				
+				Object[] objects = (Object[])roleBinding.getValue(associationContainer);
+				
+				for(Object obj:objects){
+					topicObjects.add(obj);
+					logger.info("Persist/Update " + obj + " on cascade.");
+				}
+
+			}else if(roleBinding.isCollection()){
+				
+				Collection<Object> objects = (Collection<Object>)roleBinding.getValue(associationContainer);
+				
+				for(Object obj:objects){
+					topicObjects.add(obj);
+					logger.info("Persist/Update " + obj + " on cascade.");
+				}
+				
+			}else{
+				
+				topicObjects.add(roleBinding.getValue(associationContainer));
+				logger.info("Persist/Update " + roleBinding.getValue(associationContainer) + " on cascade.");
+			}
+		}
+	}
+	
+	
+	private boolean matchCounterRoleTypes(Role playedRole, Map<Topic,Set<Topic>> rolePlayers){
+		
+		Set<Topic> existingRolesTypes = playedRole.getParent().getRoleTypes();
+		
+		if(existingRolesTypes.size() != rolePlayers.keySet().size())
+			return false;
+		
+		for(Topic newRoleType:rolePlayers.keySet()){
+			
+			if(!existingRolesTypes.contains(newRoleType))
+				return false;
+		}
+
+		return true;
+	}
+
+	private boolean matchCounterPlayer(Role playedRole, Map<Topic,Set<Topic>> rolePlayers){
+		
+		Association association = playedRole.getParent();
+		
+		for (Map.Entry<Topic, Set<Topic>> rolePlayer : rolePlayers.entrySet()) {
+		
+			Set<Role> existingRoles = association.getRoles(rolePlayer.getKey()); // get player of type
+			
+			if(existingRoles.size() != rolePlayer.getValue().size())
+				return false;
+			
+			for(Role existingRole:existingRoles){
+				
+				if(!rolePlayer.getValue().contains(existingRole.getPlayer()))
+					return false;
+				
+			}
+		}
+		
+		return true;
+	}
+	
+	
+	@SuppressWarnings("unchecked") /// TODO add recursively!!!
+	private Map<Topic,Set<Topic>> getRolesFromContainer(Object associationContainerInstance) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException{
+		
+		Map<Topic,Set<Topic>> result = new HashMap<Topic, Set<Topic>>();
+		
+		AssociationContainerBinding binding = (AssociationContainerBinding)getBindingHandler().getBinding(associationContainerInstance.getClass());
+		
+		for(RoleBinding roleBinding:binding.getRoleBindings()){
+			
+			Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(roleBinding.getRoleType()));
+			Set<Topic> player = null;
+			if(result.get(roleType) == null)
+				player = new HashSet<Topic>();
+			else player = result.get(roleType);
+			
+			if(roleBinding.getValue(associationContainerInstance) != null){
+				
+				if (roleBinding.isArray()){
+	
+					for (Object obj : (Object[]) roleBinding.getValue(associationContainerInstance)){
+						
+						Topic topic = createTopicByIdentifier(obj, roleBinding.getPlayerBinding());
+						topic.addType(getTopicType(roleBinding.getPlayerBinding()));
+						player.add(topic);
+					}
+		
+				}else if (roleBinding.isCollection()){
+					
+					for (Object obj : (Collection<Object>) roleBinding.getValue(associationContainerInstance)){
+							
+						Topic topic = createTopicByIdentifier(obj, roleBinding.getPlayerBinding());
+						topic.addType(getTopicType(roleBinding.getPlayerBinding()));
+						player.add(topic);
+					}
+	
+				}else{
+					
+					Topic topic = createTopicByIdentifier(roleBinding.getValue(associationContainerInstance), roleBinding.getPlayerBinding());
+					topic.addType(getTopicType(roleBinding.getPlayerBinding()));
+					player.add(topic);
+				}
+			}
+			
+			result.put(roleType, player);
+		}
+		
+		return result;
+	}
+	
+	// topicmap to java
+	
+	// update instance from topic map
+	
+	
 	private Set<Object> getInstancesFromTopics(Set<Topic> topics, TopicBinding binding, Class<?> clazz) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		if(topics.isEmpty())
@@ -150,7 +948,6 @@ public class TopicMapHandler {
 		return objects;
 	}
 	
-	// used recursively
 	private Object getInstanceFromTopic(Topic topic, TopicBinding binding, Class<?> clazz) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 
 		Object object = getObjectFromCache(topic);
@@ -192,7 +989,6 @@ public class TopicMapHandler {
 	}
 	
 	
-	// update instance from topic map
 	
 	private void addIdentifier(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException{
 		
@@ -826,700 +1622,7 @@ public class TopicMapHandler {
 		
 	}
 	
-	// --[ private methods ]-------------------------------------------------------------------------------
 
-	private void persistTopics(List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
-		
-		
-		List<Object> toInstanciateTopicObjects = topicObjects;
-		List<Object> cascadingTopicObjects = new ArrayList<Object>();
-		
-		do{
-		
-			Iterator<Object> itr = toInstanciateTopicObjects.iterator();
-			
-		    while(itr.hasNext()){
-		    	
-		    	Object topicObject = itr.next();
-		    	
-		    	// get binding
-		    	TopicBinding binding = (TopicBinding)getBindingHandler().getBinding(topicObject.getClass());
-		    	
-		    	if(getTopicFromCache(topicObject) == null)
-		    	{
-			    	// check
-			    	if(!this.config.getClasses().contains(topicObject.getClass()))
-			    		throw new ClassNotSpecifiedException("The class " + topicObject.getClass().getName() + " is not registered.");
-			    	
-			    	// create topic
-			    	persistTopic(topicObject, cascadingTopicObjects, binding);
-		    	
-		    	}else{
-		    		
-		    		updateTopic(getTopicFromCache(topicObject), topicObject, binding, cascadingTopicObjects);
-		    	}
-		    }
-		    
-		    toInstanciateTopicObjects = new ArrayList<Object>(cascadingTopicObjects);
-		    cascadingTopicObjects.clear();
-	    
-		}while(!toInstanciateTopicObjects.isEmpty());
-	    
-	    
-	    
-	    
-	}
-	
-	
-	private Topic persistTopic(Object topicObject, List<Object> topicObjects, TopicBinding binding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
-		
-		logger.info("Persist topic object " + topicObject);
-		
-		Topic newTopic = createTopicByIdentifier(topicObject, binding);
-
-		// add topic to cache
-		addTopicToCache(newTopic, topicObject);
-		
-		// set topic type
-		newTopic.addType(getTopicType(binding));
-		
-		// update identifier
-		updateSubjectIdentifier(newTopic, topicObject, binding); 
-		updateSubjectLocator(newTopic, topicObject, binding);
-		updateItemIdentifier(newTopic, topicObject, binding);
-		
-		// update names
-		updateNames(newTopic, topicObject, binding);
-		
-		// update occurrences
-		updateOccurrences(newTopic, topicObject, binding);
-		
-		// update associations
-		updateAssociations(newTopic, topicObject, binding, topicObjects);
-		
-		return newTopic;
-	}
-	
-	
-	private Topic getTopicType(TopicBinding binding) throws BadAnnotationException{
-		
-		if(binding.getIdentifier().isEmpty())
-			throw new BadAnnotationException("Topic type has no identifier.");
-		
-		Topic type = null;
-		
-		// try to find type
-		for(String identifier:binding.getIdentifier()){
-			
-			type = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(identifier));
-			if(type != null)
-				return  type;
-		}
-		
-		type = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getIdentifier().iterator().next()));
-		
-		if(binding.getName() != null)
-			type.createName(binding.getName());
-		
-		return type;
-	}
-	
-	
-	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
-		
-		logger.info("Update existing topic " + topicObject);
-		
-		// update identifier
-		updateSubjectIdentifier(topic, topicObject, binding); 
-		updateSubjectLocator(topic, topicObject, binding);
-		updateItemIdentifier(topic, topicObject, binding);
-		
-		// update names
-		updateNames(topic, topicObject, binding);
-		// update occurrences
-		updateOccurrences(topic, topicObject, binding);
-		// update associations
-		updateAssociations(topic, topicObject, binding, topicObjects);
-	}
-	
-	
-	// modifies the topic subject identifier to represent the current java object
-	// used for create new topic as well
-	private void updateSubjectIdentifier(Topic topic, Object topicObject, TopicBinding binding){
-		
-		Set<String> newSubjectIdentifier = getIdentifier(topicObject, binding, IdType.SUBJECT_IDENTIFIER);
-		
-		Map<Locator,Match> actualSubjectIdentifier = addFlags(topic.getSubjectIdentifiers());
-		
-		for(String si:newSubjectIdentifier){
-			
-			boolean found = false;
-			
-			for(Map.Entry<Locator, Match> entry:actualSubjectIdentifier.entrySet()){
-	
-				if(entry.getKey().toExternalForm().equals(si)){
-					entry.setValue(Match.INSTANCE); // set to found
-					found = true;
-					break;
-				}
-			}
-			
-			if(!found){
-				logger.info("Add new subject identifier " + si);
-				// add new identifier
-				topic.addSubjectIdentifier(getTopicMap().createLocator(si));
-			}
-			
-		}
-		
-		// remove obsolete identifier
-		for(Map.Entry<Locator, Match> entry:actualSubjectIdentifier.entrySet()){
-			
-			if(entry.getValue() != Match.INSTANCE){
-				logger.info("Remove obsolete subject identifier " + entry.getKey().toExternalForm());
-				topic.removeSubjectIdentifier(entry.getKey());
-			}
-		}
-	}
-	
-	
-	private void updateSubjectLocator(Topic topic, Object topicObject, TopicBinding binding){
-		
-		Set<String> newSubjectLocator = getIdentifier(topicObject, binding, IdType.SUBJECT_LOCATOR);
-		
-		Map<Locator,Match> actualSubjectLocator = addFlags(topic.getSubjectLocators());
-		
-		for(String sl:newSubjectLocator){
-			
-			boolean found = false;
-			
-			for(Map.Entry<Locator, Match> entry:actualSubjectLocator.entrySet()){
-	
-				if(entry.getKey().toExternalForm().equals(sl)){
-					entry.setValue(Match.INSTANCE); // set to found
-					found = true;
-					break;
-				}
-			}
-			
-			if(!found){
-				logger.info("Add new subject locator " + sl);
-				// add new identifier
-				topic.addSubjectLocator((getTopicMap().createLocator(sl)));
-			}
-			
-		}
-		
-		// remove obsolete identifier
-		for(Map.Entry<Locator, Match> entry:actualSubjectLocator.entrySet()){
-			
-			if(entry.getValue() != Match.INSTANCE){
-				logger.info("Remove obsolete subject locator " + entry.getKey().toExternalForm());
-				topic.removeSubjectLocator(entry.getKey());
-			}
-		}
-	}
-	
-
-	private void updateItemIdentifier(Topic topic, Object topicObject, TopicBinding binding){
-	
-		Set<String> newItemIdentifier = getIdentifier(topicObject, binding, IdType.ITEM_IDENTIFIER);
-		
-		Map<Locator,Match> actualItemIdentifier = addFlags(topic.getItemIdentifiers());
-		
-		for(String ii:newItemIdentifier){
-			
-			boolean found = false;
-			
-			for(Map.Entry<Locator, Match> entry:actualItemIdentifier.entrySet()){
-	
-				if(entry.getKey().toExternalForm().equals(ii)){
-					
-					entry.setValue(Match.INSTANCE); // set to found
-					found = true;
-					break;
-				}
-			}
-			
-			if(!found){
-				logger.info("Add new Item identifier " + ii);
-				// add new identifier
-				topic.addItemIdentifier(getTopicMap().createLocator(ii));
-			}
-			
-		}
-		
-		// remove obsolete identifier
-		for(Map.Entry<Locator, Match> entry:actualItemIdentifier.entrySet()){
-			
-			if(entry.getValue() != Match.INSTANCE){
-				logger.info("Remove obsolete item identifier " + entry.getKey().toExternalForm());
-				topic.removeItemIdentifier(entry.getKey());
-			}
-		}
-	}
-	
-	
-	// modifies the topic names to represent the current java object
-	// used for create new topic as well
-	private void updateNames(Topic topic, Object topicObject, TopicBinding binding){
-		
-		// get new names
-		Map<NameBinding,Set<String>> newNames = getNames(topicObject, binding);
-		
-		// get actual names
-		Map<Name,Match> actualNames = addFlags(topic.getNames());
-		
-		// update
-		for(Map.Entry<NameBinding, Set<String>> newName:newNames.entrySet()){
-			
-			// get type and scope for this binding/field
-			Topic nameType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(newName.getKey().getNameType()));
-			Set<Topic> scope = newName.getKey().getScope(getTopicMap());
-			
-			
-			for(String name:newName.getValue()){
-				
-				boolean found = false;
-				
-				for (Map.Entry<Name, Match> actualName : actualNames.entrySet()) {
-
-					if (actualName.getKey().getValue().equals(name)) { // compare value
-
-						if (actualName.getKey().getType().equals(nameType)) { // compare type
-
-							if (scope.isEmpty() || actualName.getKey().getScope().equals(scope)) { // compare scope
-	
-								found = true;
-								actualName.setValue(Match.INSTANCE);
-								break;
-							}
-						}
-					}
-				}
-				
-				if(!found){
-					
-					logger.info("Add new name " + name);
-					topic.createName(nameType, name, scope);
-				}
-			}
-		}
-		
-		// remove obsolete names
-		for(Map.Entry<Name, Match> entry:actualNames.entrySet()){
-
-			if(entry.getValue() != Match.INSTANCE){
-				logger.info("Remove obsolete name " + entry.getKey().getValue());
-				entry.getKey().remove();
-			}
-		}
-	}
-	
-	
-	// modifies the topic occurrences to represent the current java object
-	// used for create new topic as well
-	private void updateOccurrences(Topic topic, Object topicObject, TopicBinding binding){
-		
-		// get new occurrences
-		Map<OccurrenceBinding,Set<String>> newOccurrences = getOccurrences(topicObject, binding);
-		
-		// get actual occurrences
-		Map<Occurrence,Match> actualOccurrences = addFlags(topic.getOccurrences());
-		
-		// update
-		for(Map.Entry<OccurrenceBinding, Set<String>> newOccurrence:newOccurrences.entrySet()){
-			
-			// get type and scope for this binding/field
-			Topic occurrenceType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(newOccurrence.getKey().getOccurrenceType()));
-			Set<Topic> scope = newOccurrence.getKey().getScope(getTopicMap());
-
-			for(String value:newOccurrence.getValue()){
-				
-				boolean found = false;
-				
-				for (Map.Entry<Occurrence, Match> actualOccurrence : actualOccurrences.entrySet()) {
-
-					if (actualOccurrence.getKey().getValue().equals(value)) { // compare value
-
-						if (actualOccurrence.getKey().getType().equals(occurrenceType)) { // compare type
-
-							if (scope.isEmpty() || actualOccurrence.getKey().getScope().equals(scope)) { // compare scope
-	
-								found = true;
-								actualOccurrence.setValue(Match.INSTANCE);
-								break;
-							}
-						}
-					}
-				}
-				
-				if(!found){
-					
-					logger.info("Add new occurrence " + value); 
-					topic.createOccurrence(occurrenceType, value, scope);
-					
-				}
-			}
-		}
-		
-		// remove obsolete occurrences
-		for(Map.Entry<Occurrence, Match> entry:actualOccurrences.entrySet()){
-
-			if(entry.getValue() != Match.INSTANCE){
-				logger.info("Remove obsolete occurrence " + entry.getKey().getValue());
-				entry.getKey().remove();
-			}
-		}
-		
-	}
-	
-	
-	// modifies the topic associations to represent the current java object
-	// used for create new topic as well
-	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
-		
-		// get new associations
-		Map<AssociationBinding, Set<Object>> newAssociations = getAssociations(topicObject, binding);
-		
-		if(newAssociations.isEmpty())
-			return;
-		
-		// get existing associartions, i.e. played roles
-		Map<Role,Match> playedRoles = addFlags(topic.getRolesPlayed());
-
-		for(Map.Entry<AssociationBinding, Set<Object>> newAssociation:newAssociations.entrySet()){
-
-			if(newAssociation.getKey().getKind() == AssociationKind.UNARY)
-			{
-				updateUnaryAssociation(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles);
-
-			}else if(newAssociation.getKey().getKind() == AssociationKind.BINARY){
-				
-				updateBinaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles, topicObjects);
-				
-			}else if(newAssociation.getKey().getKind() == AssociationKind.NNARY){
-				
-				updateNnaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles, topicObjects);
-			}
-		}
-		
-		// remove obsolete roles
-		for(Map.Entry<Role, Match> entry:playedRoles.entrySet()){
-		
-			if(entry.getValue() == Match.BINDING){ // only binding match found but no instance
-				Association obsolete = entry.getKey().getParent();
-				
-				if(obsolete != null){ // do an additional check
-					logger.info("Remove obsolete association " + obsolete.getType());
-					obsolete.remove();
-				}
-			}
-		}
-	}
-	
-	
-	private void updateUnaryAssociation(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role,Match> playedRoles){
-		
-		if(associationObjects.size() != 1)
-			throw new RuntimeException("Unary association has more the one type."); // TODO use other exception type and better message
-		
-		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
-		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
-		Set<Topic> scope = binding.getScope(getTopicMap());
-		
-		boolean value = (Boolean)associationObjects.iterator().next();
-		
-		// try to find the association
-		Role role = null;
-		
-		for(Map.Entry<Role, Match> playedRole:playedRoles.entrySet()){
-			
-			if(playedRole.getValue() != Match.INSTANCE // ignore roles which are already flagged true
-					&& playedRole.getKey().getParent().getRoles().size() == 1 // is unary association
-					&& playedRole.getKey().getType().equals(roleType) // check role type
-					&& playedRole.getKey().getParent().getType().equals(associationType)){ // check association type
-				
-				// binding found
-				logger.info("Unary association matches binding.");
-				
-				if(playedRole.getKey().getParent().getScope().equals(scope)){ // check scope
-				
-					role = playedRole.getKey();
-					playedRole.setValue(Match.INSTANCE);
-					break;
-				
-				}
-			}
-		}
-		
-		if(role != null){
-			
-			if(value == false){
-				logger.info("Remove unary association " + role.getParent());
-				role.getParent().remove();
-			}
-			
-		}else{
-			
-			if(value == true){
-				logger.info("Creare new unary association " + associationType);
-				Association ass = getTopicMap().createAssociation(associationType, scope);
-				ass.createRole(roleType, topic);
-			}
-		}
-	}
-
-	private void updateBinaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles, List<Object> topicObjects) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException{
-
-		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
-		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
-		Topic otherRoleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getOtherRole()));
-		Set<Topic> scope = binding.getScope(getTopicMap());
-
-		for (Object associationObject : associationObjects) { // check each binary association
-
-			// get counter player
-			Topic counterPlayer = createTopicByIdentifier(associationObject, binding.getOtherPlayerBinding());
-			counterPlayer.addType(getTopicType(binding.getOtherPlayerBinding()));
-			
-			boolean found = false;
-
-			for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
-
-				if(playedRole.getValue() != Match.INSTANCE  // ignore roles which are already flagged true
-						&& playedRole.getKey().getParent().getRoles().size() == 2  	// check if the association is binary
-						&& playedRole.getKey().getType().equals(roleType) 	// check role type
-						&& playedRole.getKey().getParent().getType().equals(associationType) // check association type
-						&& playedRole.getKey().getParent().getScope().equals(scope) // check scope
-						&& TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey()).getType().equals(otherRoleType)){ // check counter player role
-
-					// binding found
-					playedRole.setValue(Match.BINDING);
-					
-					if(TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey()).getPlayer().equals(counterPlayer)){ // check counter player
-
-						found = true;
-						playedRole.setValue(Match.INSTANCE);
-						break;
-					}
-				}
-			}
-			
-			if(!found){
-				
-				logger.info("Create new binary association " + associationType);
-				
-				Association ass = getTopicMap().createAssociation(associationType, scope);
-				
-				ass.createRole(roleType, topic);
-				ass.createRole(otherRoleType, counterPlayer);
-				
-				if(binding.isPersistOnCascade()){
-					
-					topicObjects.add(associationObject);
-					logger.info("Persist/Update " + associationObject + " on cascade.");
-				}
-			}
-		}
-	}
-
-	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException{
-
-		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
-		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
-		Set<Topic> scope = binding.getScope(getTopicMap());
-		
-		for (Object associationObject:associationObjects) { // check each nnary association
-			
-			boolean found = false;
-			
-			// get role-player for container
-			Map<Topic,Set<Topic>> containerRolePlayer = getRolesFromContainer(associationObject);
-			
-			for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
-				
-				if(playedRole.getValue() != Match.INSTANCE  // ignore roles which are already flagged true
-						&& playedRole.getKey().getType().equals(roleType) 	// check role type
-						&& playedRole.getKey().getParent().getType().equals(associationType)){ // check association type
-
-					// add own role to rolePlayer
-					Map<Topic,Set<Topic>> rolePlayer = containerRolePlayer;
-					Set<Topic> ownTypePlayer = null;
-					
-					if(rolePlayer.get(playedRole.getKey().getType()) != null)
-						ownTypePlayer = rolePlayer.get(playedRole.getKey().getType());
-					else ownTypePlayer = new HashSet<Topic>();
-					
-					ownTypePlayer.add(playedRole.getKey().getPlayer());
-					rolePlayer.put(playedRole.getKey().getType(), ownTypePlayer);
-					
-					// check counter player roles
-					if(matchCounterRoleTypes( playedRole.getKey(), rolePlayer)){
-						
-						playedRole.setValue(Match.BINDING);
-					
-						// check counter player
-						if(matchCounterPlayer(playedRole.getKey(), rolePlayer)){
-							
-							found = true;
-							playedRole.setValue(Match.INSTANCE);
-							break;
-						}
-					}
-				}
-			}
-			
-			if(!found){
-				
-				// create new association
-				logger.info("Create new nnary association " + associationType);
-				
-				Association ass = getTopicMap().createAssociation(associationType, scope);
-				
-				// add own player
-				ass.createRole(roleType, topic);
-				
-				// add player from container
-				for (Map.Entry<Topic, Set<Topic>> rolePlayer : containerRolePlayer.entrySet()) {
-					
-					for(Topic player:rolePlayer.getValue()){
-						logger.info("Create role " +  player + " with type " + rolePlayer.getKey());
-						ass.createRole(rolePlayer.getKey(), player);
-					}
-				}
-				
-				if(binding.isPersistOnCascade()){
-
-					addCascadingRole(associationObject, topicObjects);
-					
-				}
-			}
-		}
-	}
-	
-	private void addCascadingRole(Object associationContainer, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
-		
-		AssociationContainerBinding binding = (AssociationContainerBinding)getBindingHandler().getBinding(associationContainer.getClass());
-		
-		for(RoleBinding roleBinding:binding.getRoleBindings()){
-			
-			// get the objects
-			
-			if(roleBinding.isArray()){
-				
-				Object[] objects = (Object[])roleBinding.getValue(associationContainer);
-				
-				for(Object obj:objects){
-					topicObjects.add(obj);
-					logger.info("Persist/Update " + obj + " on cascade.");
-				}
-
-			}else if(roleBinding.isCollection()){
-				
-				Collection<Object> objects = (Collection<Object>)roleBinding.getValue(associationContainer);
-				
-				for(Object obj:objects){
-					topicObjects.add(obj);
-					logger.info("Persist/Update " + obj + " on cascade.");
-				}
-				
-			}else{
-				
-				topicObjects.add(roleBinding.getValue(associationContainer));
-				logger.info("Persist/Update " + roleBinding.getValue(associationContainer) + " on cascade.");
-			}
-		}
-	}
-	
-	
-	private boolean matchCounterRoleTypes(Role playedRole, Map<Topic,Set<Topic>> rolePlayers){
-		
-		Set<Topic> existingRolesTypes = playedRole.getParent().getRoleTypes();
-		
-		if(existingRolesTypes.size() != rolePlayers.keySet().size())
-			return false;
-		
-		for(Topic newRoleType:rolePlayers.keySet()){
-			
-			if(!existingRolesTypes.contains(newRoleType))
-				return false;
-		}
-
-		return true;
-	}
-
-	private boolean matchCounterPlayer(Role playedRole, Map<Topic,Set<Topic>> rolePlayers){
-		
-		Association association = playedRole.getParent();
-		
-		for (Map.Entry<Topic, Set<Topic>> rolePlayer : rolePlayers.entrySet()) {
-		
-			Set<Role> existingRoles = association.getRoles(rolePlayer.getKey()); // get player of type
-			
-			if(existingRoles.size() != rolePlayer.getValue().size())
-				return false;
-			
-			for(Role existingRole:existingRoles){
-				
-				if(!rolePlayer.getValue().contains(existingRole.getPlayer()))
-					return false;
-				
-			}
-		}
-		
-		return true;
-	}
-	
-	
-	@SuppressWarnings("unchecked") /// TODO add recursively!!!
-	private Map<Topic,Set<Topic>> getRolesFromContainer(Object associationContainerInstance) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException{
-		
-		Map<Topic,Set<Topic>> result = new HashMap<Topic, Set<Topic>>();
-		
-		AssociationContainerBinding binding = (AssociationContainerBinding)getBindingHandler().getBinding(associationContainerInstance.getClass());
-		
-		for(RoleBinding roleBinding:binding.getRoleBindings()){
-			
-			Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(roleBinding.getRoleType()));
-			Set<Topic> player = null;
-			if(result.get(roleType) == null)
-				player = new HashSet<Topic>();
-			else player = result.get(roleType);
-			
-			if(roleBinding.getValue(associationContainerInstance) != null){
-				
-				if (roleBinding.isArray()){
-	
-					for (Object obj : (Object[]) roleBinding.getValue(associationContainerInstance)){
-						
-						Topic topic = createTopicByIdentifier(obj, roleBinding.getPlayerBinding());
-						topic.addType(getTopicType(roleBinding.getPlayerBinding()));
-						player.add(topic);
-					}
-		
-				}else if (roleBinding.isCollection()){
-					
-					for (Object obj : (Collection<Object>) roleBinding.getValue(associationContainerInstance)){
-							
-						Topic topic = createTopicByIdentifier(obj, roleBinding.getPlayerBinding());
-						topic.addType(getTopicType(roleBinding.getPlayerBinding()));
-						player.add(topic);
-					}
-	
-				}else{
-					
-					Topic topic = createTopicByIdentifier(roleBinding.getValue(associationContainerInstance), roleBinding.getPlayerBinding());
-					topic.addType(getTopicType(roleBinding.getPlayerBinding()));
-					player.add(topic);
-				}
-			}
-			
-			result.put(roleType, player);
-		}
-		
-		return result;
-	}
 	
 	private Set<Topic> getRoleTypesFromContainer(AssociationContainerBinding containerBinding){
 		
@@ -1549,6 +1652,27 @@ public class TopicMapHandler {
 	
 	
 	private Topic createTopicByIdentifier(Object topicObject, TopicBinding binding) throws TopicMapIOException{
+
+		Topic topic = getTopicByIdentifier(topicObject, binding);
+			
+		if(topic == null){
+			
+			// get subject identifier
+			Set<String> subjectIdentifier = getIdentifier(topicObject, binding, IdType.SUBJECT_IDENTIFIER);
+			// get subject locator
+			Set<String> subjectLocator = getIdentifier(topicObject, binding, IdType.SUBJECT_LOCATOR);
+			// get item identifier
+			Set<String> itemIdentifier = getIdentifier(topicObject, binding, IdType.ITEM_IDENTIFIER);
+			
+			// create new topic
+			topic = createNewTopic(subjectIdentifier, subjectLocator, itemIdentifier);
+			
+		}else logger.info("Topic already exist.");
+
+		return topic;
+	}
+	
+	private Topic getTopicByIdentifier(Object topicObject, TopicBinding binding){
 		
 		// get subject identifier
 		Set<String> subjectIdentifier = getIdentifier(topicObject, binding, IdType.SUBJECT_IDENTIFIER);
@@ -1568,15 +1692,9 @@ public class TopicMapHandler {
 			
 		if(topic == null)
 			topic = getTopicByItemIdentifier(itemIdentifier);
-			
-		if(topic == null){
-			
-			// create new topic
-			topic = createNewTopic(subjectIdentifier, subjectLocator, itemIdentifier);
-			
-		}else logger.info("Topic already exist.");
-
+		
 		return topic;
+		
 	}
 	
 	
