@@ -8,5 +8,4 @@ package de.topicmapslab.aranuka;
 public enum Property {
 	BASE_LOCATOR,
 	FILENAME
-	/// TODO add more
 }
