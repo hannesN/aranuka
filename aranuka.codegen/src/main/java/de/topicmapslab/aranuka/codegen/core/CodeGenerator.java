@@ -87,12 +87,17 @@ public class CodeGenerator {
 			createType(tad);
 		}
 
+		if (directory.isFile())
+			throw new IllegalArgumentException("path does not lead to a directory!");
+		if (!directory.exists())
+			directory.mkdir();
+		
 		cm.build(directory);
 	}
 
 	private void createType(TopicAnnotationDefinition tad) {
 		try {
-			JDefinedClass type = modelPackage._class(tad.getType());
+			JDefinedClass type = modelPackage._class(tad.getName());
 			JAnnotationUse use = type.annotate(topicAnnotation);
 			use.param("subject_identifier", tad.getSubjectIdentifer());
 
