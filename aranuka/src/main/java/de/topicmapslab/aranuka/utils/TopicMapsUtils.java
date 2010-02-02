@@ -10,8 +10,18 @@ import org.tmapi.core.Role;
 
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 
+/**
+ * Utils class for the work with the topic map.
+ * @author Christian Haß
+ *
+ */
 public class TopicMapsUtils {
 
+	/**
+	 * Generates a subject identifier from a class.
+	 * @param clazz - The class.
+	 * @return The identifier as string.
+	 */
 	public static String generateSubjectIdentifier(Class<?> clazz){
 
 		StringBuilder builder = new StringBuilder();
@@ -23,6 +33,11 @@ public class TopicMapsUtils {
 		return builder.toString();
 	}
 	
+	/**
+	 * Generates a subject identifier for an field.
+	 * @param field - The field.
+	 * @return - The identifier as string.
+	 */
 	public static String generateSubjectIdentifier(Field field){
 		
 		String identifier = generateSubjectIdentifier(field.getDeclaringClass());
@@ -31,6 +46,12 @@ public class TopicMapsUtils {
 		return identifier;
 	}
 	
+	/**
+	 * Resolves an uri using an prefix.
+	 * @param uri - The uri.
+	 * @param prefixMap - The prefix map.
+	 * @return The resolved uri as string.
+	 */
 	public static String resolveURI(String uri, Map<String,String> prefixMap) {
 		
 		int idx = uri.indexOf(":");
@@ -49,6 +70,13 @@ public class TopicMapsUtils {
 		return uri;
 	}
 
+	/**
+	 * Gets the counter role of an binary association.
+	 * @param association - The association.
+	 * @param ownRole - The own role.
+	 * @return The counter role.
+	 * @throws TopicMapInconsistentException
+	 */
 	public static Role getCounterRole(Association association, Role ownRole) throws TopicMapInconsistentException{
 		
 		if(association.getRoles().size() != 2)
@@ -63,7 +91,13 @@ public class TopicMapsUtils {
 		return null;
 	}
 	
-	public static Set<Role> getCounterPlayers(Association association, Role ownRole){
+	/**
+	 * Returns the counter roles of an nnary association.
+	 * @param association - The association.
+	 * @param ownRole - The own role.
+	 * @return Set of counter roles. 
+	 */
+	public static Set<Role> getCounterRoles(Association association, Role ownRole){
 		
 		Set<Role> result = new HashSet<Role>();
 		
