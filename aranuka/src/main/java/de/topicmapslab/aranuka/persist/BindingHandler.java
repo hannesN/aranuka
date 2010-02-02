@@ -42,23 +42,40 @@ import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
-// creates and stores bindings, returns bindings on demand
+/**
+ * Class which handles the annotation bindings.
+ * @author Christian Haß
+ *
+ */
 public class BindingHandler {
 
 	private static Logger logger = LoggerFactory.getLogger(BindingHandler.class);
 	
+	/**
+	 * Map to cache already create bindings.
+	 */
 	private Map<Class<?>, AbstractClassBinding> bindingMap;
+	/**
+	 * The configuration.
+	 */
 	private Configuration config;
 	
 
-	// --[ public methods ]------------------------------------------------------------------------------
-	
+	/**
+	 * Constructor.
+	 * @param config - Configuration class.
+	 */
 	public BindingHandler(Configuration config) {
 		
 		this.config = config;
 	}
 	
-	// pre-creates bindings for a set of classes
+	/**
+	 * Pre-creates bindings for all configured classes. Used for non lazy binding behavior.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	public void createBindingsForAllClasses() throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		for(Class<?> clazz:config.getClasses()){
@@ -82,7 +99,16 @@ public class BindingHandler {
 		}
 	}
 	
-	// gets the bindings for an specific class
+
+	/**
+	 * Returns the binding for an specific class. If the binding not exist yet, a new binding will be created.
+	 * @param clazz - The class.
+	 * @return The topic or association container binding, dependend on the class. 
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 * TODO Split in two methods to avoid necessary cast.
+	 */
 	public AbstractClassBinding getBinding(Class<?> clazz) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		if(getBindingFromCache(clazz) != null)
@@ -113,6 +139,10 @@ public class BindingHandler {
 		
 	}
 
+	/**
+	 * Returns a set with all available topic bindings.
+	 * @return The set.
+	 */
 	public Set<TopicBinding> getAllTopicBindings(){
 		
 		if(this.bindingMap == null)
@@ -129,6 +159,11 @@ public class BindingHandler {
 		return result;
 	}
 	
+	/**
+	 * Returns the corresponding class to a specific binding.
+	 * @param binding - The binding.
+	 * @return The class.
+	 */
 	public Class<?> getClassForBinding(AbstractClassBinding binding){
 		
 		if(bindingMap == null)
@@ -142,25 +177,15 @@ public class BindingHandler {
 		
 		return null;
 	}
-	
-	// for debug
-	
-	public void printBindings(){
 
-		if(bindingMap != null)
-			for(Map.Entry<Class<?>, AbstractClassBinding> entry:bindingMap.entrySet()){
-				
-				System.out.println("");
-				System.out.println(entry.getValue().toString());
-				
-			}
-				
-	}
-	
-	// --[ private methods ]-------------------------------------------------------------------------------
-	
-	// topic bindings
-	
+	/**
+	 * Returns the topic binding of an specific class. Returns null if the class is not @topic annotated.
+	 * @param clazz - The class.
+	 * @return The binding or null.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private TopicBinding getTopicBinding(Class<?> clazz) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 
 		if(!isTopicAnnotated(clazz))
@@ -175,6 +200,14 @@ public class BindingHandler {
 		return binding;
 	}
 	
+	/**
+	 * Creates a topic binding for a specific class. Throws BadAnnotationException if class is not @topic annotated.
+	 * @param clazz - The class
+	 * @return - The binding.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private TopicBinding createTopicBinding(Class<?> clazz) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		logger.info("Create topic binding for " + clazz.getName());
@@ -236,6 +269,12 @@ public class BindingHandler {
 		return binding;
 	}
 	
+	/**
+	 * Check if a topic binding is valid.
+	 * @param binding - The binding.
+	 * @param clazz - The corresponding class.
+	 * @throws BadAnnotationException
+	 */
 	private void checkTopicBinding(TopicBinding binding, Class<?> clazz) throws BadAnnotationException{
 		
 		Map<IdType,Integer> idCounter = new HashMap<IdType, Integer>();
@@ -283,8 +322,14 @@ public class BindingHandler {
 				throw new BadAnnotationException("Multiple fields annotated with occurrence type " + entry.getKey());
 	}
 		
-	// association  container bindings
-	
+	/**
+	 * Returns the association container binding for a specific class. Creates a new binding if not existing.
+	 * @param clazz - The class.
+	 * @return The binding or null if the class is not @AssociationContainer annotated
+	 * @throws ClassNotSpecifiedException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 */
 	private AssociationContainerBinding getAssociationContainerBinding(Class<?> clazz) throws ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException{
 		
 		if(!isAssociationContainerAnnotated(clazz))
@@ -300,6 +345,14 @@ public class BindingHandler {
 		
 	}
 		
+	/**
+	 * Creates a new association container binding for an specific class. Throws a BadAnnotationException if the class is not @AssociationContainer annotated.
+	 * @param clazz - The class.
+	 * @return The new bindind.
+	 * @throws ClassNotSpecifiedException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 */
 	private AssociationContainerBinding createAssociationContainerBinding(Class<?> clazz) throws ClassNotSpecifiedException, BadAnnotationException, NoSuchMethodException{
 	
 	logger.info("Create association container binding for " + clazz.getName());
@@ -340,8 +393,15 @@ public class BindingHandler {
 	return binding;
 }
 		
-	// --[ create binding of topic fields ]-------------------------------------------------
-	
+	/**
+	 * Creates a binding for an topic field.
+	 * @param binding - The corresponding topic binding.
+	 * @param field - The field.
+	 * @param clazz - The class to which the field belongs.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private void createFieldBinding(TopicBinding binding, Field field, Class<?> clazz) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
 		
 		// ignore transient fields
@@ -393,6 +453,16 @@ public class BindingHandler {
 		}
 	}
 	
+	/**
+	 * Creates the binding for an @Id annotated field.
+	 * @param topicBinding - The corresponding topic binding.
+	 * @param field - The field.
+	 * @param clazz - The class to which the field belongs.
+	 * @param idAnnotation - The annotation object.
+	 * @throws NoSuchMethodException
+	 * @throws BadAnnotationException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private void createIdBinding(TopicBinding topicBinding, Field field, Class<?> clazz, Id idAnnotation) throws NoSuchMethodException, BadAnnotationException, ClassNotSpecifiedException {
 		
 		logger.info("Create id-binding for field: " + field.getName());
@@ -415,6 +485,16 @@ public class BindingHandler {
 		addMethods(field, clazz, ib);
 	}
 	
+	/**
+	 * Creates the binding for an @Name annotated field.
+	 * @param topicBinding - The corresponding topic binding.
+	 * @param field - The field.
+	 * @param clazz - The class to which the field belongs.
+	 * @param nameAnnotation - The annotation object.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private void createNameBinding(TopicBinding topicBinding, Field field, Class<?> clazz, Name nameAnnotation) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		logger.info("Create name-binding for field: " + field.getName());
@@ -447,6 +527,16 @@ public class BindingHandler {
 		addMethods(field, clazz, nb);
 	}
 	
+	/**
+	 * Creates the binding for an @Occurrence annotated field.
+	 * @param topicBinding - The corresponding topic binding.
+	 * @param field - The field.
+	 * @param clazz - The class to which the field belongs.
+	 * @param occurrenceAnnotation - The annotation object.
+	 * @throws NoSuchMethodException
+	 * @throws BadAnnotationException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private void createOccurrenceBinding(TopicBinding topicBinding, Field field, Class<?> clazz, Occurrence occurrenceAnnotation) throws NoSuchMethodException, BadAnnotationException, ClassNotSpecifiedException {
 		
 		logger.info("Create occurrence-binding for field: " + field.getName());
@@ -477,6 +567,16 @@ public class BindingHandler {
 		addMethods(field, clazz, ob);
 	}
 
+	/**
+	 * Creates the binding for an @Association annotated field.
+	 * @param topicBinding - The corresponding topic binding.
+	 * @param field - The field.
+	 * @param clazz - The class to which the field belongs.
+	 * @param associationAnnotation
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private void createAssociationBinding(TopicBinding topicBinding, Field field, Class<?> clazz,  Association associationAnnotation) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		logger.info("Create association-binding for field: " + field.getName());
@@ -536,11 +636,16 @@ public class BindingHandler {
 		addMethods(field, clazz, ab);
 		
 	}
-		
-	// create fields
-	
-	// --[ create binding for association container fields ]---------------------------------
-	
+
+	/**
+	 * Creates an field binding for an association container field.
+	 * @param binding - The corresponding association container binding.
+	 * @param field - The field.
+	 * @param clazz - The class to which the field belongs.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private void createFieldBinding(AssociationContainerBinding binding, Field field, Class<?> clazz) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		// ignore transient fields
@@ -556,13 +661,22 @@ public class BindingHandler {
 			
 			createRoleBinding(binding, field, clazz, role);
 			
-		}else{
-			
+		}else if(!field.isSynthetic()){ // catch synthetic fields, i.e. the funny this$0 which exist when using nested classes
 			throw new BadAnnotationException("Non transient field " + field.getName() + " of an association container class has to be @Role annotated.");
 		}
 	}
 	
 	
+	/**
+	 * Creates the binding for an @Role annotated field.
+	 * @param associationContainerBinding - The corresponding association container binding.
+	 * @param field - The field.
+	 * @param clazz - The class to which the field belongs.
+	 * @param roleAnnotation - The annotation object.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private void createRoleBinding(AssociationContainerBinding associationContainerBinding, Field field, Class<?> clazz,  Role roleAnnotation) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
 		
 		logger.info("Create role-binding for field: " + field.getName());
@@ -592,6 +706,15 @@ public class BindingHandler {
 		addMethods(field, clazz, rb);
 	}
 	
+	/**
+	 * Adds getter and setter methods to an field binding.
+	 * @param field - The field.
+	 * @param clazz - The class to which the field belongs.
+	 * @param fb - The field binding.
+	 * @throws NoSuchMethodException
+	 * @throws BadAnnotationException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private void addMethods(Field field, Class<?> clazz, AbstractFieldBinding fb) throws NoSuchMethodException, BadAnnotationException, ClassNotSpecifiedException{
 		
 		// create binding for generic type if necessary
@@ -638,6 +761,11 @@ public class BindingHandler {
 	}
 	
 	
+	/**
+	 * Checks if a class needs a binding mapping.
+	 * @param clazz - The class.
+	 * @return True or false.
+	 */
 	private boolean needsMapping(Class<?> clazz) {
 		
 		Class<?> checkClazz = clazz;
@@ -657,7 +785,11 @@ public class BindingHandler {
 		return true;
 	}
 	
-	
+	/**
+	 * Checks if a field is  transient.
+	 * @param field - The field.
+	 * @return True or false.
+	 */
 	private boolean isTransient(Field field){
 		
 		if ((field.getModifiers() & Modifier.TRANSIENT) != 0)
@@ -666,7 +798,11 @@ public class BindingHandler {
 		return false;
 	}
 	
-	
+	/**
+	 * Checks if a class is @Topic annotated.
+	 * @param clazz - The class.
+	 * @return True or false.
+	 */
 	private boolean isTopicAnnotated(Class<?> clazz){
 		
 		Topic topic = clazz.getAnnotation(Topic.class);
@@ -676,7 +812,11 @@ public class BindingHandler {
 		return false;
 	}
 	
-
+	/**
+	 * Checks if a class is @AssociationContainer annotated.
+	 * @param clazz - The class.
+	 * @return True or false.
+	 */
 	private boolean isAssociationContainerAnnotated(Class<?> clazz){
 		
 		AssociationContainer associationContainer = clazz.getAnnotation(AssociationContainer.class);
@@ -686,6 +826,11 @@ public class BindingHandler {
 		return false;
 	}
 	
+	/**
+	 * Adds a scope to an field binding.
+	 * @param field - The field.
+	 * @param fb - The field binding.
+	 */
 	private void addScope(Field field, AbstractFieldBinding fb){
 		
 		Scope scope = field.getAnnotation(Scope.class);
@@ -703,7 +848,11 @@ public class BindingHandler {
 		fb.setThemes(resolvedThemes);
 	}
 	
-	
+	/**
+	 * Gets the XSD data type for an specific type.
+	 * @param type - The type.
+	 * @return The subject identifier of the XSD data type as string.
+	 */
 	private String getXSDDatatype(Type type) {
 		
 		if (type.equals(Boolean.class))
@@ -725,7 +874,11 @@ public class BindingHandler {
 	}
 	
 	
-	// private getter and setter
+	/**
+	 * Adds a binding to the cache.
+	 * @param clazz - The class to which the binding belongs.
+	 * @param binding - The binding.
+	 */
 	private void addBindingToCache(Class<?> clazz, AbstractClassBinding binding){
 		
 		if (bindingMap == null)
@@ -735,6 +888,11 @@ public class BindingHandler {
 		
 	}
 
+	/**
+	 * Retrieves a binding from the cache.
+	 * @param clazz - The class to which the binding belongs.
+	 * @return The binding or null if not existing.
+	 */
 	private AbstractClassBinding getBindingFromCache(Class<?> clazz){
 		
 		if(bindingMap == null)

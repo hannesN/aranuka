@@ -1,3 +1,4 @@
+
 package de.topicmapslab.aranuka.persist;
 
 import java.lang.reflect.ParameterizedType;
@@ -46,21 +47,44 @@ import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
-// handles interaction with the topic map, i.e. creating topics and associations, updating, etc.
+
+/**
+ * Class which encapsulates interactions with the topic map.
+ * @author Christian Haß
+ *
+ */
 public class TopicMapHandler {
 
 	private static Logger logger = LoggerFactory.getLogger(TopicMapHandler.class);
 	
-	private Configuration config; // the configuration
-	private BindingHandler bindingHandler; // the binding handler
-	private TopicMap topicMap; // the topic map
+	/**
+	 * The configuration.
+	 */
+	private Configuration config;
+	/**
+	 * Instance of the binding handler.
+	 */
+	private BindingHandler bindingHandler;
+	/**
+	 * The topic map.
+	 */
+	private TopicMap topicMap;
 	
+	/**
+	 * Cache for already created topic objects.
+	 */
 	private Map<Object, Topic> topicCache;
+	/**
+	 * Temporary cache for objects created for existing topics.
+	 */
 	private Map<Topic, Object> objectCache;
 	
-	
-	// --[ public methods ]------------------------------------------------------------------------------
-		
+
+	/**
+	 * Constructor.
+	 * @param config - The configuration.
+	 * @param topicMap - The topic map. 
+	 */
 	public TopicMapHandler(Configuration config, TopicMap topicMap){
 
 		if(config == null)
@@ -73,12 +97,29 @@ public class TopicMapHandler {
 		this.topicMap = topicMap;
 	}
 	
+	/**
+	 * Invokes binding creation for all configured classes (non lazy binding).
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	public void invokeBinding() throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		getBindingHandler().createBindingsForAllClasses();
 
 	}
 
+	/**
+	 * Persists an specific object in the topic map. Creates all identifier, names, occurrences and associations. 
+	 * Associated topics will be created as simple topics with only one identifier, except the corresponding association 
+	 * annotation has the persistOnCascade flag set.
+	 * @param topicObject - The object representing the topic.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 */
 	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
 		List<Object> topicToPersist = new ArrayList<Object>();
@@ -86,7 +127,11 @@ public class TopicMapHandler {
 		topicToPersist.add(topicObject);
 		persistTopics(topicToPersist);
 	}
-		
+	
+	/**
+	 * Returns the topic map.
+	 * @return The topic map.
+	 */
 	public TopicMap getTopicMap()
 	{
 		if(this.topicMap == null)
@@ -95,6 +140,16 @@ public class TopicMapHandler {
 		return this.topicMap;
 	}
 	
+	/**
+	 * Returns objects for topics of a specific type.
+	 * @param clazz - The class representing the topic type.
+	 * @return Set of objects.
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	public Set<Object> getTopicsByType(Class<?> clazz) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		TopicBinding binding = null;
@@ -130,6 +185,16 @@ public class TopicMapHandler {
 		return instances;
 	}
 	
+	/**
+	 * Returns an object for an specific topic identified by an subject identifier.
+	 * @param si - The subject identifier as string.
+	 * @return The object or null if not found.
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	public Object getObjectBySubjectIdentifier(String si) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		Topic topic = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(si));
@@ -140,6 +205,16 @@ public class TopicMapHandler {
 		return getObject(topic);
 	}
 	
+	/**
+	 * Returns an object for an specific topic identified by an subject locator.
+	 * @param sl - The subject locator as string.
+	 * @return The object or null if not found.
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	public Object getObjectBySubjectLocator(String sl) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 	
 		Topic topic = getTopicMap().getTopicBySubjectLocator(getTopicMap().createLocator(sl));
@@ -150,6 +225,16 @@ public class TopicMapHandler {
 		return getObject(topic);
 	}
 	
+	/**
+	 * Returns an object for an specific topic identified by an item identifier.
+	 * @param ii - The item identifier as string.
+	 * @return The object or null if not found or the identifier identifies an non topic construct.
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	public Object getObjectByItemIdentifier(String ii) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		Construct construct = getTopicMap().getConstructByItemIdentifier(getTopicMap().createLocator(ii));
@@ -170,6 +255,15 @@ public class TopicMapHandler {
 		
 	}
 	
+	/**
+	 * Removes an topic specified by an object from the topic map.
+	 * @param object - The object.
+	 * @return True in case an topic was removed, otherwise false.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 * TODO Check behavior of the topic map engine wrt. cascading delete.
+	 */
 	public boolean removeTopic(Object object) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		
@@ -184,6 +278,14 @@ public class TopicMapHandler {
 		return false;
 	}
 	
+	/**
+	 * Returns the topic specified by an specific object.
+	 * @param object - The object.
+	 * @return The topic or null if not found.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private Topic getTopic(Object object) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		Topic topic = getTopicFromCache(object);
@@ -196,8 +298,17 @@ public class TopicMapHandler {
 		return getTopicByIdentifier(object, binding);
 	}
 	
-	// --[ private methods ]-------------------------------------------------------------------------------
-	
+
+	/**
+	 * Returns an object for an specific topic.
+	 * @param topic - The topic.
+	 * @return The object or null if not found.
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private Object getObject(Topic topic) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		TopicBinding binding = getTopicBinding(topic);
@@ -215,6 +326,12 @@ public class TopicMapHandler {
 		return obj;
 	}
 	
+	/**
+	 * Returns the topic binding for an specific topic.
+	 * @param topic - The topic.
+	 * @return The binding or null if not found.
+	 * TODO maybe invoke binding creation for all registered classes
+	 */
 	private TopicBinding getTopicBinding(Topic topic){
 		
 		if(topic == null)
@@ -223,7 +340,7 @@ public class TopicMapHandler {
 		if(topic.getTypes().isEmpty()) 
 			return null; // cannot instantiate types
 		
-		Set<TopicBinding> bindings = getBindingHandler().getAllTopicBindings(); /// TODO maybe invoke binding creation for all registered classes
+		Set<TopicBinding> bindings = getBindingHandler().getAllTopicBindings();
 		
 		for(Topic type:topic.getTypes()){
 			
@@ -242,6 +359,15 @@ public class TopicMapHandler {
 		return null;
 	}
 	
+	/**
+	 * Persists a set of objects in the topic map.
+	 * @param topicObjects - The objects.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 */
 	private void persistTopics(List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 
 		List<Object> toInstanciateTopicObjects = topicObjects;
@@ -277,12 +403,21 @@ public class TopicMapHandler {
 		    cascadingTopicObjects.clear();
 	    
 		}while(!toInstanciateTopicObjects.isEmpty());
-	    
-	    
-	    
-	    
+ 
 	}
 	
+	/**
+	 * Persists a specific object in the topic map.
+	 * @param topicObject - The object.
+	 * @param topicObjects - Set where objects which needs as well to be persisted, i.e. used the persistOnCascade flag, are added.
+	 * @param binding - The topic binding.
+	 * @return The topic.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 */
 	private Topic persistTopic(Object topicObject, List<Object> topicObjects, TopicBinding binding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
 		logger.info("Persist topic object " + topicObject);
@@ -312,6 +447,12 @@ public class TopicMapHandler {
 		return newTopic;
 	}
 	
+	/**
+	 * Returns the topic type represented by an specific topic binding. Creates a new topic type if not existing.
+	 * @param binding - The topic binding.
+	 * @return The topic type.
+	 * @throws BadAnnotationException
+	 */
 	private Topic getTopicType(TopicBinding binding) throws BadAnnotationException{
 		
 		if(binding.getIdentifier().isEmpty())
@@ -335,6 +476,18 @@ public class TopicMapHandler {
 		return type;
 	}
 	
+	/**
+	 * Updates an already existing topic corresponding to an specific object.
+	 * @param topic - The topic.
+	 * @param topicObject - The object.
+	 * @param binding - The topic binding.
+	 * @param topicObjects - Set where objects which needs as well to be persisted, i.e. used the persistOnCascade flag, are added.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 */
 	private void updateTopic(Topic topic, Object topicObject, TopicBinding binding, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
 		logger.info("Update existing topic " + topicObject);
@@ -352,8 +505,13 @@ public class TopicMapHandler {
 		updateAssociations(topic, topicObject, binding, topicObjects);
 	}
 	
-	// modifies the topic subject identifier to represent the current java object
-	// used for create new topic as well
+	
+	/**
+	 * Updates the subject identifier of an specific topic according the an specific object.
+	 * @param topic - The topic.
+	 * @param topicObject - The object.
+	 * @param binding - The topic binding.
+	 */
 	private void updateSubjectIdentifier(Topic topic, Object topicObject, TopicBinding binding){
 		
 		Set<String> newSubjectIdentifier = getIdentifier(topicObject, binding, IdType.SUBJECT_IDENTIFIER);
@@ -391,6 +549,12 @@ public class TopicMapHandler {
 		}
 	}
 	
+	/**
+	 * Updates the subject locators of an specific topic according to an object.
+	 * @param topic - The topic.
+	 * @param topicObject - The object.
+	 * @param binding - The topic binding.
+	 */
 	private void updateSubjectLocator(Topic topic, Object topicObject, TopicBinding binding){
 		
 		Set<String> newSubjectLocator = getIdentifier(topicObject, binding, IdType.SUBJECT_LOCATOR);
@@ -428,6 +592,12 @@ public class TopicMapHandler {
 		}
 	}
 	
+	/**
+	 * Updates the item identifiers of an specific topic according to an object.
+	 * @param topic - The topic.
+	 * @param topicObject - The object.
+	 * @param binding - The topic binding.
+	 */
 	private void updateItemIdentifier(Topic topic, Object topicObject, TopicBinding binding){
 	
 		Set<String> newItemIdentifier = getIdentifier(topicObject, binding, IdType.ITEM_IDENTIFIER);
@@ -466,8 +636,12 @@ public class TopicMapHandler {
 		}
 	}
 	
-	// modifies the topic names to represent the current java object
-	// used for create new topic as well
+	/**
+	 * Updates the names of an specific topic according to an object.
+	 * @param topic - The topic.
+	 * @param topicObject - The object.
+	 * @param binding - The topic binding.
+	 */
 	private void updateNames(Topic topic, Object topicObject, TopicBinding binding){
 		
 		// get new names
@@ -522,8 +696,12 @@ public class TopicMapHandler {
 		}
 	}
 	
-	// modifies the topic occurrences to represent the current java object
-	// used for create new topic as well
+	/**
+	 * Updates the occurrences of an specific topic according to an object.
+	 * @param topic - The topic.
+	 * @param topicObject - The object.
+	 * @param binding - The topic binding.
+	 */
 	private void updateOccurrences(Topic topic, Object topicObject, TopicBinding binding){
 		
 		// get new occurrences
@@ -579,8 +757,18 @@ public class TopicMapHandler {
 		
 	}
 	
-	// modifies the topic associations to represent the current java object
-	// used for create new topic as well
+	/**
+	 * Updates the associations in which an specific topic playes a role according to an object.
+	 * @param topic - The topic.
+	 * @param topicObject - The object.
+	 * @param binding - The topic binding.
+	 * @param topicObjects - Set where objects which needs as well to be persisted, i.e. used the persistOnCascade flag, are added.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 */
 	private void updateAssociations(Topic topic, Object topicObject, TopicBinding binding, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException{
 		
 		// get new associations
@@ -622,6 +810,13 @@ public class TopicMapHandler {
 		}
 	}
 	
+	/**
+	 * Updates a number of specific unary associations.
+	 * @param topic - The topic which playes a role in the associations.
+	 * @param binding - The association binding.
+	 * @param associationObjects - The association objects, i.e. the boolean values.
+	 * @param playedRoles - The roles played by the topic.
+	 */
 	private void updateUnaryAssociation(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role,Match> playedRoles){
 		
 		if(associationObjects.size() != 1)
@@ -673,6 +868,17 @@ public class TopicMapHandler {
 		}
 	}
 
+	/**
+	 * Updates a number of specific binary associations.
+	 * @param topic - The topic which playes a role in the association.
+	 * @param binding - The association binding.
+	 * @param associationObjects - The association objects, i.e. the objects representing the counter player topics.
+	 * @param playedRoles - The roles played by the topic.
+	 * @param topicObjects - Set where objects which needs as well to be persisted, i.e. used the persistOnCascade flag, are added.
+	 * @throws TopicMapInconsistentException
+	 * @throws TopicMapIOException
+	 * @throws BadAnnotationException
+	 */
 	private void updateBinaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles, List<Object> topicObjects) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException{
 
 		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
@@ -727,6 +933,18 @@ public class TopicMapHandler {
 		}
 	}
 
+	/**
+	 * Updates a number of specific nnary associations.
+	 * @param topic - The topic which playes a role in the associations.
+	 * @param binding - The association binding.
+	 * @param associationObjects - The association objects, i.e. the association container objects.
+	 * @param playedRoles - The roles played by the topics.
+	 * @param topicObjects - Set where objects which needs as well to be persisted, i.e. used the persistOnCascade flag, are added.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 * @throws TopicMapIOException
+	 */
 	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException{
 
 		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
@@ -801,6 +1019,14 @@ public class TopicMapHandler {
 		}
 	}
 	
+	/**
+	 * Adds an object to an set of objects which to be persisted as well.
+	 * @param associationContainer - The association container in which the role is specified.
+	 * @param topicObjects - The set if objects.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	@SuppressWarnings("unchecked")
 	private void addCascadingRole(Object associationContainer, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
@@ -836,7 +1062,12 @@ public class TopicMapHandler {
 		}
 	}
 	
-	
+	/**
+	 * Checks if a set if role types an player matches a specific association.
+	 * @param playedRole - The role specifying the association.
+	 * @param rolePlayers - Map if role types and player.
+	 * @return True in case the association maches, otherwise false.
+	 */
 	private boolean matchCounterRoleTypes(Role playedRole, Map<Topic,Set<Topic>> rolePlayers){
 		
 		Set<Topic> existingRolesTypes = playedRole.getParent().getRoleTypes();
@@ -853,6 +1084,12 @@ public class TopicMapHandler {
 		return true;
 	}
 
+	/**
+	 * Checks if a number of topics matches the counter player in an specific association.
+	 * @param playedRole - The role specifying the association.
+	 * @param rolePlayers - Map of role types and player.
+	 * @return
+	 */
 	private boolean matchCounterPlayer(Role playedRole, Map<Topic,Set<Topic>> rolePlayers){
 		
 		Association association = playedRole.getParent();
@@ -875,8 +1112,17 @@ public class TopicMapHandler {
 		return true;
 	}
 	
-	
-	@SuppressWarnings("unchecked") /// TODO add recursively!!!
+	/**
+	 * Gets all role types and the related player from an association container object.
+	 * @param associationContainerInstance - The object.
+	 * @return - A map containing the role types and corresponding player.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 * @throws TopicMapIOException
+	 * TODO add recursive call to get roles from superclasses as well.
+	 */
+	@SuppressWarnings("unchecked")
 	private Map<Topic,Set<Topic>> getRolesFromContainer(Object associationContainerInstance) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException{
 		
 		Map<Topic,Set<Topic>> result = new HashMap<Topic, Set<Topic>>();
@@ -925,11 +1171,18 @@ public class TopicMapHandler {
 		return result;
 	}
 	
-	// topicmap to java
-	
-	// update instance from topic map
-	
-	
+	/**
+	 * Creates objects for a set of topics of an specific type.
+	 * @param topics - Set of topics.
+	 * @param binding - The topic binding.
+	 * @param clazz - The class of the new objects.
+	 * @return A set of objects representing the topics.
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private Set<Object> getInstancesFromTopics(Set<Topic> topics, TopicBinding binding, Class<?> clazz) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		if(topics.isEmpty())
@@ -948,6 +1201,18 @@ public class TopicMapHandler {
 		return objects;
 	}
 	
+	/**
+	 * Creates an object representing a specific topic.
+	 * @param topic - The topic.
+	 * @param binding - The binding.
+	 * @param clazz - The class type of the new object.
+	 * @return The object.
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private Object getInstanceFromTopic(Topic topic, TopicBinding binding, Class<?> clazz) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 
 		Object object = getObjectFromCache(topic);
@@ -989,7 +1254,13 @@ public class TopicMapHandler {
 	}
 	
 	
-	
+	/**
+	 * Adds identifier to an newly created object.
+	 * @param topic - The corresponding topic.
+	 * @param object - The object.
+	 * @param binding - The topic binding.
+	 * @throws TopicMapIOException
+	 */
 	private void addIdentifier(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException{
 		
 		for(AbstractFieldBinding afb:binding.getFieldBindings()){
@@ -1022,7 +1293,14 @@ public class TopicMapHandler {
 		}
 	}
 	
-	
+	/**
+	 * Adds identifier to an object.
+	 * @param topic - The corresponding topic.
+	 * @param object - The object.
+	 * @param idBinding - The id binding.
+	 * @param identifiers - Set of identifier.
+	 * @throws TopicMapIOException
+	 */
 	private void addIdentifier(Topic topic, Object object, IdBinding idBinding, Set<Locator> identifiers) throws TopicMapIOException{
 		
 		if(identifiers.isEmpty())
@@ -1132,7 +1410,13 @@ public class TopicMapHandler {
 		}
 	}
 	
-
+	/**
+	 * Add names to an object.
+	 * @param topic - The corresponding topic.
+	 * @param object - The object.
+	 * @param binding - The topic binding.
+	 * @throws TopicMapIOException
+	 */
 	private void addNames(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException{
 		
 		for(AbstractFieldBinding afb:binding.getFieldBindings()){
@@ -1193,7 +1477,13 @@ public class TopicMapHandler {
 		}
 	}
 	
-	
+	/**
+	 * Adds occurrences to an new object.
+	 * @param topic - The corresponding topic.
+	 * @param object - The object.
+	 * @param binding - The topic binding.
+	 * @throws TopicMapIOException
+	 */
 	@SuppressWarnings("unchecked")
 	private void addOccurrences(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException{
 		
@@ -1253,7 +1543,13 @@ public class TopicMapHandler {
 		
 	}
 	
-	
+	/**
+	 * Gets the value of an specific occurrence.
+	 * @param occurrence - The occurrence.
+	 * @param type - The type in which the value needs to be casted.
+	 * @return - The value as object.
+	 * @throws TopicMapIOException
+	 */
 	private Object getOccurrenceValue(Occurrence occurrence, Type type) throws TopicMapIOException{
 
 		try{
@@ -1280,7 +1576,17 @@ public class TopicMapHandler {
 
 	}
 	
-	
+	/**
+	 * Adds associations to an new object.
+	 * @param topic - The corresponding topic.
+	 * @param object - The object.
+	 * @param binding - The topic binding.
+	 * @throws TopicMapInconsistentException
+	 * @throws TopicMapIOException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private void addAssociations(Topic topic, Object object, TopicBinding binding) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		for(AbstractFieldBinding afb:binding.getFieldBindings()){
@@ -1306,6 +1612,13 @@ public class TopicMapHandler {
 		}
 	}
 	
+	/**
+	 * Adds unnary associations to an new object.
+	 * @param topic - The corresponding topic.
+	 * @param object - The object.
+	 * @param associationBinding - The association binding.
+	 * @throws TopicMapInconsistentException
+	 */
 	private void addUnaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws TopicMapInconsistentException{
 		
 		// get role type
@@ -1348,6 +1661,17 @@ public class TopicMapHandler {
 		
 	}
 	
+	/**
+	 * Adds binary associations to an new object.
+	 * @param topic - The corresponding topic.
+	 * @param object - The object.
+	 * @param associationBinding - The association binding.
+	 * @throws TopicMapInconsistentException
+	 * @throws TopicMapIOException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private void addBinaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		// get role type
@@ -1438,6 +1762,17 @@ public class TopicMapHandler {
 		}
 	}
 	
+	/**
+	 * Adds nnary associations to an new object.
+	 * @param topic - The corresponding topic.
+	 * @param object - The object.
+	 * @param associationBinding - The association binding.
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private void addNnaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		if(associationBinding.getAssociationContainerBinding() == null)
@@ -1476,7 +1811,7 @@ public class TopicMapHandler {
 			if(rolePlayed.getParent().getType().equals(associationType)){ // skip those where the roletype matches but the association don't
 				
 				// get counter player
-				Set<Role> counterPlayers = TopicMapsUtils.getCounterPlayers(rolePlayed.getParent(), rolePlayed);
+				Set<Role> counterPlayers = TopicMapsUtils.getCounterRoles(rolePlayed.getParent(), rolePlayed);
 				
 				// check if binding covers all counterplayer
 				
@@ -1515,6 +1850,13 @@ public class TopicMapHandler {
 		
 	}
 	
+	/**
+	 * Adds a number of association container objects to an topic object.
+	 * @param object - The topic object.
+	 * @param binding - The association binding.
+	 * @param containerSet - Set of association container.
+	 * @throws TopicMapIOException
+	 */
 	private void addContainer(Object object, AssociationBinding binding, Set<Object> containerSet) throws TopicMapIOException{
 		
 		if(containerSet.isEmpty())
@@ -1549,7 +1891,17 @@ public class TopicMapHandler {
 		
 	}
 	
-
+	/**
+	 * Fills an association container object according to an set of roles.
+	 * @param container - The container object.
+	 * @param binding - The association container binding.
+	 * @param counterPlayer - Set of roles.
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	private void fillContainer(Object container, AssociationContainerBinding binding, Set<Role> counterPlayer) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		if(counterPlayer.isEmpty())
@@ -1588,6 +1940,13 @@ public class TopicMapHandler {
 		}
 	}
 	
+	/**
+	 * Adds a number of objects to an role field.
+	 * @param container - The association container to which the role field belongs.
+	 * @param objects - Set of objects.
+	 * @param roleBinding - The role binding.
+	 * @throws TopicMapIOException
+	 */
 	private void addObjectsToContainerField(Object container, Set<Object> objects, RoleBinding roleBinding) throws TopicMapIOException{
 		
 		if(objects.isEmpty())
@@ -1623,7 +1982,11 @@ public class TopicMapHandler {
 	}
 	
 
-	
+	/**
+	 * Returns a set of role types occurring in an association container.
+	 * @param containerBinding - The association container.
+	 * @return Set of role types.
+	 */
 	private Set<Topic> getRoleTypesFromContainer(AssociationContainerBinding containerBinding){
 		
 		Set<Topic> types = new HashSet<Topic>();
@@ -1636,7 +1999,12 @@ public class TopicMapHandler {
 		return types;
 	}
 	
-	// adds flags to an set, returns an empty map of the set was null
+	/**
+	 * Adds an flag to an set.
+	 * @param <T> - Template for the set parameter
+	 * @param set - The set.
+	 * @return A map where each element of the set has an additional boolean value.
+	 */
 	private <T extends Object> Map<T, Match> addFlags(Set<T> set){
 		
 		Map<T, Match> map = new HashMap<T, Match>();
@@ -1650,7 +2018,13 @@ public class TopicMapHandler {
 		return map;
 	}
 	
-	
+	/**
+	 * Creates a new topic by an identifier. 
+	 * @param topicObject - The object representing the new topic.
+	 * @param binding - The topic binding.
+	 * @return The new topic.
+	 * @throws TopicMapIOException
+	 */
 	private Topic createTopicByIdentifier(Object topicObject, TopicBinding binding) throws TopicMapIOException{
 
 		Topic topic = getTopicByIdentifier(topicObject, binding);
@@ -1672,6 +2046,12 @@ public class TopicMapHandler {
 		return topic;
 	}
 	
+	/**
+	 * Gets a topic by an identifier specified by an topic object.
+	 * @param topicObject - The topic object.
+	 * @param binding - The topic binding.
+	 * @return The topic or null if not found.
+	 */
 	private Topic getTopicByIdentifier(Object topicObject, TopicBinding binding){
 		
 		// get subject identifier
@@ -1698,7 +2078,11 @@ public class TopicMapHandler {
 	}
 	
 	
-	// tries to find an existing topic by a list of subject identifiers
+	/**
+	 * Gets a topic specified by one of a number of subject identifier.
+	 * @param subjectIdentifier - Set of subject identifier.
+	 * @return The topic or null if not found.
+	 */
 	private Topic getTopicBySubjectIdentifier(Set<String> subjectIdentifier){
 		
 		Topic topic = null;
@@ -1715,7 +2099,11 @@ public class TopicMapHandler {
 	}
 	
 	
-	// tries to find an existing topic by a list of subject locators
+	/**
+	 * Gets a topic specified by one of a number of subject locator.
+	 * @param subjectLocator - Set of subject locator.
+	 * @return The topic or null if not found.
+	 */
 	private Topic getTopicBySubjectLocator(Set<String> subjectLocator){
 		
 		Topic topic = null;
@@ -1732,7 +2120,11 @@ public class TopicMapHandler {
 	}
 	
 	
-	// tries to find an existing topic by a list of item identifiers
+	/**
+	 * Gets a topic specified by one of a number of item identifier.
+	 * @param itemIdentifier - Set of item identifier.
+	 * @return The topic or null if not found.
+	 */
 	private Topic getTopicByItemIdentifier(Set<String> itemIdentifier){
 		
 		Construct construct = null;
@@ -1750,15 +2142,20 @@ public class TopicMapHandler {
 				return (Topic)construct;
 				
 			}
-				
 		}
 		
 		return null;
 	}
 	
 	
-	// used recursively
-@SuppressWarnings("unchecked")
+	/**
+	 * Gets a set if identifier of an specific type from an topic object.
+	 * @param topicObject - The topic object.
+	 * @param binding - The topic binding.
+	 * @param type - The identifier type.
+	 * @return A set of identifier as strings.
+	 */
+	@SuppressWarnings("unchecked")
 	private Set<String> getIdentifier(Object topicObject, TopicBinding binding, IdType type){
 		
 		Set<String> identifier = null;
@@ -1821,8 +2218,13 @@ public class TopicMapHandler {
 	}
 	
 	
-	// used recursively
-@SuppressWarnings("unchecked")
+	/**
+	 * Gets the names specified in an topic object.
+	 * @param topicObject - The topic object.
+	 * @param binding - The topic binding.
+	 * @return A map using the name binding as key and a set of strings for the corresponding names.
+	 */
+	@SuppressWarnings("unchecked")
 	private Map<NameBinding, Set<String>> getNames(Object topicObject, TopicBinding binding){
 		
 		Map<NameBinding, Set<String>> map = null;
@@ -1863,7 +2265,12 @@ public class TopicMapHandler {
 	}
 	
 	
-	// used recursively
+	/**
+	 * Gets the occurrences from an specific topic object.
+	 * @param topicObject - The topic object.
+	 * @param binding - The topic binding.
+	 * @return A map using the occurrence binding as key and a set of strings for the corresponding values.
+	 */
 	@SuppressWarnings("unchecked")
 	private Map<OccurrenceBinding, Set<String>> getOccurrences(Object topicObject, TopicBinding binding){
 		
@@ -1915,8 +2322,13 @@ public class TopicMapHandler {
 	}
 	
 	
-	// used recursively
-@SuppressWarnings("unchecked")
+	/**
+	 * Gets the associations from an specific topic object.
+	 * @param topicObject - The topic object.
+	 * @param binding - The topic binding.
+	 * @return A map using the association binding as key and a set of objects as values.
+	 */
+	@SuppressWarnings("unchecked")
 	private Map<AssociationBinding, Set<Object>> getAssociations(Object topicObject, TopicBinding binding){
 		
 		Map<AssociationBinding, Set<Object>> map = null;
@@ -1964,7 +2376,13 @@ public class TopicMapHandler {
 		return map;
 	}
 	
-		
+	/**
+	 * Adds a new string value to an map using field bindings as key. 
+	 * @param <T> - Template for the field binding.
+	 * @param map - The map.
+	 * @param binding - The binding, i.e. key.
+	 * @param value - The value.
+	 */
 	private <T extends AbstractFieldBinding> void addValueToBindingMap(Map<T,Set<String>> map, T binding, String value){
 		
 		Set<String> set = map.get(binding);
@@ -1977,7 +2395,13 @@ public class TopicMapHandler {
 		map.put(binding, set);
 	}
 	
-	
+	/**
+	 * Adds a new object to an map using field bindings as key. 
+	 * @param <T> - Template for the field binding.
+	 * @param map - The map.
+	 * @param binding - The binding, i.e. key.
+	 * @param object - The object.
+	 */
 	private <T extends AbstractFieldBinding> void addValueToBindingMap(Map<T,Set<Object>> map, T binding, Object object){
 		
 		Set<Object> set = map.get(binding);
@@ -1990,7 +2414,14 @@ public class TopicMapHandler {
 		map.put(binding, set);
 	}
 	
-	
+	/**
+	 * Creates a new topic whether by an subject identifier, an subject locator or an item identifier.
+	 * @param subjectIdentifier - Set of available subject identifiers as string.
+	 * @param subjectLocator - Set of available subject locators as string.
+	 * @param itemIdentifier - Set of available item identifiers as string.
+	 * @return The topic.
+	 * @throws TopicMapIOException
+	 */
 	private Topic createNewTopic(Set<String> subjectIdentifier, Set<String> subjectLocator, Set<String> itemIdentifier) throws TopicMapIOException{
 		
 		Topic topic = null;
@@ -2012,8 +2443,11 @@ public class TopicMapHandler {
 	}
 	
 	
-	// private getter and setter
-	
+	/**
+	 * Adds a topic to the topic cache.
+	 * @param topic - The topic.
+	 * @param object - The object representing the topic.
+	 */
 	private void addTopicToCache(Topic topic, Object object){
 		
 		if(this.topicCache == null)
@@ -2023,7 +2457,11 @@ public class TopicMapHandler {
 		
 	}
 	
-	
+	/**
+	 * Retrieves an topic from the cache.
+	 * @param object - The object representing the topic.
+	 * @return The topic or null if not found.
+	 */
 	private Topic getTopicFromCache(Object object){
 		
 		if(this.topicCache == null)
@@ -2032,7 +2470,10 @@ public class TopicMapHandler {
 		return this.topicCache.get(object);
 	}
 	
-	
+	/**
+	 * Returns the binding handler. Creates a new one if not exist.
+	 * @return The binding handler.
+	 */
 	private BindingHandler getBindingHandler(){
 		
 		if(bindingHandler == null)
@@ -2042,7 +2483,11 @@ public class TopicMapHandler {
 		
 	}
 
-	
+	/**
+	 * Adds an object to the temporary object cache.
+	 * @param object - The object.
+	 * @param topic - The topic for which the object is created.
+	 */
 	private void addObjectToCache(Object object, Topic topic){
 		
 		if(this.objectCache == null)
@@ -2051,6 +2496,11 @@ public class TopicMapHandler {
 		this.objectCache.put(topic, object);
 	}
 	
+	/**
+	 * Retrieves an object from the temporary object cache.
+	 * @param topic - The topic for which the object should be created.
+	 * @return -The object or null if not found.
+	 */
 	private Object getObjectFromCache(Topic topic){
 		
 		if(this.objectCache == null)
@@ -2059,6 +2509,9 @@ public class TopicMapHandler {
 		return this.objectCache.get(topic);
 	}
 	
+	/**
+	 * Clears the temporary object cache.
+	 */
 	private void clearObjectCache(){
 		this.objectCache = null;
 	}
