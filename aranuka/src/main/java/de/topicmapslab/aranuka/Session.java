@@ -201,6 +201,16 @@ public class Session {
 		throw new UnsupportedOperationException();
 	}
 	
+	public TopicMap getTopicMap(){
+		
+		try {
+			return getTopicMapHandler().getTopicMap();
+		} catch (TopicMapException e) {
+			return null;
+		}
+		
+	}
+	
 	// getter and setter
 	
 	// --[ private methods ]-------------------------------------------------------------------------------
@@ -210,7 +220,7 @@ public class Session {
 	 * Creates a new on of not existing.
 	 * @return The topic maps handler.
 	 */
-	private TopicMapHandler getTopicMapHandler() throws TopicMapException{
+ 	private TopicMapHandler getTopicMapHandler() throws TopicMapException{
 
 		if(this.topicMapHandler == null){
 		
