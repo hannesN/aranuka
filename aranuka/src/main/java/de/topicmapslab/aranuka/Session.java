@@ -219,7 +219,7 @@ public class Session {
 				TopicMap topicMap = null;
 				
 				// check if topic map exist
-				if(this.config.getProperty(Property.FILENAME) != ""){
+				if(this.config.getProperty(Property.FILENAME) != null){
 					
 					 File f = new File(this.config.getProperty(Property.FILENAME));
 					 if(f.exists()){

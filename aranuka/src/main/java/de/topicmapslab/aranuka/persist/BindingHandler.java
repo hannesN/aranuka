@@ -93,7 +93,7 @@ public class BindingHandler {
 					addBindingToCache(clazz, binding);
 					
 				}else{
-					 throw new ClassNotSpecifiedException("Cannot create binding for unknown class " + clazz);
+					throw new BadAnnotationException("Class " + clazz + " is neither @Topic or @AssociationContainer annotated.");
 				}
 			}
 		}
@@ -279,6 +279,7 @@ public class BindingHandler {
 		
 		Map<IdType,Integer> idCounter = new HashMap<IdType, Integer>();
 		Map<String,Integer> occCounter = new HashMap<String, Integer>();
+		Map<String,Integer> nameCounter = new HashMap<String, Integer>();
 		
 		// count construct occurrences
 		for(AbstractFieldBinding fb:binding.getFieldBindings())
@@ -301,6 +302,15 @@ public class BindingHandler {
 				count++;
 				occCounter.put(resolvedType, count);
 				
+			}else if(fb instanceof NameBinding){
+				
+				String resolvedType = TopicMapsUtils.resolveURI(((NameBinding)fb).getNameType(), config.getPrefixMap());
+				
+				int count = 0;
+				if(nameCounter.get(resolvedType) != null)
+					count = nameCounter.get(resolvedType);
+				count++;
+				nameCounter.put(resolvedType, count);
 			}
 		}
 		
@@ -320,6 +330,12 @@ public class BindingHandler {
 		for(Map.Entry<String, Integer> entry:occCounter.entrySet())
 			if(entry.getValue() > 1)
 				throw new BadAnnotationException("Multiple fields annotated with occurrence type " + entry.getKey());
+		
+		// check multiple name fields of the same type
+		for(Map.Entry<String, Integer> entry:nameCounter.entrySet())
+			if(entry.getValue() > 1)
+				throw new BadAnnotationException("Multiple fields annotated with name type " + entry.getKey());
+		
 	}
 		
 	/**
@@ -379,7 +395,7 @@ public class BindingHandler {
 	
 	// create new binding
 	AssociationContainerBinding binding = new AssociationContainerBinding();
-
+	
 	// add binding to map
 	addBindingToCache(clazz, binding);
 	
@@ -389,6 +405,10 @@ public class BindingHandler {
 	// create field bindings
 	for (Field field : clazz.getDeclaredFields())
 		createFieldBinding(binding, field, clazz);
+	
+	// check fields
+	if(binding.getRoleBindings().isEmpty())
+		throw new BadAnnotationException("The association container class " + clazz + " has no fields.");
 	
 	return binding;
 }
@@ -601,31 +621,33 @@ public class BindingHandler {
 		ab.setCollection(ReflectionUtil.isCollection(field));
 		ab.setPersistOnCascade(associationAnnotation.persistOnCascade());
 
-		if(isTopicAnnotated(ReflectionUtil.getGenericType(field))){
+		Class<?> genericType = ReflectionUtil.getGenericType(field);
+		
+		if(isTopicAnnotated(genericType)){
 			
 			// is binary association
 			
-			ab.setOtherPlayerBinding(getTopicBinding((Class<?>)ReflectionUtil.getGenericType(field)));
+			ab.setOtherPlayerBinding(getTopicBinding(genericType));
 			ab.setKind(AssociationKind.BINARY);
 			
-		}else if(isAssociationContainerAnnotated(ReflectionUtil.getGenericType(field))){
+		}else if(isAssociationContainerAnnotated(genericType)){
 			
 			// is nnary association
 			// set association container binding
 			
-			AssociationContainerBinding binding = getAssociationContainerBinding(ReflectionUtil.getGenericType(field));
+			AssociationContainerBinding binding = getAssociationContainerBinding(genericType);
 			
 			ab.setAssociationContainerBinding(binding);
 			ab.setKind(AssociationKind.NNARY);
 			
-		}else if(ReflectionUtil.getGenericType(field) == boolean.class) {
+		}else if(genericType == boolean.class) {
 			
 			// is unary
 			ab.setKind(AssociationKind.UNARY);
 			
 		}else{
 			
-			throw new BadAnnotationException("Unallowed association field type: " + field.getGenericType());
+			throw new BadAnnotationException("Unallowed association field type: " + genericType);
 			
 		}
 		
@@ -665,8 +687,7 @@ public class BindingHandler {
 			throw new BadAnnotationException("Non transient field " + field.getName() + " of an association container class has to be @Role annotated.");
 		}
 	}
-	
-	
+		
 	/**
 	 * Creates the binding for an @Role annotated field.
 	 * @param associationContainerBinding - The corresponding association container binding.
