@@ -822,8 +822,8 @@ public class TopicMapHandler {
 		if(associationObjects.size() != 1)
 			throw new RuntimeException("Unary association has more the one type."); // TODO use other exception type and better message
 		
-		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
-		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
+		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap())));
+		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getPlayedRole(),this.config.getPrefixMap())));
 		Set<Topic> scope = binding.getScope(getTopicMap());
 		
 		boolean value = (Boolean)associationObjects.iterator().next();
@@ -881,9 +881,9 @@ public class TopicMapHandler {
 	 */
 	private void updateBinaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles, List<Object> topicObjects) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException{
 
-		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
-		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
-		Topic otherRoleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getOtherRole()));
+		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap())));
+		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getPlayedRole(), this.config.getPrefixMap())));
+		Topic otherRoleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getOtherRole(),this.config.getPrefixMap())));
 		Set<Topic> scope = binding.getScope(getTopicMap());
 
 		for (Object associationObject : associationObjects) { // check each binary association
@@ -947,8 +947,8 @@ public class TopicMapHandler {
 	 */
 	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException{
 
-		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getAssociationType()));
-		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getPlayedRole()));
+		Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getAssociationType(),this.config.getPrefixMap())));
+		Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getPlayedRole(),this.config.getPrefixMap())));
 		Set<Topic> scope = binding.getScope(getTopicMap());
 		
 		for (Object associationObject:associationObjects) { // check each nnary association
@@ -1131,7 +1131,7 @@ public class TopicMapHandler {
 		
 		for(RoleBinding roleBinding:binding.getRoleBindings()){
 			
-			Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(roleBinding.getRoleType()));
+			Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(roleBinding.getRoleType(),this.config.getPrefixMap())));
 			Set<Topic> player = null;
 			if(result.get(roleType) == null)
 				player = new HashSet<Topic>();
@@ -1992,7 +1992,7 @@ public class TopicMapHandler {
 		Set<Topic> types = new HashSet<Topic>();
 		
 		for(RoleBinding roleBinding:containerBinding.getRoleBindings()){
-			Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(roleBinding.getRoleType()));
+			Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(roleBinding.getRoleType(),this.config.getPrefixMap())));
 			types.add(roleType);
 		}
 		
