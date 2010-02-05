@@ -21,29 +21,28 @@ public class TopicAnnotationDefinition implements ITopicAnnotationDefinition {
 	private final String name;
 	private final Topic topic;
 
+	private String superType;
+
 	private final Set<IdAnnotationDefinition> idAnnotationDefinitions = new THashSet<IdAnnotationDefinition>();
 	private final Set<NameAnnotationDefinition> nameAnnotationDefinitions = new THashSet<NameAnnotationDefinition>();
 	private final Set<OccurrenceAnnotationDefinition> occurrenceAnnotationDefinitions = new THashSet<OccurrenceAnnotationDefinition>();
 	private final Set<AssociationAnnotationDefinition> associationAnnotationDefinitions = new THashSet<AssociationAnnotationDefinition>();
 
-	public TopicAnnotationDefinition(String name, String type,
-			String subjectIdentifer) {
+	public TopicAnnotationDefinition(String name, String type, String subjectIdentifer) {
 		this.name = name;
 		this.type = type;
 		this.subjectIdentifer = subjectIdentifer;
 		this.topic = null;
 	}
 
-	public TopicAnnotationDefinition(Topic topic)
-			throws POJOGenerationException {
+	public TopicAnnotationDefinition(Topic topic) throws POJOGenerationException {
 
 		this.topic = topic;
 		type = TypeUtility.getTypeAttribute(topic);
 		name = TypeUtility.getJavaName(topic);
 
 		if (!topic.getSubjectIdentifiers().isEmpty()) {
-			subjectIdentifer = topic.getSubjectIdentifiers().iterator().next()
-					.getReference();
+			subjectIdentifer = topic.getSubjectIdentifiers().iterator().next().getReference();
 		}
 	}
 
@@ -80,24 +79,27 @@ public class TopicAnnotationDefinition implements ITopicAnnotationDefinition {
 	}
 
 	public void addAssociationAnnotationDefinitions(
-			Set<AssociationAnnotationDefinition> associationAnnotationDefinitions) {
+	        Set<AssociationAnnotationDefinition> associationAnnotationDefinitions) {
 		this.associationAnnotationDefinitions.addAll(associationAnnotationDefinitions);
 	}
 
-	public void addNameAnnotationDefinitions(
-			Set<NameAnnotationDefinition> nameAnnotationDefinitions) {
+	public void addNameAnnotationDefinitions(Set<NameAnnotationDefinition> nameAnnotationDefinitions) {
 		this.nameAnnotationDefinitions.addAll(nameAnnotationDefinitions);
 	}
 
-	public void addOccurrenceAnnotationDefinitions(
-			Set<OccurrenceAnnotationDefinition> occurrenceAnnotationDefinitions) {
-		this.occurrenceAnnotationDefinitions
-				.addAll(occurrenceAnnotationDefinitions);
+	public void addOccurrenceAnnotationDefinitions(Set<OccurrenceAnnotationDefinition> occurrenceAnnotationDefinitions) {
+		this.occurrenceAnnotationDefinitions.addAll(occurrenceAnnotationDefinitions);
 	}
 
-	public void addIdAnnotationDefinitions(
-			Set<IdAnnotationDefinition> idAnnotationDefinitions) {
+	public void addIdAnnotationDefinitions(Set<IdAnnotationDefinition> idAnnotationDefinitions) {
 		this.idAnnotationDefinitions.addAll(idAnnotationDefinitions);
 	}
 
+	public void setSuperType(String superType) {
+	    this.superType = superType;
+    }
+	
+	public String getSuperType() {
+	    return superType;
+    }
 }

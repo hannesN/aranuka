@@ -46,6 +46,7 @@ import de.topicmapslab.aranuka.codegen.core.definition.IdAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.NameAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.OccurrenceAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.TopicAnnotationDefinition;
+import de.topicmapslab.aranuka.codegen.core.exception.InvalidOntologyException;
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
 import de.topicmapslab.aranuka.codegen.core.util.TypeUtility;
 import de.topicmapslab.aranuka.enummerations.IdType;
@@ -113,6 +114,10 @@ public class DefinitionFactory {
 //	private Topic topicName;
 
 	private Topic subject;
+	
+	private Topic superTypeRole;
+	private Topic subTypeRole;
+	private Topic superTypeSubTypeAssociation;
 
 	private TypeInstanceIndex idx;
 
@@ -126,9 +131,9 @@ public class DefinitionFactory {
 		createStandardTopic(TYPE);
 		createStandardTopic(INSTANCE);
 		createStandardTopic(TYPE_INSTANCE);
-		createStandardTopic(SUPERTYPE);
-		createStandardTopic(SUBTYPE);
-		createStandardTopic(SUPERTYPE_SUBTYPE);
+		superTypeRole = createStandardTopic(SUPERTYPE);
+		subTypeRole = createStandardTopic(SUBTYPE);
+		superTypeSubTypeAssociation = createStandardTopic(SUPERTYPE_SUBTYPE);
 		// removing TMCL roles from cache
 		createStandardTopic(CONTAINEE);
 		createStandardTopic(CONTAINER);
@@ -195,7 +200,7 @@ public class DefinitionFactory {
 		return topicMap.createTopicBySubjectIdentifier(l);
 	}
 
-	public Set<TopicAnnotationDefinition> getTopicAnnotationDefinitions() {
+	public Set<TopicAnnotationDefinition> getTopicAnnotationDefinitions() throws InvalidOntologyException {
 
 		Set<TopicAnnotationDefinition> defs = new THashSet<TopicAnnotationDefinition>();
 
@@ -209,9 +214,13 @@ public class DefinitionFactory {
 					si = t.getSubjectIdentifiers().iterator().next()
 							.toExternalForm();
 
+				
+				
 				TopicAnnotationDefinition tad = new TopicAnnotationDefinition(
 						typeName, getTopicName(t), si);
 
+				tad.setSuperType(getTypeName(getSuperType(t)));
+				
 				findNameConstraints(t, tad);
 				findOccurrenceConstraints(t, tad);
 				findIdentifierConstraints(t, tad);
@@ -225,6 +234,23 @@ public class DefinitionFactory {
 		return defs;
 	}
 
+	private Topic getSuperType(Topic t) throws InvalidOntologyException {
+	    Set<Role> roles = t.getRolesPlayed(subTypeRole, superTypeSubTypeAssociation);
+	    if (roles.size()==0)
+	    	return null;
+	    if (roles.size()>1)
+	    	throw new InvalidOntologyException("Only one super type is supported.");
+	    Role r = roles.iterator().next();
+	    
+	    Set<Role> superTypes = r.getParent().getRoles(superTypeRole);
+	    if (superTypes.size()!=1)
+	    	throw new InvalidOntologyException("Only one super type is supported.");
+	    
+	    return superTypes.iterator().next().getPlayer();
+	    	
+	    
+    }
+
 	private String getTopicName(Topic t) {
 		for (Name name : t.getNames()) {
 			return name.getValue();
@@ -234,6 +260,9 @@ public class DefinitionFactory {
 
 	private String getTypeName(Topic t) {
 		try {
+			if (t==null)
+				return null;
+			
 			String name = getTopicName(t);
 			if (name == null)
 				return TypeUtility.getJavaName(t);
