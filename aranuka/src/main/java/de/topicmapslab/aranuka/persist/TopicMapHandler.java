@@ -886,8 +886,30 @@ public class TopicMapHandler {
 		Topic otherRoleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getOtherRole(),this.config.getPrefixMap())));
 		Set<Topic> scope = binding.getScope(getTopicMap());
 
+		/// TODO dirty hack to integrate remove of binary associations, improve
 		for (Object associationObject : associationObjects) { // check each binary association
 
+			if(associationObject == null){
+				
+				logger.info("association object for " + associationType + " association is null.");
+				
+				for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
+					
+					if(playedRole.getValue() != Match.INSTANCE  // ignore roles which are already flagged true
+							&& playedRole.getKey().getParent().getRoles().size() == 2  	// check if the association is binary
+							&& playedRole.getKey().getType().equals(roleType) 	// check role type
+							&& playedRole.getKey().getParent().getType().equals(associationType) // check association type
+							&& playedRole.getKey().getParent().getScope().equals(scope) // check scope
+							&& TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey()).getType().equals(otherRoleType)){ // check counter player role
+	
+						// binding found
+						playedRole.setValue(Match.BINDING);
+					}
+				}
+				
+				continue;
+			}
+			
 			// get counter player
 			Topic counterPlayer = createTopicByIdentifier(associationObject, binding.getOtherPlayerBinding());
 			counterPlayer.addType(getTopicType(binding.getOtherPlayerBinding()));
@@ -952,6 +974,13 @@ public class TopicMapHandler {
 		Set<Topic> scope = binding.getScope(getTopicMap());
 		
 		for (Object associationObject:associationObjects) { // check each nnary association
+			
+			if(associationObject == null){
+				
+				/// TODO check if an association exist where the binding would match
+				logger.info("association object for " + associationType + " association is null.");
+				continue;
+			}
 			
 			boolean found = false;
 			
@@ -2368,6 +2397,9 @@ public class TopicMapHandler {
 							addValueToBindingMap(map, (AssociationBinding) afb,((AssociationBinding) afb).getValue(topicObject));
 						}
 					}
+					
+				}else{
+					addValueToBindingMap(map, (AssociationBinding) afb,null);
 				}
 			}
 		}
