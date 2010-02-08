@@ -1,6 +1,7 @@
 
 package de.topicmapslab.aranuka.persist;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.text.ParseException;
@@ -80,6 +81,70 @@ public class TopicMapHandler {
 	private Map<Topic, Object> objectCache;
 	
 
+	private class AssociationCache{
+
+		private AssociationBinding binding;
+		private Association association;
+
+		public AssociationCache(AssociationBinding binding, Association association) {
+
+			this.binding = binding;
+			this.association = association;
+		}
+
+		/**
+		 * @return the binding
+		 */
+		public AssociationBinding getBinding() {
+		
+			return binding;
+		}
+
+		/**
+		 * @return the association
+		 */
+		public Association getAssociation() {
+		
+			return association;
+		}
+	}
+	
+	private AssociationCache getAssociationCache(Association association){
+		
+		if(cachedAssociations == null)
+			return null;
+		
+		for(AssociationCache cache:this.cachedAssociations){
+			
+			if(cache.getAssociation().equals(association))
+				return cache;
+		}
+		
+		return null;
+	}
+	
+	private void removeAssociationFromCache(Association association){
+		
+		if(cachedAssociations == null)
+			return;
+		
+		Iterator<AssociationCache> it = this.cachedAssociations.iterator();
+		
+	    while (it.hasNext()) {
+	    
+	    	if(it.next().getAssociation().equals(association)){
+	    		
+	    		it.remove();
+	    		return;
+	    		
+	    	}
+	    	
+	    }
+		
+	}
+	
+	private Set<AssociationCache> cachedAssociations;
+	
 	/**
 	 * Constructor.
 	 * @param config - The configuration.
@@ -799,12 +864,32 @@ public class TopicMapHandler {
 		// remove obsolete roles
 		for(Map.Entry<Role, Match> entry:playedRoles.entrySet()){
 		
-			if(entry.getValue() == Match.BINDING){ // only binding match found but no instance
-				Association obsolete = entry.getKey().getParent();
+			Association ass = entry.getKey().getParent();
+			if(ass != null){
 				
-				if(obsolete != null){ // do an additional check
-					logger.info("Remove obsolete association " + obsolete.getType());
-					obsolete.remove();
+				if(entry.getValue() == Match.BINDING){ // only binding match found but no instance
+					
+					logger.info("Remove obsolete association " + ass.getType());
+					ass.remove();
+					
+				}else if(entry.getValue() == Match.NO){ 
+					
+					// find association  in cache and remove if it belongs to this topic
+					
+					AssociationCache cache = getAssociationCache(ass);
+					
+					if(cache != null){ // association found
+						
+						if(binding.getFieldBindings().contains(cache.getBinding())){ 
+							// if the binding belongs to this topic, the association was created by this topic
+							
+							logger.info("Remove obsolete association " + ass.getType());
+							ass.remove();
+							
+							// remove association from cache
+							removeAssociationFromCache(ass);
+						}
+					}
 				}
 			}
 		}
@@ -889,30 +974,37 @@ public class TopicMapHandler {
 		/// TODO dirty hack to integrate remove of binary associations, improve
 		for (Object associationObject : associationObjects) { // check each binary association
 
-			if(associationObject == null){
-				
-				logger.info("association object for " + associationType + " association is null.");
-				
-				for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
-					
-					if(playedRole.getValue() != Match.INSTANCE  // ignore roles which are already flagged true
-							&& playedRole.getKey().getParent().getRoles().size() == 2  	// check if the association is binary
-							&& playedRole.getKey().getType().equals(roleType) 	// check role type
-							&& playedRole.getKey().getParent().getType().equals(associationType) // check association type
-							&& playedRole.getKey().getParent().getScope().equals(scope) // check scope
-							&& TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey()).getType().equals(otherRoleType)){ // check counter player role
-	
-						// binding found
-						playedRole.setValue(Match.BINDING);
-					}
-				}
-				
-				continue;
+//			if(associationObject == null){
+//				
+//				logger.info("association object for " + associationType + " association is null.");
+//				
+//				for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
+//					
+//					if(playedRole.getValue() != Match.INSTANCE  // ignore roles which are already flagged true
+//							&& playedRole.getKey().getParent().getRoles().size() == 2  	// check if the association is binary
+//							&& playedRole.getKey().getType().equals(roleType) 	// check role type
+//							&& playedRole.getKey().getParent().getType().equals(associationType) // check association type
+//							&& playedRole.getKey().getParent().getScope().equals(scope) // check scope
+//							&& TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey()).getType().equals(otherRoleType)){ // check counter player role
+//	
+//						// binding found
+//						playedRole.setValue(Match.BINDING);
+//					}
+//				}
+//				
+//				continue;
+//			}
+			
+			Topic counterPlayer = null;
+			
+			if(associationObject != null){
+				counterPlayer = createTopicByIdentifier(associationObject, binding.getOtherPlayerBinding());
+				counterPlayer.addType(getTopicType(binding.getOtherPlayerBinding()));
 			}
 			
-			// get counter player
-			Topic counterPlayer = createTopicByIdentifier(associationObject, binding.getOtherPlayerBinding());
-			counterPlayer.addType(getTopicType(binding.getOtherPlayerBinding()));
+//			// get counter player
+//			Topic counterPlayer = createTopicByIdentifier(associationObject, binding.getOtherPlayerBinding());
+//			counterPlayer.addType(getTopicType(binding.getOtherPlayerBinding()));
 			
 			boolean found = false;
 
@@ -928,16 +1020,17 @@ public class TopicMapHandler {
 					// binding found
 					playedRole.setValue(Match.BINDING);
 					
-					if(TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey()).getPlayer().equals(counterPlayer)){ // check counter player
+					if(counterPlayer != null)
+						if(TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey()).getPlayer().equals(counterPlayer)){ // check counter player
 
-						found = true;
-						playedRole.setValue(Match.INSTANCE);
-						break;
-					}
+							found = true;
+							playedRole.setValue(Match.INSTANCE);
+							break;
+						}
 				}
 			}
 			
-			if(!found){
+			if(!found && counterPlayer != null){
 				
 				logger.info("Create new binary association " + associationType);
 				
@@ -975,12 +1068,10 @@ public class TopicMapHandler {
 		
 		for (Object associationObject:associationObjects) { // check each nnary association
 			
-			if(associationObject == null){
-				
-				/// TODO check if an association exist where the binding would match
-				logger.info("association object for " + associationType + " association is null.");
-				continue;
-			}
+			if(associationObject == null)
+				continue; // skip when the association object is null
+
+			// TODO try to use the cache here as well, but check if there are problems when the same association was already created by another topic 
 			
 			boolean found = false;
 			
@@ -1039,6 +1130,16 @@ public class TopicMapHandler {
 					}
 				}
 				
+				// add association to cache
+				AssociationCache cache = new AssociationCache(binding, ass);
+				
+				///TODO make better
+				
+				if(this.cachedAssociations == null)
+					this.cachedAssociations = new HashSet<AssociationCache>();
+				
+				this.cachedAssociations.add(cache);
+			
 				if(binding.isPersistOnCascade()){
 
 					addCascadingRole(associationObject, topicObjects);
