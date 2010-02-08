@@ -5,7 +5,9 @@ package de.topicmapslab.aranuka.codegen.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.tmapi.core.Topic;
@@ -39,6 +41,7 @@ import de.topicmapslab.aranuka.codegen.core.definition.NameAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.OccurrenceAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.TopicAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition.AssocOtherPlayers;
+import de.topicmapslab.aranuka.codegen.core.exception.InvalidOntologyException;
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
 import de.topicmapslab.aranuka.codegen.core.factory.DefinitionFactory;
 import de.topicmapslab.aranuka.codegen.core.util.TypeUtility;
@@ -61,8 +64,10 @@ public class CodeGenerator {
 	private JCodeModel cm;
 	private JPackage modelPackage;
 
+	private Map<String, JClass> classMap = new HashMap<String, JClass>();
+	
 	public void generateCode(TopicMap schemaMap, File directory,
-			String packageName) throws IOException {
+			String packageName) throws IOException, InvalidOntologyException {
 		Set<TopicAnnotationDefinition> annotations = new DefinitionFactory(
 				schemaMap).getTopicAnnotationDefinitions();
 
@@ -97,10 +102,15 @@ public class CodeGenerator {
 
 	private void createType(TopicAnnotationDefinition tad) {
 		try {
-			JDefinedClass type = modelPackage._class(tad.getName());
+			
+			JDefinedClass type = getType(tad.getName());
+			
 			JAnnotationUse use = type.annotate(topicAnnotation);
 			use.param("subject_identifier", tad.getSubjectIdentifer());
 
+			if (tad.getSuperType()!=null)
+				type._extends(getType(tad.getSuperType()));
+			
 			for (IdAnnotationDefinition idad : tad.getIdAnnotationDefinitions()) {
 				createIdFiled(type, idad);
 			}
@@ -121,10 +131,20 @@ public class CodeGenerator {
 			}
 
 		} catch (JClassAlreadyExistsException e) {
+			e.printStackTrace();
 			return;
 		}
 
 	}
+
+	private JDefinedClass getType(String name) throws JClassAlreadyExistsException {
+	    JDefinedClass type = (JDefinedClass) classMap.get(name);
+	    if (type == null) {
+	    	type = modelPackage._class(name);
+	    	classMap.put(name, type);
+	    }
+	    return type;
+    }
 
 	private void createAssociationFields(JDefinedClass type,
 			AssociationAnnotationDefinition aad) {

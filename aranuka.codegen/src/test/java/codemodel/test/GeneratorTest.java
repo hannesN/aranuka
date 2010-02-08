@@ -30,6 +30,7 @@ import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
 
 import de.topicmapslab.aranuka.codegen.core.CodeGenerator;
+import de.topicmapslab.aranuka.codegen.core.exception.InvalidOntologyException;
 import de.topicmapslab.tmcl_loader.TMCLLoader;
 
 /**
@@ -53,10 +54,10 @@ public class GeneratorTest extends AbstractGeneratorTest {
 
 	@AfterClass
 	public static void shutdown() {
-	//	deleteTestDir();
+		deleteTestDir();
 	}
 
-	static public void generateCode() throws IOException {
+	static public void generateCode() throws IOException, InvalidOntologyException {
 		new CodeGenerator().generateCode(topicMap, path, "test.model");
 	}
 
@@ -163,12 +164,13 @@ public class GeneratorTest extends AbstractGeneratorTest {
 			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
 			Class<?> clazz = loader.loadClass("test.model.Author");
 			Assert.assertNotNull(clazz);
+			
+			assertEquals("test.model.Person", clazz.getSuperclass().getName());
 			Object o = clazz.getConstructor().newInstance();
 			
 			Assert.assertNotNull(o);
 		} catch (Exception e) {
 			Assert.fail("Could not load Author.class");
-			
 		}
 	}
 	
