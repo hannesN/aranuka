@@ -80,70 +80,9 @@ public class TopicMapHandler {
 	 */
 	private Map<Topic, Object> objectCache;
 	
-
-	private class AssociationCache{
-
-		private AssociationBinding binding;
-		private Association association;
-
-		public AssociationCache(AssociationBinding binding, Association association) {
-
-			this.binding = binding;
-			this.association = association;
-		}
-
-		/**
-		 * @return the binding
-		 */
-		public AssociationBinding getBinding() {
-		
-			return binding;
-		}
-
-		/**
-		 * @return the association
-		 */
-		public Association getAssociation() {
-		
-			return association;
-		}
-	}
+	private Map<Association,AssociationBinding> associationCache;
 	
-	private AssociationCache getAssociationCache(Association association){
-		
-		if(cachedAssociations == null)
-			return null;
-		
-		for(AssociationCache cache:this.cachedAssociations){
-			
-			if(cache.getAssociation().equals(association))
-				return cache;
-		}
-		
-		return null;
-	}
 	
-	private void removeAssociationFromCache(Association association){
-		
-		if(cachedAssociations == null)
-			return;
-		
-		Iterator<AssociationCache> it = this.cachedAssociations.iterator();
-		
-	    while (it.hasNext()) {
-	    
-	    	if(it.next().getAssociation().equals(association)){
-	    		
-	    		it.remove();
-	    		return;
-	    		
-	    	}
-	    	
-	    }
-		
-	}
-	
-	private Set<AssociationCache> cachedAssociations;
 	
 	/**
 	 * Constructor.
@@ -876,19 +815,16 @@ public class TopicMapHandler {
 					
 					// find association  in cache and remove if it belongs to this topic
 					
-					AssociationCache cache = getAssociationCache(ass);
-					
-					if(cache != null){ // association found
-						
-						if(binding.getFieldBindings().contains(cache.getBinding())){ 
+					if(this.associationCache.get(ass) != null)
+					{
+						if(binding.getFieldBindings().contains(this.associationCache.get(ass))){ 
 							// if the binding belongs to this topic, the association was created by this topic
+							removeAssociationFromCache(ass);
 							
 							logger.info("Remove obsolete association " + ass.getType());
 							ass.remove();
-							
-							// remove association from cache
-							removeAssociationFromCache(ass);
 						}
+						
 					}
 				}
 			}
@@ -1131,15 +1067,8 @@ public class TopicMapHandler {
 				}
 				
 				// add association to cache
-				AssociationCache cache = new AssociationCache(binding, ass);
-				
-				///TODO make better
-				
-				if(this.cachedAssociations == null)
-					this.cachedAssociations = new HashSet<AssociationCache>();
-				
-				this.cachedAssociations.add(cache);
-			
+				addAssociationToCache(ass, binding);
+		
 				if(binding.isPersistOnCascade()){
 
 					addCascadingRole(associationObject, topicObjects);
@@ -2647,6 +2576,24 @@ public class TopicMapHandler {
 	 */
 	private void clearObjectCache(){
 		this.objectCache = null;
+	}
+	
+	private void addAssociationToCache(Association association, AssociationBinding binding){
+		
+		if(this.associationCache == null)
+			this.associationCache = new HashMap<Association, AssociationBinding>();
+		
+		this.associationCache.put(association, binding);
+		
+	}
+	
+	private void removeAssociationFromCache(Association association){
+		
+		if(this.associationCache == null)
+			return;
+		
+		this.associationCache.remove(association);
+	
 	}
 	
 }
