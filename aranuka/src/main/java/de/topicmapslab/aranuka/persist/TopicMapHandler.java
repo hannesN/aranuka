@@ -1900,6 +1900,9 @@ public class TopicMapHandler {
 					
 					// add container to set
 					counterSet.add(container);
+					
+					// add association to cache
+					addAssociationToCache(rolePlayed.getParent(), associationBinding); // TODO verify!
 				}
 			}
 		}
@@ -1947,7 +1950,6 @@ public class TopicMapHandler {
 				}
 			}
 		}
-		
 	}
 	
 	/**
@@ -2503,8 +2505,7 @@ public class TopicMapHandler {
 				
 		return topic;
 	}
-	
-	
+		
 	/**
 	 * Adds a topic to the topic cache.
 	 * @param topic - The topic.
@@ -2595,5 +2596,7 @@ public class TopicMapHandler {
 		this.associationCache.remove(association);
 	
 	}
+	
+	
 	
 }
