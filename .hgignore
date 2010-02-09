@@ -39,3 +39,5 @@ aranuka.codegen/tmp/test_result/**
 aranuka/doc/**/*.aux
 aranuka/doc/**/*.dvi
 aranuka/doc/**/*.pdf
+
+aranuka/src/test/resources/*.ctm
