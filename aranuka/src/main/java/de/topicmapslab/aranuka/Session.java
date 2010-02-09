@@ -92,13 +92,23 @@ public class Session {
 			
 			
 			writer.setExportItemIdentifiers(true);
-
-			Map<String, String> prefixMap = config.getPrefixMap();
-			for (String key : prefixMap.keySet()) {
-				writer.addPrefix(key, prefixMap.get(key));
-			}
-			
 			String bl = config.getBaseLocator();
+			Map<String, String> prefixMap = config.getPrefixMap();
+			
+			boolean foundBaseLocator = false;
+			// adding all specified prefixes but the base locator
+			for (String key : prefixMap.keySet()) {
+				if (!key.equals("base_locator")) {
+					String uri = prefixMap.get(key);
+					writer.addPrefix(key, uri);
+					if (uri.equals(bl))
+						foundBaseLocator=true;
+				}
+			}
+			// if no prefix with the base locators uri found, add it to the prefix list
+			if (!foundBaseLocator)
+				writer.addPrefix("base_locator", bl);
+			
 			for (Class<?> clazz : config.getClasses()) {
 				String prefix = bl+clazz.getName().replaceAll("\\.", "/")+"/";
 				writer.addPrefix(clazz.getSimpleName().toLowerCase(), prefix);
