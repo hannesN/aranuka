@@ -85,8 +85,10 @@ public class TopicMapsUtils {
 		Set<Role> roles = association.getRoles();
 		
 		for(Role role:roles)
-			if(!role.equals(ownRole))
+			if(!role.equals(ownRole)){
 				return role;
+			}
+				
 		
 		return null;
 	}

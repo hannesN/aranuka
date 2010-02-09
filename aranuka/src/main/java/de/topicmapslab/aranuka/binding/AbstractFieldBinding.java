@@ -124,12 +124,10 @@ public abstract class AbstractFieldBinding{
 	public void setValue(Object value, Object obj) {
 		
 		try {
-			System.out.println(value.getClass());
-			System.out.println(setter.getParameterTypes()[0]);
+			
 			setter.invoke(obj, value);
 			
 		} catch (Exception e) {
-			
 			logger.error("Could not invoke mutator", e);
 			throw new RuntimeException(e);
 		}
