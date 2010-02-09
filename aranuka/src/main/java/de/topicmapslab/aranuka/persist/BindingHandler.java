@@ -652,6 +652,8 @@ public class BindingHandler {
 			
 		}
 		
+		ab.setGenericType(genericType);
+		
 		// add occurrence to topic binding
 		topicBinding.addFieldBinding(ab);
 		

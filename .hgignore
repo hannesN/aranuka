@@ -41,3 +41,4 @@ aranuka/doc/**/*.dvi
 aranuka/doc/**/*.pdf
 
 aranuka/src/test/resources/*.ctm
+aranuka/src/test/resources/*.ctm.swp

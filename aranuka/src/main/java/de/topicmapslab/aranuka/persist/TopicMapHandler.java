@@ -657,7 +657,7 @@ public class TopicMapHandler {
 		for(Map.Entry<NameBinding, Set<String>> newName:newNames.entrySet()){
 			
 			// get type and scope for this binding/field
-			Topic nameType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(newName.getKey().getNameType()));
+			Topic nameType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(newName.getKey().getNameType(),this.config.getPrefixMap())));
 			Set<Topic> scope = newName.getKey().getScope(getTopicMap());
 			
 			
@@ -717,7 +717,7 @@ public class TopicMapHandler {
 		for(Map.Entry<OccurrenceBinding, Set<String>> newOccurrence:newOccurrences.entrySet()){
 			
 			// get type and scope for this binding/field
-			Topic occurrenceType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(newOccurrence.getKey().getOccurrenceType()));
+			Topic occurrenceType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(newOccurrence.getKey().getOccurrenceType(),this.config.getPrefixMap())));
 			Set<Topic> scope = newOccurrence.getKey().getScope(getTopicMap());
 
 			for(String value:newOccurrence.getValue()){
@@ -1374,15 +1374,18 @@ public class TopicMapHandler {
 			
 			String iri = identifier.getReference();
 			
-			// check and remove type identifier
-			for(String typeId:typeIdentifier){
+			if(!idBinding.getGenericType().equals(String.class)){
 				
-				if(iri.startsWith(typeId + "/")){
+				// check and remove type identifier to be able to cast the id to an non string datatype
+				for(String typeId:typeIdentifier){
 					
-					logger.info("Reduce identifier from " + iri);
-					iri = iri.replace(typeId + "/", ""); // remove the start
-					logger.info("to " + iri);
-					break;
+					if(iri.startsWith(typeId + "/")){
+						
+						logger.info("Reduce identifier from " + iri);
+						iri = iri.replace(typeId + "/", ""); // remove the start
+						logger.info("to " + iri);
+						break;
+					}
 				}
 			}
 			
@@ -1484,7 +1487,7 @@ public class TopicMapHandler {
 				
 				NameBinding nameBinding = (NameBinding)afb;
 				// get name type
-				Topic nameType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(nameBinding.getNameType()));
+				Topic nameType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(nameBinding.getNameType(),this.config.getPrefixMap())));
 				
 				if(nameType == null)
 					continue; // get to next binding if type don't exist
@@ -1553,7 +1556,7 @@ public class TopicMapHandler {
 				OccurrenceBinding occurrenceBinding = (OccurrenceBinding)afb;
 				
 				// get occurrence type
-				Topic occurrenceType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(occurrenceBinding.getOccurrenceType()));
+				Topic occurrenceType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(occurrenceBinding.getOccurrenceType(),this.config.getPrefixMap())));
 				
 				if(occurrenceType == null)
 					continue; // get to next binding if type don't exist
@@ -1585,8 +1588,6 @@ public class TopicMapHandler {
 
 					}else{
 						
-						logger.info(occurrenceBinding.getFieldType().toString());
-
 						if(((ParameterizedType)occurrenceBinding.getFieldType()).getRawType().equals(Set.class)){ // is set
 							
 							occurrenceBinding.setValue(values, object);
@@ -1681,7 +1682,7 @@ public class TopicMapHandler {
 	private void addUnaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws TopicMapInconsistentException{
 		
 		// get role type
-		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getPlayedRole()));
+		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(),this.config.getPrefixMap())));
 		
 		if(roleType == null){
 			
@@ -1697,7 +1698,7 @@ public class TopicMapHandler {
 		}
 		
 		// get association type
-		Topic associationType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getAssociationType()));
+		Topic associationType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getAssociationType(),this.config.getPrefixMap())));
 		
 		if(associationType == null){
 			associationBinding.setValue(false, object);
@@ -1716,7 +1717,8 @@ public class TopicMapHandler {
 		if(matchingRoles.size() > 1)
 			throw new TopicMapInconsistentException("Topic playes more the one time in an unary association of type " + associationBinding.getAssociationType());
 		
-		associationBinding.setValue(true, object);
+		if(matchingRoles.size() > 0)
+			associationBinding.setValue(true, object);
 		
 	}
 	
@@ -1734,7 +1736,7 @@ public class TopicMapHandler {
 	private void addBinaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		// get role type
-		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getPlayedRole()));
+		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(),this.config.getPrefixMap())));
 		
 		if(roleType == null)
 			return;
@@ -1745,13 +1747,13 @@ public class TopicMapHandler {
 			return;
 		
 		// get association type
-		Topic associationType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getAssociationType()));
+		Topic associationType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getAssociationType(),this.config.getPrefixMap())));
 		
 		if(associationType == null)
 			return;
 		
 		// get counter player type
-		Topic counterType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getOtherRole()));
+		Topic counterType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getOtherRole(),this.config.getPrefixMap())));
 		
 		if(counterType == null)
 			return;
@@ -1793,14 +1795,18 @@ public class TopicMapHandler {
 			
 			for(Role role:matchingRoles){
 				
-				Object counterPlayer = getInstanceFromTopic(TopicMapsUtils.getCounterRole(matchingRoles.iterator().next().getParent(), role).getPlayer(), associationBinding.getOtherPlayerBinding(), counterClass);
+				Object counterPlayer = getInstanceFromTopic(TopicMapsUtils.getCounterRole(role.getParent(), role).getPlayer(), associationBinding.getOtherPlayerBinding(), counterClass);
 				counterPlayers.add(counterPlayer);
 			}
 			
 			if(associationBinding.isArray()){
 				
 				// is array
-				associationBinding.setValue(counterPlayers.toArray(), object);
+				Object[] tmp = (Object[])Array.newInstance((Class<?>)associationBinding.getGenericType(), counterPlayers.size());
+				counterPlayers.toArray(tmp);
+				associationBinding.setValue(tmp, object);
+				
+	//			associationBinding.setValue(counterPlayers.toArray(), object);
 				
 			}else{
 				
@@ -1838,7 +1844,7 @@ public class TopicMapHandler {
 			throw new RuntimeException("An nnary association has to be defined via a association container.");
 		
 		// get role type
-		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getPlayedRole()));
+		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(),this.config.getPrefixMap())));
 		
 		if(roleType == null)
 			return;
@@ -1849,7 +1855,7 @@ public class TopicMapHandler {
 			return;
 		
 		// get association type
-		Topic associationType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(associationBinding.getAssociationType()));
+		Topic associationType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getAssociationType(),this.config.getPrefixMap())));
 		
 		if(associationType == null)
 			return;
@@ -1935,7 +1941,12 @@ public class TopicMapHandler {
 			
 			if(binding.isArray())
 			{
-				binding.setValue(containerSet.toArray(), object);
+				
+				Object[] tmp = (Object[])Array.newInstance((Class<?>)binding.getGenericType(), containerSet.size());
+				containerSet.toArray(tmp);
+				binding.setValue(tmp, object);
+				
+				//binding.setValue(containerSet.toArray(), object);
 				
 			}else{
 				
@@ -1970,7 +1981,7 @@ public class TopicMapHandler {
 		
 		for(RoleBinding roleBinding:binding.getRoleBindings()){
 			
-			Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(roleBinding.getRoleType()));
+			Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(roleBinding.getRoleType(),this.config.getPrefixMap())));
 			
 			Set<Topic> counterTopics = new HashSet<Topic>();
 			

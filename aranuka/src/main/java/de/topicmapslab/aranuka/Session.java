@@ -137,6 +137,7 @@ public class Session {
 			return instances;
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			return Collections.emptySet();
 		}
 	}
