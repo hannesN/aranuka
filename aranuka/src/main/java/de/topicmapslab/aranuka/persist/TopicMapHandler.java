@@ -1,7 +1,7 @@
 
 package de.topicmapslab.aranuka.persist;
 
-import java.lang.reflect.Field;
+import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.text.ParseException;
@@ -165,8 +165,7 @@ public class TopicMapHandler {
 		catch (Exception e) {
 			return Collections.emptySet();
 		}
-		
-		
+
 		Topic type = null;
 		
 		for(String id:binding.getIdentifier()){
@@ -467,12 +466,12 @@ public class TopicMapHandler {
 		// try to find type
 		for(String identifier:binding.getIdentifier()){
 			
-			type = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(identifier));
+			type = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(identifier,this.config.getPrefixMap())));
 			if(type != null)
 				return  type;
 		}
 		
-		type = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(binding.getIdentifier().iterator().next()));
+		type = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getIdentifier().iterator().next(),this.config.getPrefixMap())));
 		
 		if(binding.getName() != null)
 			type.createName(binding.getName());
@@ -1079,7 +1078,8 @@ public class TopicMapHandler {
 	}
 	
 	/**
-	 * Adds an object to an set of objects which to be persisted as well.
+	 * Adds an object to an set of objects which		
+		 to be persisted as well.
 	 * @param associationContainer - The association container in which the role is specified.
 	 * @param topicObjects - The set if objects.
 	 * @throws BadAnnotationException
@@ -1340,7 +1340,7 @@ public class TopicMapHandler {
 					
 				}else if(idBinding.getIdtype() == IdType.SUBJECT_LOCATOR){
 					
-					Set<Locator> identifier = topic.getSubjectIdentifiers();
+					Set<Locator> identifier = topic.getSubjectLocators();
 					addIdentifier(topic, object, idBinding, identifier);
 					
 				}else{
@@ -1578,8 +1578,10 @@ public class TopicMapHandler {
 						values.add(getOccurrenceValue(occurrence,occurrenceBinding.getGenericType()));
 
 					if(occurrenceBinding.isArray()){
-
-						occurrenceBinding.setValue(values.toArray(), object);
+						
+						Object[] tmp = (Object[])Array.newInstance((Class<?>)occurrenceBinding.getGenericType(), values.size());
+						values.toArray(tmp);
+						occurrenceBinding.setValue(tmp, object);
 
 					}else{
 						
@@ -1621,7 +1623,7 @@ public class TopicMapHandler {
 				return Double.parseDouble(occurrence.getValue());
 			else if(type.equals(Date.class))
 				return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(occurrence.getValue());
-			else if(type.equals(Boolean.class))
+			else if(type.equals(boolean.class))
 				return Boolean.valueOf(occurrence.getValue());
 			else if(type.equals(String.class))
 				return occurrence.getValue();
@@ -1631,8 +1633,6 @@ public class TopicMapHandler {
 		catch (ParseException e) {
 			throw new TopicMapIOException("Occurrence value cannot be parst to date type.");
 		}
-		
-
 	}
 	
 	/**

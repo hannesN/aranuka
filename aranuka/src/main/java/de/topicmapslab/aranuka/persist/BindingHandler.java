@@ -1,5 +1,6 @@
 package de.topicmapslab.aranuka.persist;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -248,7 +249,7 @@ public class BindingHandler {
 			binding.setName(clazz.getSimpleName());
 		
 		// set subject identifier
-		if (topicAnnotation.subject_identifier() != null) {
+		if (topicAnnotation.subject_identifier() != null && topicAnnotation.subject_identifier().length > 0) {
 			
 			for (String s : topicAnnotation.subject_identifier())
 				binding.addIdentifier(TopicMapsUtils.resolveURI(s, config.getPrefixMap()));
@@ -466,7 +467,7 @@ public class BindingHandler {
 
 					}else{
 						
-						throw new BadAnnotationException("Non transient field " + field.getName() + " has no valid annotaton.");
+						createOccurrenceBinding(binding, field, clazz, null);
 					}
 				}
 			}
@@ -565,7 +566,7 @@ public class BindingHandler {
 		
 		String occurrenceType = null;
 		
-		if (occurrenceAnnotation.type().length() == 0)
+		if (occurrenceAnnotation == null || occurrenceAnnotation.type().length() == 0)
 			occurrenceType = TopicMapsUtils.generateSubjectIdentifier(field);
 		else
 			occurrenceType = occurrenceAnnotation.type();
@@ -707,7 +708,7 @@ public class BindingHandler {
 		String roleType = null;
 		
 		if (roleAnnotation.type().length() == 0)
-			roleType = "base_locator:" + field.getName();
+			roleType = TopicMapsUtils.generateSubjectIdentifier(field);
 		else
 			roleType = roleAnnotation.type();
 		

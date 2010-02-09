@@ -17,5 +17,5 @@ public @interface Role {
 	/**
 	 * The role type. 
 	 */
-	String type();
+	String type() default "";
 }
