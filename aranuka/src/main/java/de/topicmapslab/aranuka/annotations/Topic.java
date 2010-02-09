@@ -22,6 +22,6 @@ public @interface Topic {
 	/**
 	 * the subject identifier of the topic, default is path of the class
 	 */
-	String[] subject_identifier();
+	String[] subject_identifier() default {};
 	
 }

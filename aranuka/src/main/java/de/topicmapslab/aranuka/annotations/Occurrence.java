@@ -17,5 +17,5 @@ public @interface Occurrence {
 	/**
 	 * The occurrence type. 
 	 */
-	String type(); 
+	String type() default ""; 
 }
