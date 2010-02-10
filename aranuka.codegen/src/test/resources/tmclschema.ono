@@ -44,13 +44,43 @@
             <name>Written By</name>
             <subjectIdentifier>http://test.de/written-by</subjectIdentifier>
             <roleConstraints>
-                <roleConstraint cardMax="*" cardMin="1" id="127">
+                <roleConstraint cardMax="1" cardMin="1" id="127">
                     <topictypeRef ref="topictypes.4"/>
                 </roleConstraint>
                 <roleConstraint cardMax="1" cardMin="1" id="195">
                     <topictypeRef ref="topictypes.6"/>
                 </roleConstraint>
             </roleConstraints>
+            <roleCombinationConstraints>
+                <roleCombinationConstraint id="764">
+                    <player>
+                        <topictypeRef ref="topictypes.27"/>
+                    </player>
+                    <role>
+                        <topictypeRef ref="topictypes.4"/>
+                    </role>
+                    <otherPlayer>
+                        <topictypeRef ref="topictypes.26"/>
+                    </otherPlayer>
+                    <otherRole>
+                        <topictypeRef ref="topictypes.6"/>
+                    </otherRole>
+                </roleCombinationConstraint>
+                <roleCombinationConstraint id="765">
+                    <player>
+                        <topictypeRef ref="topictypes.7"/>
+                    </player>
+                    <role>
+                        <topictypeRef ref="topictypes.6"/>
+                    </role>
+                    <otherPlayer>
+                        <topictypeRef ref="topictypes.2"/>
+                    </otherPlayer>
+                    <otherRole>
+                        <topictypeRef ref="topictypes.4"/>
+                    </otherRole>
+                </roleCombinationConstraint>
+            </roleCombinationConstraints>
         </topicType>
         <topicType id="140" kind="RoleType">
             <name>Creator</name>
@@ -194,6 +224,14 @@
             <name>Habitant</name>
             <subjectIdentifier>http://test.de/habitant</subjectIdentifier>
         </topicType>
+        <topicType id="653" kind="TopicType">
+            <name>Student</name>
+            <subjectIdentifier>http://test.de/student</subjectIdentifier>
+        </topicType>
+        <topicType id="688" kind="TopicType">
+            <name>Diploma Thesis</name>
+            <subjectIdentifier>http://test.de/diploma_thesis</subjectIdentifier>
+        </topicType>
         <associationConstraint id="141">
             <topictypeRef ref="topictypes.5"/>
             <topicRoleConstraint cardMax="1" cardMin="1" id="142">
@@ -204,7 +242,7 @@
                     <roleConstraintReference ref="topictypes.5_roleConstraints.1"/>
                 </roleConstraint>
             </topicRoleConstraint>
-            <topicRoleConstraint cardMax="1" cardMin="1" id="145">
+            <topicRoleConstraint cardMax="*" cardMin="1" id="145">
                 <player>
                     <topictypeRef ref="topictypes.2"/>
                 </player>
@@ -270,6 +308,25 @@
                 </roleConstraint>
             </topicRoleConstraint>
         </associationConstraint>
+        <associationConstraint id="722">
+            <topictypeRef ref="topictypes.5"/>
+            <topicRoleConstraint cardMax="*" cardMin="1" id="724">
+                <player>
+                    <topictypeRef ref="topictypes.27"/>
+                </player>
+                <roleConstraint>
+                    <roleConstraintReference ref="topictypes.5_roleConstraints.0"/>
+                </roleConstraint>
+            </topicRoleConstraint>
+            <topicRoleConstraint cardMax="1" cardMin="1" id="737">
+                <player>
+                    <topictypeRef ref="topictypes.26"/>
+                </player>
+                <roleConstraint>
+                    <roleConstraintReference ref="topictypes.5_roleConstraints.1"/>
+                </roleConstraint>
+            </topicRoleConstraint>
+        </associationConstraint>
     </schema>
     <diagram id="181" name="Test">
         <node id="182" posX="41" posY="41" type="typeNode">
@@ -287,10 +344,10 @@
         <node id="276" posX="180" posY="511" type="typeNode">
             <topictypeRef ref="topictypes.15"/>
         </node>
-        <node id="278" posX="683" posY="623" type="typeNode">
+        <node id="278" posX="950" posY="566" type="typeNode">
             <topictypeRef ref="topictypes.16"/>
         </node>
-        <node id="280" posX="483" posY="390" type="typeNode">
+        <node id="280" posX="513" posY="773" type="typeNode">
             <topictypeRef ref="topictypes.17"/>
         </node>
         <node id="282" posX="440" posY="586" type="associationNode">
@@ -301,6 +358,15 @@
         </node>
         <node id="400" posX="135" posY="686" type="associationNode">
             <assocConstraintRef ref="assocConstraints.3"/>
+        </node>
+        <node id="652" posX="497" posY="376" type="typeNode">
+            <topictypeRef ref="topictypes.26"/>
+        </node>
+        <node id="687" posX="986" posY="164" type="typeNode">
+            <topictypeRef ref="topictypes.27"/>
+        </node>
+        <node id="721" posX="835" posY="390" type="associationNode">
+            <assocConstraintRef ref="assocConstraints.4"/>
         </node>
         <edge id="185" source="node.2" target="node.1" topicRoleRef="associationConstraint.1_topicRoleConstraint.0" type="ROLE_CONSTRAINT_TYPE">
             <labelPosition id="186" posX="15" posY="11"/>
@@ -319,11 +385,11 @@
             <labelPosition id="322" posX="6" posY="-26"/>
         </edge>
         <edge id="333" source="node.7" target="node.6" topicRoleRef="associationConstraint.2_topicRoleConstraint.1" type="ROLE_CONSTRAINT_TYPE">
-            <labelPosition id="334" posX="30" posY="-34"/>
+            <labelPosition id="334" posX="19" posY="20"/>
             <labelPosition id="335" posX="35" posY="-1"/>
         </edge>
         <edge id="344" source="node.7" target="node.5" topicRoleRef="associationConstraint.2_topicRoleConstraint.2" type="ROLE_CONSTRAINT_TYPE">
-            <labelPosition id="345" posX="3" posY="12"/>
+            <labelPosition id="345" posX="23" posY="-29"/>
             <labelPosition id="346" posX="-33" posY="5"/>
         </edge>
         <edge id="396" source="node.0" target="node.4" type="AKO_TYPE"/>
@@ -334,6 +400,14 @@
         <edge id="444" source="node.9" target="node.8" topicRoleRef="associationConstraint.3_topicRoleConstraint.1" type="ROLE_CONSTRAINT_TYPE">
             <labelPosition id="445" posX="19" posY="-29"/>
             <labelPosition id="446" posX="-58" posY="-4"/>
+        </edge>
+        <edge id="733" source="node.12" target="node.11" topicRoleRef="associationConstraint.4_topicRoleConstraint.0" type="ROLE_CONSTRAINT_TYPE">
+            <labelPosition id="734" posX="43" posY="-32"/>
+            <labelPosition id="735" posX="23" posY="3"/>
+        </edge>
+        <edge id="759" source="node.12" target="node.10" topicRoleRef="associationConstraint.4_topicRoleConstraint.1" type="ROLE_CONSTRAINT_TYPE">
+            <labelPosition id="760" posX="-115" posY="15"/>
+            <labelPosition id="761" posX="12" posY="10"/>
         </edge>
     </diagram>
 </file>

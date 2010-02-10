@@ -55,7 +55,7 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 				return TypeUtility.getTypeAttribute(roleType);
 			case 1:
 				return TypeUtility.getTypeAttribute(otherPlayers.iterator()
-						.next().otherRole);
+						.next().otherPlayer);
 			default:
 				return TypeUtility.getTypeAttribute(assocType);
 			}
