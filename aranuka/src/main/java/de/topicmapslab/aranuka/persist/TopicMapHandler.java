@@ -908,27 +908,6 @@ public class TopicMapHandler {
 
 		/// TODO dirty hack to integrate remove of binary associations, improve
 		for (Object associationObject : associationObjects) { // check each binary association
-
-//			if(associationObject == null){
-//				
-//				logger.info("association object for " + associationType + " association is null.");
-//				
-//				for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
-//					
-//					if(playedRole.getValue() != Match.INSTANCE  // ignore roles which are already flagged true
-//							&& playedRole.getKey().getParent().getRoles().size() == 2  	// check if the association is binary
-//							&& playedRole.getKey().getType().equals(roleType) 	// check role type
-//							&& playedRole.getKey().getParent().getType().equals(associationType) // check association type
-//							&& playedRole.getKey().getParent().getScope().equals(scope) // check scope
-//							&& TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey()).getType().equals(otherRoleType)){ // check counter player role
-//	
-//						// binding found
-//						playedRole.setValue(Match.BINDING);
-//					}
-//				}
-//				
-//				continue;
-//			}
 			
 			Topic counterPlayer = null;
 			
@@ -936,10 +915,6 @@ public class TopicMapHandler {
 				counterPlayer = createTopicByIdentifier(associationObject, binding.getOtherPlayerBinding());
 				counterPlayer.addType(getTopicType(binding.getOtherPlayerBinding()));
 			}
-			
-//			// get counter player
-//			Topic counterPlayer = createTopicByIdentifier(associationObject, binding.getOtherPlayerBinding());
-//			counterPlayer.addType(getTopicType(binding.getOtherPlayerBinding()));
 			
 			boolean found = false;
 
