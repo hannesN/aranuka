@@ -29,11 +29,15 @@ public class TypeUtility {
 			reference = reference.substring(index+1);
 		}
 
-		StringBuilder builder = new StringBuilder();
-		char lastChar = reference.charAt(0);
+		return getJavaName(reference);
+	}
+
+	public static String getJavaName(String name) {
+	    StringBuilder builder = new StringBuilder();
+		char lastChar = name.charAt(0);
 		builder.append(new String(lastChar + "").toUpperCase());
-		for (int i = 1; i < reference.length(); i++) {
-			char c = reference.charAt(i);
+		for (int i = 1; i < name.length(); i++) {
+			char c = name.charAt(i);
 			if (c != '-' && c != '_' && c != ':') {
 				if ('-' == lastChar || '_' == lastChar || ':' == lastChar) {
 					builder.append(new String(c + "").toUpperCase());
@@ -45,7 +49,7 @@ public class TypeUtility {
 		}
 
 		return builder.toString();
-	}
+    }
 
 	public static String getTypeAttribute(final Topic topic)
 			throws POJOGenerationException {
@@ -61,7 +65,10 @@ public class TypeUtility {
 		if ( reference.equalsIgnoreCase("topic-name")){
 			reference = "tm:name";
 		}
-		return reference;
+		
+		String tmp = getJavaName(reference);
+		tmp = Character.toLowerCase(tmp.charAt(0))+tmp.substring(1);
+		return tmp;
 	}
 
 	public static final Locator getLocator(Topic topic)
