@@ -497,7 +497,7 @@ public class BindingHandler {
 		ib.setArray(field.getType().isArray());
 		ib.setCollection(ReflectionUtil.isCollection(field));
 		/// TODO throw exception when generic type is not int or string?
-		ib.setGenericType(ReflectionUtil.getGenericType(field));
+		ib.setParameterisedType(ReflectionUtil.getGenericType(field));
 
 		/// add id to topic binding
 		topicBinding.addFieldBinding(ib);
@@ -539,7 +539,7 @@ public class BindingHandler {
 		addScope(field, nb);
 		nb.setArray(field.getType().isArray());
 		nb.setCollection(ReflectionUtil.isCollection(field));
-		nb.setGenericType(ReflectionUtil.getGenericType(field));
+		nb.setParameterisedType(ReflectionUtil.getGenericType(field));
 
 		// add name to topic binding
 		topicBinding.addFieldBinding(nb);
@@ -577,7 +577,7 @@ public class BindingHandler {
 		addScope(field, ob);
 		ob.setArray(field.getType().isArray());
 		ob.setCollection(ReflectionUtil.isCollection(field));
-		ob.setGenericType(ReflectionUtil.getGenericType(field));
+		ob.setParameterisedType(ReflectionUtil.getGenericType(field));
 
 		ob.setDataType(getXSDDatatype(ReflectionUtil.getGenericType(field)));
 		
@@ -652,7 +652,7 @@ public class BindingHandler {
 			
 		}
 		
-		ab.setGenericType(genericType);
+		ab.setParameterisedType(genericType);
 		
 		// add occurrence to topic binding
 		topicBinding.addFieldBinding(ab);
