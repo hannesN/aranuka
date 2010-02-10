@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -44,7 +45,6 @@ public class GeneratorTest extends AbstractGeneratorTest {
 	static TopicMap topicMap;
 	static File path = null;
 
-
 	@BeforeClass
 	public static void prepare() throws Exception {
 		path = getDir();
@@ -54,7 +54,7 @@ public class GeneratorTest extends AbstractGeneratorTest {
 
 	@AfterClass
 	public static void shutdown() {
-		deleteTestDir();
+		 deleteTestDir();
 	}
 
 	static public void generateCode() throws IOException, InvalidOntologyException {
@@ -64,7 +64,7 @@ public class GeneratorTest extends AbstractGeneratorTest {
 	@Test
 	public void testNumberOfFiles() {
 		File srcDir = new File(path.getAbsolutePath() + "/test/model");
-		assertTrue("Number of Files is not 6", srcDir.listFiles().length == 6);
+		assertEquals("Number of Files ", 8, srcDir.listFiles().length);
 
 	}
 
@@ -72,7 +72,7 @@ public class GeneratorTest extends AbstractGeneratorTest {
 	public void testFilenames() {
 		File srcDir = new File(path.getAbsolutePath() + "/test/model");
 		List<String> names = Arrays.asList(new String[] { "Author.java", "City.java", "Corporation.java",
-		        "Document.java", "Person.java", "Project.java" });
+		        "Document.java", "Person.java", "Project.java", "DiplomaThesis.java", "Student.java" });
 
 		for (File f : srcDir.listFiles()) {
 			assertTrue(f.getName() + " is an invallid filename", names.contains(f.getName()));
@@ -92,124 +92,148 @@ public class GeneratorTest extends AbstractGeneratorTest {
 
 	@Test
 	public void testPersonClass() throws URISyntaxException {
-		String urlString = "file://"+path.getAbsolutePath()+"/";
-		
-		try { 
+		String urlString = "file://" + path.getAbsolutePath() + "/";
+
+		try {
 			URL uri = new URL(urlString);
-			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
+			ClassLoader loader = URLClassLoader.newInstance(new URL[] { uri }, getClass().getClassLoader());
 			Class<?> clazz = loader.loadClass("test.model.Person");
-			
+
 			Object o = clazz.getConstructor().newInstance();
-			
+
 			PropertyUtils.setProperty(o, "firstname", "Hans");
 			assertEquals("Hans", PropertyUtils.getProperty(o, "firstname"));
-			
+
 			PropertyUtils.setProperty(o, "lastname", "Meyer");
 			assertEquals("Meyer", PropertyUtils.getProperty(o, "lastname"));
-			
+
 			Set<String> middleNames = new HashSet<String>();
 			middleNames.add("Gerd");
 			middleNames.add("Max");
 			PropertyUtils.setProperty(o, "middlename", middleNames);
-			
+
 			assertEquals(middleNames, PropertyUtils.getProperty(o, "middlename"));
 		} catch (Exception e) {
 			Assert.fail("Could not load Person.class");
-			
+
 		}
 	}
-	
+
 	@Test
 	public void testCityClass() throws URISyntaxException {
-		String urlString = "file://"+path.getAbsolutePath()+"/";
-		
-		try { 
+		String urlString = "file://" + path.getAbsolutePath() + "/";
+
+		try {
 			URL uri = new URL(urlString);
-			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
+			ClassLoader loader = URLClassLoader.newInstance(new URL[] { uri }, getClass().getClassLoader());
 			Class<?> clazz = loader.loadClass("test.model.City");
 			Assert.assertNotNull(clazz);
 			Object o = clazz.getConstructor().newInstance();
-			
+
 			Assert.assertNotNull(o);
 		} catch (Exception e) {
 			Assert.fail("Could not load City.class");
-			
+
 		}
 	}
-	
+
 	@Test
 	public void testCorporationClass() throws URISyntaxException {
-		String urlString = "file://"+path.getAbsolutePath()+"/";
-		
-		try { 
+		String urlString = "file://" + path.getAbsolutePath() + "/";
+
+		try {
 			URL uri = new URL(urlString);
-			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
+			ClassLoader loader = URLClassLoader.newInstance(new URL[] { uri }, getClass().getClassLoader());
 			Class<?> clazz = loader.loadClass("test.model.Corporation");
 			Assert.assertNotNull(clazz);
 			Object o = clazz.getConstructor().newInstance();
-			
+
 			Assert.assertNotNull(o);
 		} catch (Exception e) {
 			Assert.fail("Could not load Corporation.class");
-			
+
 		}
 	}
-	
+
 	@Test
 	public void testAuthorClass() throws URISyntaxException {
-		String urlString = "file://"+path.getAbsolutePath()+"/";
-		
-		try { 
+		String urlString = "file://" + path.getAbsolutePath() + "/";
+
+		try {
 			URL uri = new URL(urlString);
-			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
+			ClassLoader loader = URLClassLoader.newInstance(new URL[] { uri }, getClass().getClassLoader());
 			Class<?> clazz = loader.loadClass("test.model.Author");
 			Assert.assertNotNull(clazz);
-			
+
 			assertEquals("test.model.Person", clazz.getSuperclass().getName());
 			Object o = clazz.getConstructor().newInstance();
-			
+
 			Assert.assertNotNull(o);
 		} catch (Exception e) {
 			Assert.fail("Could not load Author.class");
 		}
 	}
-	
+
 	@Test
 	public void testProjectClass() throws URISyntaxException {
-		String urlString = "file://"+path.getAbsolutePath()+"/";
-		
-		try { 
+		String urlString = "file://" + path.getAbsolutePath() + "/";
+
+		try {
 			URL uri = new URL(urlString);
-			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
+			ClassLoader loader = URLClassLoader.newInstance(new URL[] { uri }, getClass().getClassLoader());
 			Class<?> clazz = loader.loadClass("test.model.Project");
 			Assert.assertNotNull(clazz);
 			Object o = clazz.getConstructor().newInstance();
-			
+
 			Assert.assertNotNull(o);
 		} catch (Exception e) {
 			Assert.fail("Could not load Project.class");
-			
+
 		}
 	}
-	
+
 	@Test
 	public void testDocumentClass() throws URISyntaxException {
-		String urlString = "file://"+path.getAbsolutePath()+"/";
-		
-		try { 
+		String urlString = "file://" + path.getAbsolutePath() + "/";
+
+		try {
 			URL uri = new URL(urlString);
-			ClassLoader loader = URLClassLoader.newInstance(new URL[]{uri}, getClass().getClassLoader());	
+			ClassLoader loader = URLClassLoader.newInstance(new URL[] { uri }, getClass().getClassLoader());
 			Class<?> clazz = loader.loadClass("test.model.Document");
 			Assert.assertNotNull(clazz);
 			Object o = clazz.getConstructor().newInstance();
-			
+
 			Assert.assertNotNull(o);
 		} catch (Exception e) {
 			Assert.fail("Could not load Document.class");
-			
+
 		}
 	}
-	
+
+	@Test
+	public void testStudentClass() throws URISyntaxException {
+		String urlString = "file://" + path.getAbsolutePath() + "/";
+
+		try {
+			URL uri = new URL(urlString);
+			ClassLoader loader = URLClassLoader.newInstance(new URL[] { uri }, getClass().getClassLoader());
+			Class<?> clazz = loader.loadClass("test.model.Student");
+			Assert.assertNotNull(clazz);
+			Class<?> clazz2 = loader.loadClass("test.model.DiplomaThesis");
+			Assert.assertNotNull(clazz2);
+			try {
+				Field f = clazz.getDeclaredField("diplomaThesis");
+				assertEquals(clazz2, f.getType());
+			} catch (NoSuchFieldException e) {
+				Assert.fail("Field diploma theses doesn't exists");
+			}
+		} catch (Exception e) {
+			Assert.fail("Could not load class:"+e.getMessage());
+
+		}
+
+	}
+
 	static private void init() throws Exception {
 		TopicMapSystem topicMapSystem = TopicMapSystemFactory.newInstance().newTopicMapSystem();
 		topicMap = topicMapSystem.createTopicMap("http://www.topicmapslab.de/aranuka-codegen");
