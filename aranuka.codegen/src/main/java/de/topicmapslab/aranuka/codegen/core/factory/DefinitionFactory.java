@@ -1,6 +1,6 @@
 package de.topicmapslab.aranuka.codegen.core.factory;
 
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ASSOCIATION_TYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ASSOCIATION_TYPE;  
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ASSOCIATION_ROLE_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CARD_MAX;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED;
@@ -14,7 +14,10 @@ import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.DATATYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.INSTANCE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.NAME_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.OCCURRENCE_DATATYPE_CONSTRAINT;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.OTHER_CONSTRAINED_ROLE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.OTHER_CONSTRAINED_TOPIC_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ROLE_TYPE;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ROLE_COMBINATION_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBJECT_IDENTIFIER_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBJECT_LOCATOR_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBTYPE;
@@ -30,6 +33,7 @@ import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TYPE_INSTAN
 import gnu.trove.THashSet;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.tmapi.core.Association;
@@ -73,8 +77,8 @@ public class DefinitionFactory {
 	private Topic constrainedRole;
 //	private Topic allowedReifier;
 //	private Topic allowedScope;
-//	private Topic otherConstrainedRole;
-//	private Topic otherConstrainedTopicType;
+	private Topic otherConstrainedRole;
+	private Topic otherConstrainedTopicType;
 	// private Topic overlaps;
 //	private Topic belongsTo;
 
@@ -101,6 +105,7 @@ public class DefinitionFactory {
 //	private Topic uniqueValueConstraint;
 //	private Topic regularExpressionConstraint;
 //	private Topic overlapDeclaration;
+	private Topic roleCombinationConstraint;
 
 	// -- occurrence types
 	private Topic datatype;
@@ -170,8 +175,8 @@ public class DefinitionFactory {
 		constraintStatement = createStandardTopic(CONSTRAINED_STATEMENT);
 		constrainedTopicType = createStandardTopic(CONSTRAINED_TOPIC_TYPE);
 		constrainedRole = createStandardTopic(CONSTRAINED_ROLE);
-//		otherConstrainedTopicType = createStandardTopic(OTHER_CONSTRAINED_TOPIC_TYPE);
-//		otherConstrainedRole = createStandardTopic(OTHER_CONSTRAINED_ROLE);
+		otherConstrainedTopicType = createStandardTopic(OTHER_CONSTRAINED_TOPIC_TYPE);
+		otherConstrainedRole = createStandardTopic(OTHER_CONSTRAINED_ROLE);
 //		allowedReifier = createStandardTopic(ALLOWED_REIFIER);
 //		allowedScope = createStandardTopic(ALLOWED_SCOPE);
 		constrainedRole = createStandardTopic(CONSTRAINED_ROLE);
@@ -193,6 +198,7 @@ public class DefinitionFactory {
 //		uniqueValueConstraint = createStandardTopic(UNIQUE_VALUE_CONSTRAINT);
 //		regularExpressionConstraint = createStandardTopic(REGULAR_EXPRESSION_CONSTRAINT);
 //		overlapDeclaration = createStandardTopic(OVERLAP_DECLARATION);
+		roleCombinationConstraint = createStandardTopic(ROLE_COMBINATION_CONSTRAINT);
 	}
 
 	private Topic createStandardTopic(String type) {
@@ -454,18 +460,97 @@ public class DefinitionFactory {
 				// check if we have the otherRole
 				tmp = assoc.getRoles(constrained).iterator().next().getPlayer();
 				otherPlayer = tmp;
-				
 				AssociationAnnotationDefinition.AssocOtherPlayers aop = new AssociationAnnotationDefinition.AssocOtherPlayers(otherRole, otherPlayer);
 				aop.setMany(isMany);
-				playerSet.add(aop);
-	
 				
+				// check if role combination is set, if yes create a new assocdefinition (binary assoc) else add the player to the current
+				if (roleCombinationConstraintExists(assocType, t, roleType, otherPlayer, otherRole)) {
+					Set<AssociationAnnotationDefinition.AssocOtherPlayers> pSet = new HashSet<AssociationAnnotationDefinition.AssocOtherPlayers>();
+					AssociationAnnotationDefinition binAad = new AssociationAnnotationDefinition(assocType, roleType, pSet);
+					pSet.add(aop);
+					aadSet.add(binAad);
+					binAad.setContainerTypeName(getTypeName(assocType));
+				} else {
+					playerSet.add(aop);
+					aad.setContainerTypeName(getTypeName(assocType));
+					aadSet.add(aad);
+				}
 			}
-			aad.setContainerTypeName(getTypeName(assocType));
-			aadSet.add(aad);
+			
 		}
 		tad.addAssociationAnnotationDefinitions(aadSet);
 	}
+
+	/**
+	 * Checks if the topic map contains a role combination constraint for the players.
+	 * 
+	 * 
+	 * 
+	 * @param assocType association type
+	 * @param topicType a topic type
+	 * @param roleType the role of the topic type
+	 * @param otherPlayer the topic type of the other player
+	 * @param otherRole the role of the other player
+	 * @return <code>true</code> if a role combination constraint for this type exists
+	 */
+	@SuppressWarnings("unchecked")
+    private boolean roleCombinationConstraintExists(Topic assocType, Topic topicType, Topic roleType, Topic otherPlayer, Topic otherRole) {
+		TypeInstanceIndex index = topicMap.getIndex(TypeInstanceIndex.class);
+		
+		// iterate through constraint instances
+		Iterator it = index.getTopics(roleCombinationConstraint).iterator();
+		
+		while (it.hasNext()) {
+			Topic rcc = (Topic) it.next();
+			
+			Topic op = getConstrainedPlayer(constraintStatement, rcc);
+			if (!assocType.equals(op))
+				continue;
+			
+			// check both roles/players for player/role
+			op = getConstrainedPlayer(constrainedRole, rcc);
+			if (roleType.equals(op)) {
+				op = getConstrainedPlayer(constrainedTopicType, rcc);
+				if (!topicType.equals(op))
+					continue;
+			} else if (otherRole.equals(op)) {
+				op = getConstrainedPlayer(constrainedTopicType, rcc);
+				if (!otherPlayer.equals(op))
+					continue;
+			} else {
+				continue;
+			}
+			
+			// check both roles/players for other player/ other role
+			op = getConstrainedPlayer(otherConstrainedRole, rcc);
+			if (roleType.equals(op)) {
+				op = getConstrainedPlayer(otherConstrainedTopicType, rcc);
+				if (topicType.equals(op))
+					return true;
+			} else if (otherRole.equals(op)) {
+				op = getConstrainedPlayer(otherConstrainedTopicType, rcc);
+				if (otherPlayer.equals(op))
+					return true;
+			} else {
+				continue;
+			}
+		}
+		
+	    return false;
+    }
+
+	private Topic getConstrainedPlayer(Topic assocType, Topic rcc) {
+	    Set<Role> roles = rcc.getRolesPlayed(constrains, assocType);
+	    if (roles.size()!=1)
+	    	return null;
+	    
+	    // getting the constrained role from the assoctype
+	    Set<Role> otherRoles = roles.iterator().next().getParent().getRoles(constrained);
+	    if (otherRoles.size()!=1)
+	    	return null;
+	    
+	    return otherRoles.iterator().next().getPlayer();
+    }
 
 	/*
 	 * Checks if the cardmax of the association role constraint of the given assocType
