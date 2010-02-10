@@ -16,7 +16,7 @@ import org.tmapi.core.TopicMap;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 /**
- * Anstract class for field bindings.
+ * Abstract class for field bindings.
  * @author christian haß
  *
  */
@@ -50,7 +50,7 @@ public abstract class AbstractFieldBinding{
 	/**
 	 * The generic field type.
 	 */
-	private Type genericType;
+	private Type parameterisedType;
 	
 	/**
 	 * The scope configured via the annotation.
@@ -232,16 +232,16 @@ public abstract class AbstractFieldBinding{
 	 * Returns the generic type, i.e. the parameter type if the field type is instance of ParameterizedType
 	 * @return The type.
 	 */
-	public Type getGenericType() {
-		return genericType;
+	public Type getParameterisedType() {
+		return parameterisedType;
 	}
 
 	/**
 	 * Sets the generic type.
-	 * @param genericType - The type.
+	 * @param parameterisedType - The type.
 	 */
-	public void setGenericType(Type genericType) {
-		this.genericType = genericType;
+	public void setParameterisedType(Type parameterisedType) {
+		this.parameterisedType = parameterisedType;
 	}
 
 	@Override

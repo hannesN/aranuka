@@ -3,7 +3,7 @@ package de.topicmapslab.aranuka.binding;
 import java.util.Map;
 
 /**
- * Anstract class for association field binding classes.
+ * Abstract class for association field binding classes.
  * @author christian haß
  *
  */

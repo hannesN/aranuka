@@ -1374,7 +1374,7 @@ public class TopicMapHandler {
 			
 			String iri = identifier.getReference();
 			
-			if(!idBinding.getGenericType().equals(String.class)){
+			if(!idBinding.getParameterisedType().equals(String.class)){
 				
 				// check and remove type identifier to be able to cast the id to an non string datatype
 				for(String typeId:typeIdentifier){
@@ -1413,7 +1413,7 @@ public class TopicMapHandler {
 			
 			if(idBinding.isArray()){
 
-				if(idBinding.getGenericType().equals(Integer.class)){
+				if(idBinding.getParameterisedType().equals(Integer.class)){
 					
 					List<Integer> list = new ArrayList<Integer>();
 					
@@ -1431,7 +1431,7 @@ public class TopicMapHandler {
 			}else{
 				
 				// set an collection
-				if(idBinding.getGenericType().equals(Integer.class)){
+				if(idBinding.getParameterisedType().equals(Integer.class)){
 					
 					Collection<Integer> collection;
 					
@@ -1571,18 +1571,18 @@ public class TopicMapHandler {
 					if(occurrences.size() > 1)
 						throw new TopicMapIOException("Cannot add multiple occurrences to an non container field.");
 					
-					occurrenceBinding.setValue(getOccurrenceValue(occurrences.iterator().next(),occurrenceBinding.getGenericType()), object);
+					occurrenceBinding.setValue(getOccurrenceValue(occurrences.iterator().next(),occurrenceBinding.getParameterisedType()), object);
 					
 				}else{
 					
 					Set values = new HashSet();
 					
 					for(Occurrence occurrence:occurrences)
-						values.add(getOccurrenceValue(occurrence,occurrenceBinding.getGenericType()));
+						values.add(getOccurrenceValue(occurrence,occurrenceBinding.getParameterisedType()));
 
 					if(occurrenceBinding.isArray()){
 						
-						Object[] tmp = (Object[])Array.newInstance((Class<?>)occurrenceBinding.getGenericType(), values.size());
+						Object[] tmp = (Object[])Array.newInstance((Class<?>)occurrenceBinding.getParameterisedType(), values.size());
 						values.toArray(tmp);
 						occurrenceBinding.setValue(tmp, object);
 
@@ -1802,7 +1802,7 @@ public class TopicMapHandler {
 			if(associationBinding.isArray()){
 				
 				// is array
-				Object[] tmp = (Object[])Array.newInstance((Class<?>)associationBinding.getGenericType(), counterPlayers.size());
+				Object[] tmp = (Object[])Array.newInstance((Class<?>)associationBinding.getParameterisedType(), counterPlayers.size());
 				counterPlayers.toArray(tmp);
 				associationBinding.setValue(tmp, object);
 				
@@ -1942,7 +1942,7 @@ public class TopicMapHandler {
 			if(binding.isArray())
 			{
 				
-				Object[] tmp = (Object[])Array.newInstance((Class<?>)binding.getGenericType(), containerSet.size());
+				Object[] tmp = (Object[])Array.newInstance((Class<?>)binding.getParameterisedType(), containerSet.size());
 				containerSet.toArray(tmp);
 				binding.setValue(tmp, object);
 				
