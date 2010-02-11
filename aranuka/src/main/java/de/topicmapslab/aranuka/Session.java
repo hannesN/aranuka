@@ -32,7 +32,7 @@ public class Session {
 	private static Logger logger = LoggerFactory.getLogger(Session.class);
 
 	/**
-	 * Instance of the configuration object.
+	 * Instance of the configuration object. 
 	 */
 	private Configuration config;
 	

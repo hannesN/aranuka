@@ -1251,7 +1251,7 @@ public class TopicMapHandler {
 
 		Object object = getObjectFromCache(topic);
 
-		if(object != null)
+		if(object != null) 
 			return object;
 		
 		if(binding.getParent() != null){
@@ -1711,12 +1711,12 @@ public class TopicMapHandler {
 	private void addBinaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		// get role type
-		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(),this.config.getPrefixMap())));
+		Topic ownRoleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(),this.config.getPrefixMap())));
 		
-		if(roleType == null)
+		if(ownRoleType == null)
 			return;
 		
-		Set<Role> rolesPlayed = topic.getRolesPlayed(roleType);
+		Set<Role> rolesPlayed = topic.getRolesPlayed(ownRoleType);
 		
 		if(rolesPlayed.isEmpty())
 			return;
@@ -1728,9 +1728,14 @@ public class TopicMapHandler {
 			return;
 		
 		// get counter player type
-		Topic counterType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getOtherRole(),this.config.getPrefixMap())));
+		Topic counterPlayerRoleType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getOtherRole(),this.config.getPrefixMap())));
 		
-		if(counterType == null)
+		if(counterPlayerRoleType == null)
+			return;
+		
+		Topic counterPlayerType = getTopicType(associationBinding.getOtherPlayerBinding());
+		
+		if(counterPlayerType == null)
 			return;
 		
 		// get matching roles
@@ -1740,7 +1745,8 @@ public class TopicMapHandler {
 			
 			if(role.getParent().getType().equals(associationType) 
 					&& role.getParent().getRoles().size() == 2
-					&& TopicMapsUtils.getCounterRole(role.getParent(), role).getType().equals(counterType)){
+					&& TopicMapsUtils.getCounterRole(role.getParent(), role).getType().equals(counterPlayerRoleType)
+					&& TopicMapsUtils.getCounterRole(role.getParent(), role).getPlayer().getTypes().contains(counterPlayerType)){
 				
 				matchingRoles.add(role);
 			}
