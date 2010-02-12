@@ -3,7 +3,9 @@ package de.topicmapslab.aranuka;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,6 +33,11 @@ public class Session {
 
 	private static Logger logger = LoggerFactory.getLogger(Session.class);
 
+	/**
+	 * The list of {@link IPersistListener}.
+	 */
+	private List<IPersistListener> listeners;
+	
 	/**
 	 * Instance of the configuration object. 
 	 */
@@ -73,8 +80,12 @@ public class Session {
 	 * @throws TopicMapException
 	 */
 	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException, TopicMapException {
-		
+		// flag if notification is needed
+		// TODO set it by topic map handler according to real model changes
+		boolean fireNotification = true; 
 		getTopicMapHandler().persist(topicObject);
+		if (fireNotification)
+			notifyPersist(topicObject);
 	}
 	
 	/**
@@ -222,9 +233,55 @@ public class Session {
 		
 	}
 	
+	/**
+	 * Adds a new persist listener. 
+	 * 
+	 * @param listener the new listener to add
+	 */
+	public void addPersistListener(IPersistListener listener) {
+		if (listeners==null)
+			listeners=new ArrayList<IPersistListener>();
+		listeners.add(listener);
+	}
+	
+	/**
+	 * Removes a persist listener
+	 * 
+	 * @param listener the listener to remove
+	 */
+	public void removePersistListener(IPersistListener listener) {
+		if (getPersistListeners().contains(listener))
+			listeners.remove(listener);
+	}
+	
 	// getter and setter
 	
 	// --[ private methods ]-------------------------------------------------------------------------------
+	
+	/**
+	 * Notifies all registered listeners that the given model was persisted. 
+	 * 
+	 * @param model the model which was persisted
+	 */
+	private void notifyPersist(Object model) {
+		int size = getPersistListeners().size();
+		if (size==0)
+			return;
+		IPersistListener[] listeners = getPersistListeners().toArray(new IPersistListener[size]);
+		for (IPersistListener l : listeners) {
+			l.persisted(model);
+		}
+	}
+	
+	/**
+	 * Returns {@link #listeners} which contains the persist listeners or {@link Collections#emptyList()}.
+	 * @return the list of listeners or an empty list
+	 */
+	private List<IPersistListener> getPersistListeners() {
+		if (listeners==null)
+			return Collections.emptyList();
+		return listeners;
+	}
 	
 	/**
 	 * Returns the topic map handler.
