@@ -814,9 +814,9 @@ public class TopicMapHandler {
 					
 					// find association  in cache and remove if it belongs to this topic
 					
-					if(this.associationCache.get(ass) != null)
+					if(getAssociationBindingFromCache(ass) != null)
 					{
-						if(binding.getFieldBindings().contains(this.associationCache.get(ass))){ 
+						if(binding.getFieldBindings().contains(getAssociationBindingFromCache(ass))){ 
 							// if the binding belongs to this topic, the association was created by this topic
 							removeAssociationFromCache(ass);
 							
@@ -2589,6 +2589,13 @@ public class TopicMapHandler {
 	
 	}
 	
-	
+	private AssociationBinding getAssociationBindingFromCache(Association association){
+		
+		if(this.associationCache == null)
+			return null;
+		
+		return this.associationCache.get(association);
+		
+	}
 	
 }
