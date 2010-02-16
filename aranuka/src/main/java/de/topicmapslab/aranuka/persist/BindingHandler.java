@@ -878,20 +878,23 @@ public class BindingHandler {
 	 */
 	private String getXSDDatatype(Type type) {
 		
-		if (type.equals(Boolean.class))
+		if ((type.equals(Boolean.class)) || (type.equals(boolean.class)))
 			return IXsdDatatypes.XSD_BOOLEAN;
 		
-		if (type.equals(Integer.class))
+		if ((type.equals(Integer.class)) || (type.equals(int.class)))
 			return IXsdDatatypes.XSD_INTEGER;
 		
 		if (type.equals(Date.class))
 			return IXsdDatatypes.XSD_DATE;
 		
-		if (type.equals(Float.class))
+		if ((type.equals(Float.class)) || (type.equals(float.class)))
 			return IXsdDatatypes.XSD_FLOAT;
 		
-		if (type.equals(Double.class))
+		if ((type.equals(Double.class)) || (type.equals(double.class)))
 			return IXsdDatatypes.XSD_DOUBLE;
+		
+		if ((type.equals(Long.class)) || (type.equals(long.class)))
+			return IXsdDatatypes.XSD_LONG;
 				
 		return IXsdDatatypes.XSD_STRING;
 	}
