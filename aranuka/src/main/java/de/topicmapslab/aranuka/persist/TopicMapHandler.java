@@ -719,7 +719,8 @@ public class TopicMapHandler {
 			// get type and scope for this binding/field
 			Topic occurrenceType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(newOccurrence.getKey().getOccurrenceType(),this.config.getPrefixMap())));
 			Set<Topic> scope = newOccurrence.getKey().getScope(getTopicMap());
-
+			Locator datatype = topic.getTopicMap().createLocator(newOccurrence.getKey().getDataType()); // creating datatype locator
+			
 			for(String value:newOccurrence.getValue()){
 				
 				boolean found = false;
@@ -729,12 +730,15 @@ public class TopicMapHandler {
 					if (actualOccurrence.getKey().getValue().equals(value)) { // compare value
 
 						if (actualOccurrence.getKey().getType().equals(occurrenceType)) { // compare type
+							
+							if (actualOccurrence.getKey().getDatatype().equals(datatype)) { // compare datatype
 
-							if (scope.isEmpty() || actualOccurrence.getKey().getScope().equals(scope)) { // compare scope
-	
-								found = true;
-								actualOccurrence.setValue(Match.INSTANCE);
-								break;
+								if (scope.isEmpty() || actualOccurrence.getKey().getScope().equals(scope)) { // compare scope
+		
+									found = true;
+									actualOccurrence.setValue(Match.INSTANCE);
+									break;
+								}
 							}
 						}
 					}
@@ -742,8 +746,8 @@ public class TopicMapHandler {
 				
 				if(!found){
 					
-					logger.info("Add new occurrence " + value); 
-					topic.createOccurrence(occurrenceType, value, scope);
+					logger.info("Add new occurrence " + value + " with datatype " + newOccurrence.getKey().getDataType()); 
+					topic.createOccurrence(occurrenceType, value, datatype, scope);
 					
 				}
 			}
@@ -1593,6 +1597,8 @@ public class TopicMapHandler {
 			
 			if(type.equals(int.class))
 				return Integer.parseInt(occurrence.getValue());
+			else if(type.equals(long.class))
+				return Long.parseLong(occurrence.getValue());
 			else if(type.equals(float.class))
 				return Float.parseFloat(occurrence.getValue());
 			else if(type.equals(double.class))

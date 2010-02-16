@@ -123,7 +123,7 @@
 		<repository>
 			<id>topicmapslab</id>
 			<name>Topic Maps Lab Repositiory</name>
-			<url>scp://niederhausen@topicmapslab.de/home/niederhausen/webdir/maven.topicmapslab.de/public/third_party</url>
+			<url>scp://maven@topicmapslab.de/home/maven/webdir/maven.topicmapslab.de/public/third_party</url>
 		</repository>
 	</distributionManagement>
 </project>
