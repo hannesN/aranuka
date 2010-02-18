@@ -218,4 +218,11 @@ public class Configuration {
 		
 	}
 	
+	public void setNameMap(Map<String, String> nameMap) {
+	
+		this.nameMap = nameMap;
+	}
+	
+	
+	
 }
