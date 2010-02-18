@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
+import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 
 /**
@@ -41,6 +42,11 @@ public class Configuration {
 	 * Map of property strings.
 	 */
 	private Map<Property, String> propertyMap;
+	
+	/**
+	 * Map of topic names. Key is the identifier while the value is the name.
+	 */
+	private Map<String,String> nameMap;
 	
 	/**
 	 * The actual session.
@@ -178,5 +184,38 @@ public class Configuration {
 		
 	}
 
+	public void addName(String identifier, String name){
+		
+		if(this.nameMap == null)
+			this.nameMap = new HashMap<String, String>();
+		
+		this.nameMap.put(identifier, name);
+	}
+	
+	public String getName(String identifier){
+		
+		if(this.nameMap == null)
+			return null;
+		
+		String name = this.nameMap.get(identifier);
+		
+		if(name != null)
+			return name;
+		
+		if(this.getPrefixMap() == null)
+			return null;
+		
+		// try to find the name in unresolved identifier
+		
+		for(Map.Entry<String,String> entry:this.nameMap.entrySet()){
+			
+			if(TopicMapsUtils.resolveURI(entry.getKey(),this.getPrefixMap()).equals(identifier)){
+				return entry.getValue();
+			}
+		}
+		
+		return null;
+		
+	}
 	
 }
