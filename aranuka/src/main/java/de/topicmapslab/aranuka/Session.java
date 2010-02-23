@@ -1,17 +1,14 @@
 package de.topicmapslab.aranuka;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tinytim.mio.CTMTopicMapWriter;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
@@ -26,7 +23,7 @@ import de.topicmapslab.aranuka.persist.TopicMapHandler;
 
 /**
  * The session is used to persist and get objects from the topic map.
- * @author christian haß
+ * @author Christian Haß
  *
  */
 public class Session {
@@ -93,43 +90,45 @@ public class Session {
 	 */
 	public void flushTopicMap(){
 		
-		CTMTopicMapWriter writer;
+//		CTMTopicMapWriter writer;
+//		
+//		try {
+//			
+//			String filename = config.getProperty(Property.FILENAME);
+//			logger.info("Writing to "+filename);
+//			writer = new CTMTopicMapWriter(new FileOutputStream(filename), config.getBaseLocator());
+//			
+//			
+//			writer.setExportItemIdentifiers(true);
+//			String bl = config.getBaseLocator();
+//			Map<String, String> prefixMap = config.getPrefixMap();
+//			
+//			boolean foundBaseLocator = false;
+//			// adding all specified prefixes but the base locator
+//			for (String key : prefixMap.keySet()) {
+//				if (!key.equals("base_locator")) {
+//					String uri = prefixMap.get(key);
+//					writer.addPrefix(key, uri);
+//					if (uri.equals(bl))
+//						foundBaseLocator=true;
+//				}
+//			}
+//			// if no prefix with the base locators uri found, add it to the prefix list
+//			if (!foundBaseLocator)
+//				writer.addPrefix("base_locator", bl);
+//			
+//			for (Class<?> clazz : config.getClasses()) {
+//				String prefix = bl+clazz.getName().replaceAll("\\.", "/")+"/";
+//				writer.addPrefix(clazz.getSimpleName().toLowerCase(), prefix);
+//			}
+//
+//			writer.write(getTopicMapHandler().getTopicMap());
+//			
+//		} catch (Exception e) {
+//			logger.error("", e);
+//		}
 		
-		try {
-			
-			String filename = config.getProperty(Property.FILENAME);
-			logger.info("Writing to "+filename);
-			writer = new CTMTopicMapWriter(new FileOutputStream(filename), config.getBaseLocator());
-			
-			
-			writer.setExportItemIdentifiers(true);
-			String bl = config.getBaseLocator();
-			Map<String, String> prefixMap = config.getPrefixMap();
-			
-			boolean foundBaseLocator = false;
-			// adding all specified prefixes but the base locator
-			for (String key : prefixMap.keySet()) {
-				if (!key.equals("base_locator")) {
-					String uri = prefixMap.get(key);
-					writer.addPrefix(key, uri);
-					if (uri.equals(bl))
-						foundBaseLocator=true;
-				}
-			}
-			// if no prefix with the base locators uri found, add it to the prefix list
-			if (!foundBaseLocator)
-				writer.addPrefix("base_locator", bl);
-			
-			for (Class<?> clazz : config.getClasses()) {
-				String prefix = bl+clazz.getName().replaceAll("\\.", "/")+"/";
-				writer.addPrefix(clazz.getSimpleName().toLowerCase(), prefix);
-			}
-
-			writer.write(getTopicMapHandler().getTopicMap());
-			
-		} catch (Exception e) {
-			logger.error("", e);
-		}
+		
 	}
 	
 	/**

@@ -17,7 +17,7 @@ import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 /**
  * Configuration class for Aranuka.
- * @author christian haß
+ * @author Christian haß
  *
  */
 public class Configuration {
