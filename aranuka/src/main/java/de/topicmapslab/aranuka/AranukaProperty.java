@@ -5,7 +5,7 @@ package de.topicmapslab.aranuka;
  * @author Christian Haß
  *
  */
-public enum Property {
+public enum AranukaProperty {
 	BASE_LOCATOR,
-	FILENAME
+	FILENAME /// TODO remove when driver are done
 }

@@ -6,9 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import de.topicmapslab.aranuka.engine.IEngineDriver;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
@@ -22,12 +20,12 @@ import de.topicmapslab.aranuka.utils.TopicMapsUtils;
  */
 public class Configuration {
 
-	/**
-	 * The dafault base locator of the topic map if not overwritten by the user.
-	 */
-	private final static String DEFAULT_BASEL_LOCATOR = "http://www.topicmapslab.de/aranuka/";
+//	/**
+//	 * The dafault base locator of the topic map if not overwritten by the user.
+//	 */
+//	private final static String DEFAULT_BASEL_LOCATOR = "http://www.topicmapslab.de/aranuka/";
 		
-	private static Logger logger = LoggerFactory.getLogger(Configuration.class);
+	//private static Logger logger = LoggerFactory.getLogger(Configuration.class);
 
 	/**
 	 * Set of annoteted classes which should be supported by the session.
@@ -41,7 +39,7 @@ public class Configuration {
 	/**
 	 * Map of property strings.
 	 */
-	private Map<Property, String> propertyMap;
+	private Map<AranukaProperty, String> propertyMap;
 	
 	/**
 	 * Map of topic names. Key is the identifier while the value is the name.
@@ -54,15 +52,35 @@ public class Configuration {
 	private Session session;
 	
 
+	private IEngineDriver driver;
+	
 	/**
 	 * Constructor.
 	 */
-	public Configuration() {
+	public Configuration(IEngineDriver driver) {
 		
-		// set default values
-		setBaseLocator(DEFAULT_BASEL_LOCATOR);
+		if(driver == null)
+			throw new RuntimeException("Driver must not be null.");
+				
+		this.driver = driver;
+//		
+//		// set default values
+//		setBaseLocator(DEFAULT_BASEL_LOCATOR);
 	}
 	
+	
+	public IEngineDriver getDriver() {
+	
+		return driver;
+	}
+
+
+
+	
+
+
+
+
 	/**
 	 * Adds a class.
 	 * @param clazz - The class object.
@@ -83,30 +101,30 @@ public class Configuration {
 	}
 
 	
-	/**
-	 * Sets the base locator which is used in the topic map.
-	 * Note: Canging the base locator after a session was created has no consequence.
-	 * @param baseLocator - The base locator.
-	 */
-	public void setBaseLocator(String baseLocator){
-		
-		logger.info("Set base locator to " + baseLocator);
-		
-		if(propertyMap == null)
-			propertyMap = new HashMap<Property, String>();
-		
-		propertyMap.put(Property.BASE_LOCATOR, baseLocator);
-		// set prefix as well
-		addPrefix("base_locator", baseLocator);
-	}
+//	/**
+//	 * Sets the base locator which is used in the topic map.
+//	 * Note: Canging the base locator after a session was created has no consequence.
+//	 * @param baseLocator - The base locator.
+//	 */
+//	public void setBaseLocator(String baseLocator){
+//		
+//		logger.info("Set base locator to " + baseLocator);
+//		
+//		if(propertyMap == null)
+//			propertyMap = new HashMap<AranukaProperty, String>();
+//		
+//		propertyMap.put(AranukaProperty.BASE_LOCATOR, baseLocator);
+//		// set prefix as well
+//		addPrefix("base_locator", baseLocator);
+//	}
 	
-	/**
-	 * Returns the currently specified base locator.
-	 * @return - The base locator as string.
-	 */
-	public String getBaseLocator(){
-		return propertyMap.get(Property.BASE_LOCATOR);
-	}
+//	/**
+//	 * Returns the currently specified base locator.
+//	 * @return - The base locator as string.
+//	 */
+//	public String getBaseLocator(){
+//		return propertyMap.get(AranukaProperty.BASE_LOCATOR);
+//	}
 
 	/**
 	 * Adds a new prefix to the configuration.
@@ -141,7 +159,7 @@ public class Configuration {
 	 * @param key - The key for the property.
 	 * @return The property.
 	 */
-	public String getProperty(Property key){
+	public String getProperty(AranukaProperty key){
 		
 		if(propertyMap == null)
 			return null;
@@ -154,12 +172,11 @@ public class Configuration {
 	 * @param key - The key for the property.
 	 * @param value - The value of the property.
 	 */
-	public void addProperty(Property key, String value) {
+	public void addProperty(AranukaProperty key, String value) {
 		if(this.propertyMap == null)
-			propertyMap = new HashMap<Property, String>();
+			propertyMap = new HashMap<AranukaProperty, String>();
 		
 		propertyMap.put(key, value);
-		
 	}
 	
 	/**
