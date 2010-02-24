@@ -68,14 +68,19 @@
 			<scope>test</scope> </dependency>
 		-->
 		<dependency>
-			<groupId>semagia</groupId>
-			<artifactId>semagia-mio-ctm</artifactId>
-			<version>0.9.3</version>
-		</dependency>
-		<dependency>
 			<groupId>net.ontopia</groupId>
 			<artifactId>ontopia-engine</artifactId>
 			<version>5.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>semagia</groupId>
+			<artifactId>semagia-mio-xtm</artifactId>
+			<version>0.9.5</version>
+		</dependency>
+		<dependency>
+			<groupId>semagia</groupId>
+			<artifactId>semagia-mio</artifactId>
+			<version>0.9.5</version>
 		</dependency>
 	</dependencies>
 	<distributionManagement>

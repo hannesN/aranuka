@@ -89,16 +89,16 @@ public class TopicMapHandler {
 	 * @param config - The configuration.
 	 * @param topicMap - The topic map. 
 	 */
-	public TopicMapHandler(Configuration config, TopicMap topicMap){
+	public TopicMapHandler(Configuration config){
 
 		if(config == null)
 			throw new RuntimeException("Configuration is null.");
-		
-		if(topicMap == null)
-			throw new RuntimeException("Topic map is null.");
-		
+				
 		this.config = config;
-		this.topicMap = topicMap;
+		this.topicMap = config.getDriver().getTopicMap();
+		
+		if(this.topicMap == null)
+			this.topicMap = config.getDriver().getTopicMap();
 	}
 	
 	/**
@@ -139,7 +139,7 @@ public class TopicMapHandler {
 	public TopicMap getTopicMap()
 	{
 		if(this.topicMap == null)
-			throw new RuntimeException("Topic Map is null.");
+			this.topicMap = this.config.getDriver().getTopicMap();
 			
 		return this.topicMap;
 	}
