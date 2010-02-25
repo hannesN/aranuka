@@ -12,7 +12,6 @@ import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
-
 /**
  * Configuration class for Aranuka.
  * @author Christian haß
@@ -20,26 +19,15 @@ import de.topicmapslab.aranuka.utils.TopicMapsUtils;
  */
 public class Configuration {
 
-//	/**
-//	 * The dafault base locator of the topic map if not overwritten by the user.
-//	 */
-//	private final static String DEFAULT_BASEL_LOCATOR = "http://www.topicmapslab.de/aranuka/";
-		
-	//private static Logger logger = LoggerFactory.getLogger(Configuration.class);
-
 	/**
 	 * Set of annoteted classes which should be supported by the session.
 	 */
 	private Set<Class<?>> classes;
+	
 	/**
 	 * Map of defined prefixes.
 	 */
 	private Map<String, String> prefixMap;
-	
-	/**
-	 * Map of property strings.
-	 */
-	private Map<AranukaProperty, String> propertyMap;
 	
 	/**
 	 * Map of topic names. Key is the identifier while the value is the name.
@@ -50,37 +38,49 @@ public class Configuration {
 	 * The actual session.
 	 */
 	private Session session;
-	
 
 	private IEngineDriver driver;
 	
 	/**
 	 * Constructor.
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 */
-	public Configuration(IEngineDriver driver) {
+	public Configuration(Class<?> driverClass){
 		
-		if(driver == null)
-			throw new RuntimeException("Driver must not be null.");
+		if(driverClass == null)
+			throw new RuntimeException("Driver specification must not be null.");
 				
-		this.driver = driver;
-//		
-//		// set default values
-//		setBaseLocator(DEFAULT_BASEL_LOCATOR);
+		Object obj = null;
+		
+		try{
+		
+			obj = driverClass.getConstructor().newInstance();
+
+		}catch(Exception e){
+			throw new RuntimeException("Can't instanciate driver.", e);
+		}
+		
+		if(!(obj instanceof IEngineDriver))
+			throw new RuntimeException("");
+		
+		this.driver = (IEngineDriver)obj;
+
 	}
 	
-	
-	public IEngineDriver getDriver() {
-	
-		return driver;
+	public void setProperty(String key, String value){
+		
+		this.driver.setProperty(key, value);
+		
 	}
-
-
-
 	
-
-
-
-
+	/// TODO find a way to avoid public
+ 	IEngineDriver getDriver(){
+		
+		return this.driver;
+		
+	}
+	
 	/**
 	 * Adds a class.
 	 * @param clazz - The class object.
@@ -101,31 +101,6 @@ public class Configuration {
 	}
 
 	
-//	/**
-//	 * Sets the base locator which is used in the topic map.
-//	 * Note: Canging the base locator after a session was created has no consequence.
-//	 * @param baseLocator - The base locator.
-//	 */
-//	public void setBaseLocator(String baseLocator){
-//		
-//		logger.info("Set base locator to " + baseLocator);
-//		
-//		if(propertyMap == null)
-//			propertyMap = new HashMap<AranukaProperty, String>();
-//		
-//		propertyMap.put(AranukaProperty.BASE_LOCATOR, baseLocator);
-//		// set prefix as well
-//		addPrefix("base_locator", baseLocator);
-//	}
-	
-//	/**
-//	 * Returns the currently specified base locator.
-//	 * @return - The base locator as string.
-//	 */
-//	public String getBaseLocator(){
-//		return propertyMap.get(AranukaProperty.BASE_LOCATOR);
-//	}
-
 	/**
 	 * Adds a new prefix to the configuration.
 	 * If a prefix is used in the annotation is must be added to configuration, otherwise it will not be poissible to resolve the uri.
@@ -152,31 +127,6 @@ public class Configuration {
 			return Collections.emptyMap();
 		
 		return prefixMap;
-	}
-	
-	/**
-	 * Returns a specific property string.
-	 * @param key - The key for the property.
-	 * @return The property.
-	 */
-	public String getProperty(AranukaProperty key){
-		
-		if(propertyMap == null)
-			return null;
-		
-		return propertyMap.get(key);
-	}
-
-	/**
-	 * Adds a new property to the configuration.
-	 * @param key - The key for the property.
-	 * @param value - The value of the property.
-	 */
-	public void addProperty(AranukaProperty key, String value) {
-		if(this.propertyMap == null)
-			propertyMap = new HashMap<AranukaProperty, String>();
-		
-		propertyMap.put(key, value);
 	}
 	
 	/**

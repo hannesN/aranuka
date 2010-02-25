@@ -287,54 +287,9 @@ public class Session {
  	private TopicMapHandler getTopicMapHandler() throws TopicMapException{
 
  		if(this.topicMapHandler == null)
- 			this.topicMapHandler = new TopicMapHandler(this.config);
+ 			this.topicMapHandler = new TopicMapHandler(this.config, this.config.getDriver().getTopicMap());
  		 		
  		return this.topicMapHandler;
- 		
-//		if(this.topicMapHandler == null){
-//		
-//			try{
-//
-//				TopicMap topicMap = null;
-//				
-//				// check if topic map exist
-//				if(this.config.getProperty(AranukaProperty.FILENAME) != null){
-//					
-//					 File f = new File(this.config.getProperty(AranukaProperty.FILENAME));
-//					 if(f.exists()){
-//					 
-//						 logger.info("Load existing topic map from " + this.config.getProperty(AranukaProperty.FILENAME));
-//						 
-//						 TopicMapSystemFactory factory = TopicMapSystemFactory.newInstance();
-//						 TopicMapSystem system = factory.newTopicMapSystem();
-//	
-//						 topicMap = system.createTopicMap(this.config.getProperty(AranukaProperty.BASE_LOCATOR));
-//
-//						 CTMTopicMapReader reader = new CTMTopicMapReader(topicMap, f);
-//						 reader.read();
-//						 
-//						 if(topicMap == null)
-//							 throw new IOException("Reade topic map file " + this.config.getProperty(AranukaProperty.FILENAME) + " failed!");
-//					}else{
-//							
-//						topicMap = TopicMapSystemFactory.newInstance().newTopicMapSystem().createTopicMap(this.config.getBaseLocator());
-//					}
-//					 
-//				}else{
-//					
-//					topicMap = TopicMapSystemFactory.newInstance().newTopicMapSystem().createTopicMap(this.config.getBaseLocator());
-//				}
-//	
-//				topicMapHandler = new TopicMapHandler(config, topicMap);
-//
-//			}
-//			catch (Exception e) {
-//				throw new TopicMapException(e.getMessage(), e);
-//			}
-//		}
-			
-		
-		
 	}
 
 }

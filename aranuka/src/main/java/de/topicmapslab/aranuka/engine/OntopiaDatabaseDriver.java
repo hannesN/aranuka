@@ -1,7 +1,5 @@
 package de.topicmapslab.aranuka.engine;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 
 import net.ontopia.topicmaps.core.TopicMapIF;
@@ -15,13 +13,12 @@ import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
 
 
-public class OntopiaDatabaseDriver implements IEngineDriver {
+public class OntopiaDatabaseDriver extends AbstractEngineDriver {
 	
-	private String databasePropertyFile;
-	private String baseLocator;
+	public static final String PROPERTY_FILE = "property_file";
+	public static final String BASE_LOCATOR = "base_locator";
 	
 	private TopicMapStoreIF store;
-	
 	private TopicMap topicMap;
 	
 	// interface methods
@@ -31,88 +28,15 @@ public class OntopiaDatabaseDriver implements IEngineDriver {
 		if(this.topicMap != null)
 			return this.topicMap;
 
-		return createDatabaseTopicMap();
-
-	}
-	
-	public boolean flushTopicMap() {
-	
-		if(this.store != null)
-			this.store.commit();
+		if(getProperty(BASE_LOCATOR) == null)
+			throw new RuntimeException("Base locator property not specified.");
 		
-		return true;
-		
-	}
-		
-	// other methods
-		
-	public OntopiaDatabaseDriver(String baseLocator, String propertyFile) {
-
-		if(baseLocator == null)
-			throw new RuntimeException("Base Locator must not be null.");
-		
-		if(propertyFile == null)
-			throw new RuntimeException("The property file must not be null.");
-		
-		File f = new File(propertyFile);
-		
-		if(!f.exists())
-			throw new RuntimeException("The property file dosn't exist.");
-		
-		
-		this.baseLocator = baseLocator;
-		this.databasePropertyFile = propertyFile;
-		
-	}
-	
-	public void deleteTopicMap(){
-		
-		if(this.store != null){
-			
-			// topic map already open
-			
-			this.store.close();
-			this.store.delete(true);
-			
-			this.topicMap = null;
-			this.store = null;
-		}
-		
-		RDBMSTopicMapSource source = new RDBMSTopicMapSource(databasePropertyFile);
-		source.setSupportsDelete(true);
-		
-		// try to open an existing file
-		
-		@SuppressWarnings("unchecked")
-		Collection<TopicMapReferenceIF> refs = source.getReferences();
-		
-		for(TopicMapReferenceIF ref:refs){
-			
-			TopicMapStoreIF store;
-			
-			try{
-				
-				store = ref.createStore(false);
-				
-			}catch(IOException e){
-				return;
-			}
-			
-			 if(store.getBaseAddress().getExternalForm().equals(this.baseLocator)){
-				 
-				store.delete(true);
-				store.close();
-
-				break;
-			 }
-		}
-	}
-	
-	private TopicMap createDatabaseTopicMap(){
+		if(getProperty(PROPERTY_FILE) == null)
+			throw new RuntimeException("Property file property not specified.");
 		
 		try{
 			
-			RDBMSTopicMapSource source = new RDBMSTopicMapSource(databasePropertyFile);
+			RDBMSTopicMapSource source = new RDBMSTopicMapSource(getProperty(PROPERTY_FILE));
 			source.setSupportsCreate(true);
 			
 			TopicMapSystemFactory factory = TopicMapSystemFactory.newInstance();
@@ -127,7 +51,7 @@ public class OntopiaDatabaseDriver implements IEngineDriver {
 				
 				 this.store = ref.createStore(false);
 				
-				 if(store.getBaseAddress().getExternalForm().equals(this.baseLocator)){
+				 if(store.getBaseAddress().getExternalForm().equals(getProperty(BASE_LOCATOR))){
 					 
 					TopicMapIF tm = store.getTopicMap();
 					this.topicMap = ((MemoryTopicMapSystemImpl) sys).createTopicMap(tm); 
@@ -140,7 +64,7 @@ public class OntopiaDatabaseDriver implements IEngineDriver {
 			
 			// create a new topic map
 			
-			TopicMapReferenceIF ref = source.createTopicMap(this.baseLocator, this.baseLocator);
+			TopicMapReferenceIF ref = source.createTopicMap(getProperty(BASE_LOCATOR), getProperty(BASE_LOCATOR));
 			
 			this.store = ref.createStore(false);
 			TopicMapIF tm = this.store.getTopicMap();
@@ -153,6 +77,18 @@ public class OntopiaDatabaseDriver implements IEngineDriver {
 			e.printStackTrace();
 			return null;
 		}
+
 	}
 	
+	public boolean flushTopicMap() {
+	
+		if(this.store != null){
+			this.store.commit();
+			return true;
+		}
+		
+		return false;
+		
+	}
+
 }
