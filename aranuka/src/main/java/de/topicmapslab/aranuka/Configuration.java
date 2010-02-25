@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import de.topicmapslab.aranuka.engine.IEngineDriver;
@@ -188,6 +189,13 @@ public class Configuration {
 	public void setNameMap(Map<String, String> nameMap) {
 	
 		this.nameMap = nameMap;
+	}
+
+	/**
+	 * @param properties
+	 */
+	public void setProperties(Properties properties) {
+		this.driver.setProperties(properties);
 	}
 	
 	

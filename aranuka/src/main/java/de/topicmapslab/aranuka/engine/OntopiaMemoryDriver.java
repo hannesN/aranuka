@@ -11,8 +11,7 @@ import org.tmapix.io.XTM20TopicMapWriter;
 
 public class OntopiaMemoryDriver extends AbstractEngineDriver{
 
-	public static final String FILENAME = "filename";
-	public static final String BASE_LOCATOR = "base_locator";
+
 
 	private TopicMap topicMap;
 	
@@ -23,18 +22,18 @@ public class OntopiaMemoryDriver extends AbstractEngineDriver{
 		if(this.topicMap != null)
 			return topicMap;
 		
-		if(getProperty(BASE_LOCATOR) == null)
+		if(getProperty(IProperties.BASE_LOCATOR) == null)
 			throw new RuntimeException("Base locator property not specified.");
 		
 		try{
 			
 			TopicMapSystemFactory factory = TopicMapSystemFactory.newInstance();
 			TopicMapSystem sys = factory.newTopicMapSystem();
-			this.topicMap = sys.createTopicMap(sys.createLocator(getProperty(BASE_LOCATOR)));
+			this.topicMap = sys.createTopicMap(sys.createLocator(getProperty(IProperties.BASE_LOCATOR)));
 			
-			if(getProperty(FILENAME) != null){
+			if(getProperty(IProperties.FILENAME) != null){
 			
-				File f = new File(getProperty(FILENAME));
+				File f = new File(getProperty(IProperties.FILENAME));
 				
 				if(f.exists()){
 					
@@ -60,14 +59,14 @@ public class OntopiaMemoryDriver extends AbstractEngineDriver{
 		if(this.topicMap == null)
 			return false;
 		
-		if(getProperty(FILENAME) == null)
+		if(getProperty(IProperties.FILENAME) == null)
 			throw new RuntimeException("Filename property not specified.");
 		
-		File f = new File(getProperty(FILENAME));
+		File f = new File(getProperty(IProperties.FILENAME));
 
 		try{
 			
-			XTM20TopicMapWriter writer = new XTM20TopicMapWriter(new FileOutputStream(f), getProperty(BASE_LOCATOR));
+			XTM20TopicMapWriter writer = new XTM20TopicMapWriter(new FileOutputStream(f), getProperty(IProperties.BASE_LOCATOR));
 			writer.write(this.topicMap);
 			
 		}catch(Exception e){
