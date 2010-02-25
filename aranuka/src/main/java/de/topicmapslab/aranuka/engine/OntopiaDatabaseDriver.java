@@ -15,8 +15,7 @@ import org.tmapi.core.TopicMapSystemFactory;
 
 public class OntopiaDatabaseDriver extends AbstractEngineDriver {
 	
-	public static final String PROPERTY_FILE = "property_file";
-	public static final String BASE_LOCATOR = "base_locator";
+
 	
 	private TopicMapStoreIF store;
 	private TopicMap topicMap;
@@ -28,15 +27,15 @@ public class OntopiaDatabaseDriver extends AbstractEngineDriver {
 		if(this.topicMap != null)
 			return this.topicMap;
 
-		if(getProperty(BASE_LOCATOR) == null)
+		// local var because it's used very often
+		String baseLocator = getProperty(IProperties.BASE_LOCATOR);
+		if(baseLocator == null)
 			throw new RuntimeException("Base locator property not specified.");
 		
-		if(getProperty(PROPERTY_FILE) == null)
-			throw new RuntimeException("Property file property not specified.");
 		
 		try{
 			
-			RDBMSTopicMapSource source = new RDBMSTopicMapSource(getProperty(PROPERTY_FILE));
+			RDBMSTopicMapSource source = new RDBMSTopicMapSource(getProperties());
 			source.setSupportsCreate(true);
 			
 			TopicMapSystemFactory factory = TopicMapSystemFactory.newInstance();
@@ -51,7 +50,7 @@ public class OntopiaDatabaseDriver extends AbstractEngineDriver {
 				
 				 this.store = ref.createStore(false);
 				
-				 if(store.getBaseAddress().getExternalForm().equals(getProperty(BASE_LOCATOR))){
+				 if(store.getBaseAddress().getExternalForm().equals(baseLocator)){
 					 
 					TopicMapIF tm = store.getTopicMap();
 					this.topicMap = ((MemoryTopicMapSystemImpl) sys).createTopicMap(tm); 
@@ -64,7 +63,7 @@ public class OntopiaDatabaseDriver extends AbstractEngineDriver {
 			
 			// create a new topic map
 			
-			TopicMapReferenceIF ref = source.createTopicMap(getProperty(BASE_LOCATOR), getProperty(BASE_LOCATOR));
+			TopicMapReferenceIF ref = source.createTopicMap(baseLocator, baseLocator);
 			
 			this.store = ref.createStore(false);
 			TopicMapIF tm = this.store.getTopicMap();

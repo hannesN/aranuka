@@ -1,16 +1,15 @@
 package de.topicmapslab.aranuka.engine;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Properties;
 
 public abstract class AbstractEngineDriver implements IEngineDriver {
 
-	private Map<String, String> properties;
+	private Properties properties;
 	
 	public void setProperty(String propertyKey, String propertyValue) {
 		
 		if(this.properties == null)
-			this.properties = new HashMap<String, String>();
+			this.properties = new Properties();
 		
 		this.properties.put(propertyKey, propertyValue);
 		
@@ -21,6 +20,20 @@ public abstract class AbstractEngineDriver implements IEngineDriver {
 		if(this.properties == null)
 			return null;
 		
-		return this.properties.get(key);
+		return (String) this.properties.get(key);
+	}
+	
+	/**
+	 * @return the properties
+	 */
+	protected Properties getProperties() {
+		return properties;
+	}
+	
+	/**
+	 * {@inheritedDoc}
+	 */
+	public void setProperties(Properties properties) {
+		this.properties = properties;
 	}
 }
