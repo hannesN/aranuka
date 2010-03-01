@@ -69,6 +69,7 @@ public class OntopiaMemoryDriver extends AbstractEngineDriver{
 			XTM20TopicMapWriter writer = new XTM20TopicMapWriter(new FileOutputStream(f), getProperty(IProperties.BASE_LOCATOR));
 			writer.write(this.topicMap);
 			
+			
 		}catch(Exception e){
 
 			e.printStackTrace();

@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.ontopia.topicmaps.nav2.taglibs.framework.GetContextTag;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmapi.core.Association;
@@ -522,9 +524,12 @@ public class TopicMapHandler {
 			
 			boolean found = false;
 			
+			// resolving identifier if possible
+			String resolvedSi = resolveIdentifier(si);
+			
 			for(Map.Entry<Locator, Match> entry:actualSubjectIdentifier.entrySet()){
 	
-				if(entry.getKey().toExternalForm().equals(si)){
+				if(entry.getKey().toExternalForm().equals(resolvedSi)){
 					entry.setValue(Match.INSTANCE); // set to found
 					found = true;
 					break;
@@ -532,9 +537,9 @@ public class TopicMapHandler {
 			}
 			
 			if(!found){
-				logger.info("Add new subject identifier " + si);
+				logger.info("Add new subject identifier " + resolvedSi + "based on "+ si);
 				// add new identifier
-				topic.addSubjectIdentifier(getTopicMap().createLocator(si));
+				topic.addSubjectIdentifier(getTopicMap().createLocator(resolvedSi));
 			}
 			
 		}
@@ -549,6 +554,22 @@ public class TopicMapHandler {
 		}
 	}
 	
+	private String resolveIdentifier(String id) {
+		
+		// check if we got a :
+		int idx = id.indexOf(':');
+		if (idx==-1)
+			return id;
+		
+		String prefix = id.substring(0, idx);
+		String url = config.getPrefixMap().get(prefix);
+		if (url==null)
+			return id;
+		else
+			return url+id.substring(idx+1);
+		
+	}
+
 	/**
 	 * Updates the subject locators of an specific topic according to an object.
 	 * @param topic - The topic.
@@ -565,9 +586,12 @@ public class TopicMapHandler {
 			
 			boolean found = false;
 			
+			// resolving identifier if possible
+			String resolvedSl = resolveIdentifier(sl);
+			
 			for(Map.Entry<Locator, Match> entry:actualSubjectLocator.entrySet()){
 	
-				if(entry.getKey().toExternalForm().equals(sl)){
+				if(entry.getKey().toExternalForm().equals(resolvedSl)){
 					entry.setValue(Match.INSTANCE); // set to found
 					found = true;
 					break;
@@ -575,9 +599,9 @@ public class TopicMapHandler {
 			}
 			
 			if(!found){
-				logger.info("Add new subject locator " + sl);
+				logger.info("Add new subject locator " + resolvedSl + "based on "+sl);
 				// add new identifier
-				topic.addSubjectLocator((getTopicMap().createLocator(sl)));
+				topic.addSubjectLocator((getTopicMap().createLocator(resolvedSl)));
 			}
 			
 		}
@@ -608,9 +632,12 @@ public class TopicMapHandler {
 			
 			boolean found = false;
 			
+			// resolving identifier if possible
+			String resolvedII = resolveIdentifier(ii);
+			
 			for(Map.Entry<Locator, Match> entry:actualItemIdentifier.entrySet()){
 	
-				if(entry.getKey().toExternalForm().equals(ii)){
+				if(entry.getKey().toExternalForm().equals(resolvedII)){
 					
 					entry.setValue(Match.INSTANCE); // set to found
 					found = true;
@@ -619,9 +646,9 @@ public class TopicMapHandler {
 			}
 			
 			if(!found){
-				logger.info("Add new Item identifier " + ii);
+				logger.info("Add new Item identifier " + resolvedII + " based in " + ii);
 				// add new identifier
-				topic.addItemIdentifier(getTopicMap().createLocator(ii));
+				topic.addItemIdentifier(getTopicMap().createLocator(resolvedII));
 			}
 			
 		}
