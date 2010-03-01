@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab</groupId>
 	<artifactId>aranuka-connector-tinytim</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<build>
 		<plugins>
 			<plugin>
@@ -33,7 +33,7 @@
 		<dependency>
 			<groupId>de.topicmapslab</groupId>
 			<artifactId>aranuka</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
@@ -77,4 +77,11 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<distributionManagement>
+		<repository>
+			<id>topicmapslab</id>
+			<name>Topic Maps Lab Repositiory</name>
+			<url>scp://maven@topicmapslab.de/home/maven/webdir/maven.topicmapslab.de/public/third_party</url>
+		</repository>
+	</distributionManagement>
 </project>

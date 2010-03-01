@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab</groupId>
 	<artifactId>aranuka-connector-ontopia-memory</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<repositories>
 		<repository>
 			<id>tmlab</id>
@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>de.topicmapslab</groupId>
 			<artifactId>aranuka</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -53,4 +53,11 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<distributionManagement>
+		<repository>
+			<id>topicmapslab</id>
+			<name>Topic Maps Lab Repositiory</name>
+			<url>scp://maven@topicmapslab.de/home/maven/webdir/maven.topicmapslab.de/public/third_party</url>
+		</repository>
+	</distributionManagement>
 </project>
