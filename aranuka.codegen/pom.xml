@@ -43,13 +43,19 @@
 		<dependency>
 			<groupId>de.topicmapslab</groupId>
 			<artifactId>aranuka</artifactId>
-			<version>0.1.0</version>
+			<version>1.0.1</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>tmapi</artifactId>
 					<groupId>org.tmapi</groupId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>de.topicmapslab</groupId>
+                        <artifactId>aranuka-connector-tinytim</artifactId>
+                        <version>1.0.1</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.codemodel</groupId>
