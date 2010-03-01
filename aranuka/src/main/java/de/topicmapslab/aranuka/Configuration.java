@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import de.topicmapslab.aranuka.engine.IEngineDriver;
+import de.topicmapslab.aranuka.connectors.IEngineConnector;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
@@ -40,7 +40,7 @@ public class Configuration {
 	 */
 	private Session session;
 
-	private IEngineDriver driver;
+	private IEngineConnector driver;
 	
 	/**
 	 * Constructor.
@@ -62,10 +62,10 @@ public class Configuration {
 			throw new RuntimeException("Can't instanciate driver.", e);
 		}
 		
-		if(!(obj instanceof IEngineDriver))
+		if(!(obj instanceof IEngineConnector))
 			throw new RuntimeException("");
 		
-		this.driver = (IEngineDriver)obj;
+		this.driver = (IEngineConnector)obj;
 
 	}
 	
@@ -76,7 +76,7 @@ public class Configuration {
 	}
 	
 	/// TODO find a way to avoid public
- 	IEngineDriver getDriver(){
+ 	IEngineConnector getDriver(){
 		
 		return this.driver;
 		

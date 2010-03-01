@@ -1,11 +1,11 @@
-package de.topicmapslab.aranuka.engine;
+package de.topicmapslab.aranuka.connectors;
 
 import java.util.Properties;
 
 import org.tmapi.core.TopicMap;
 
 
-public interface IEngineDriver {
+public interface IEngineConnector {
 	
 	public TopicMap getTopicMap();
 	public boolean flushTopicMap();
