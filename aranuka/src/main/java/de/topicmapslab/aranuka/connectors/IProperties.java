@@ -1,7 +1,7 @@
 /**
  * 
  */
-package de.topicmapslab.aranuka.engine;
+package de.topicmapslab.aranuka.connectors;
 
 /**
  * This interface contains the constants for common properties. 

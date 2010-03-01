@@ -1,8 +1,8 @@
-package de.topicmapslab.aranuka.engine;
+package de.topicmapslab.aranuka.connectors;
 
 import java.util.Properties;
 
-public abstract class AbstractEngineDriver implements IEngineDriver {
+public abstract class AbstractEngineConnector implements IEngineConnector {
 
 	private Properties properties;
 	
