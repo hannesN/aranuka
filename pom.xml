@@ -4,9 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab</groupId>
 	
-	<artifactId>aranuka-projects</artifactId>
+	<artifactId>aranuka</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
+	
+	<name>Aranuka Parent Project</name>
+	
 	<build>
 		<plugins>
 			<plugin>
@@ -62,5 +65,9 @@
 	
 	<modules>
 		<module>aranuka</module>
+		<module>aranuka.codegen</module>
+		<module>aranuka.connector.ontopia-memory</module>
+		<module>aranuka.connector.ontopia-rdbms</module>
+		<module>aranuka.connector.tinyTiM</module>
 	</modules>
 </project>

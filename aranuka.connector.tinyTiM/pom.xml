@@ -3,13 +3,12 @@
 	
 	<parent>
 		<groupId>de.topicmapslab</groupId>
-		<artifactId>aranuka-projects</artifactId>
+		<artifactId>aranuka</artifactId>
 		<version>1.0.0</version>
-		<relativePath>../parent.xml</relativePath>
 	</parent>
 	
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>de.topicmapslab</groupId>
+	<groupId>de.topicmapslab.aranuka</groupId>
 	<artifactId>aranuka-connector-tinytim</artifactId>
 	<version>1.0.1</version>
 	
@@ -18,8 +17,8 @@
 	
 	<dependencies>
 		<dependency>
-			<groupId>de.topicmapslab</groupId>
-			<artifactId>aranuka</artifactId>
+			<groupId>de.topicmapslab.aranuka</groupId>
+			<artifactId>aranuka-runtime</artifactId>
 			<version>1.0.1</version>
 			<type>jar</type>
 			<scope>compile</scope>
