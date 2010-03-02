@@ -3,17 +3,17 @@
 
 	<parent>
 		<groupId>de.topicmapslab</groupId>
-		<artifactId>aranuka-projects</artifactId>
+		<artifactId>aranuka</artifactId>
 		<version>1.0.0</version>
-		<relativePath>../parent.xml</relativePath>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>aranuka</artifactId>
+	<groupId>de.topicmapslab.aranuka</groupId>
+	<artifactId>aranuka-runtime</artifactId>
 	<version>1.0.1</version>
 	<packaging>jar</packaging>
 
-	<name>aranuka</name>
+	<name>Aranuka Runtime</name>
 
 	<url>http://maven.apache.org</url>
 	
