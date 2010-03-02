@@ -28,6 +28,7 @@ annoTM/doc/proposal/document.pdf
 annoTM/doc/proposal/document.dvi
 annoTM/target
 
+*/lib/*jar
 
 **/*.log*
 

@@ -1,34 +1,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	
+	<parent>
+		<groupId>de.topicmapslab</groupId>
+		<artifactId>aranuka-projects</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../parent.xml</relativePath>
+	</parent>
+	
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab</groupId>
 	<artifactId>aranuka-connector-tinytim</artifactId>
 	<version>1.0.1</version>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.0.2</version>
-				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-	<name>aranuka tinyTiM connector</name>
+	
+	<name>Aranuka tinyTiM Connector</name>
 	<url>http://maven.apache.org</url>
-	<repositories>
-		<repository>
-			<id>tmlab</id>
-			<url>http://maven.topicmapslab.de/third_party</url>
-		</repository>
-		<repository>
-			<id>ontopia</id>
-			<url>http://ontopia.googlecode.com/svn/maven-repository</url>
-		</repository>
-	</repositories>
+	
 	<dependencies>
 		<dependency>
 			<groupId>de.topicmapslab</groupId>
@@ -77,11 +64,4 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<distributionManagement>
-		<repository>
-			<id>topicmapslab</id>
-			<name>Topic Maps Lab Repositiory</name>
-			<url>scp://maven@topicmapslab.de/home/maven/webdir/maven.topicmapslab.de/public/third_party</url>
-		</repository>
-	</distributionManagement>
 </project>
