@@ -10,6 +10,7 @@ public interface IEngineConnector {
 	public TopicMap getTopicMap();
 	public boolean flushTopicMap();
 	public void setProperty(String propertyKey, String propertyValue);
+	public String getProperty(String propertyKey);
 	public void setProperties(Properties properties);
 		
 }

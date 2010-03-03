@@ -198,6 +198,10 @@ public class Configuration {
 		this.driver.setProperties(properties);
 	}
 	
+	public String getProperty(String key) {
+		return this.driver.getProperty(key);
+	}
+	
 	
 	
 }

@@ -15,7 +15,7 @@ public abstract class AbstractEngineConnector implements IEngineConnector {
 		
 	}
 	
-	protected String getProperty(String key){
+	public String getProperty(String key){
 		
 		if(this.properties == null)
 			return null;
