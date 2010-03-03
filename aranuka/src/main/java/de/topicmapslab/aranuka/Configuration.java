@@ -9,6 +9,7 @@ import java.util.Set;
 
 import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
 import de.topicmapslab.aranuka.connectors.IEngineConnector;
+import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
@@ -73,7 +74,9 @@ public class Configuration {
 	public void setProperty(String key, String value){
 		
 		this.driver.setProperty(key, value);
-		
+		if (IProperties.BASE_LOCATOR.equals(key)) {
+			addPrefix(key, value);
+		}
 	}
 	
 	/// TODO find a way to avoid public
@@ -197,6 +200,10 @@ public class Configuration {
 	 */
 	public void setProperties(Properties properties) {
 		this.driver.setProperties(properties);
+		Object val = properties.get(IProperties.BASE_LOCATOR);
+		if (val!=null) {
+			addPrefix(IProperties.BASE_LOCATOR, (String) val);
+		}
 	}
 	
 	public String getProperty(String key) {

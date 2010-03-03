@@ -47,6 +47,8 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 			} else {
 				writer = new CTMTopicMapWriter(fo, baseLocator);
 				for (Entry<String, String> e : getPrefixMap().entrySet()) {
+					if (e.getKey().equals(IProperties.BASE_LOCATOR))
+						continue;
 			 		((CTMTopicMapWriter)writer).addPrefix(e.getKey(), e.getValue());
 				}
 			}
