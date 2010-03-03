@@ -65,10 +65,6 @@ public class PrefixReadTest extends  AbstractTest{
 		Set shouldState = new HashSet(Arrays.asList(topic_II));
 		
 		isState.containsAll(shouldState);
-		
-		
-	
-	
 	}
 	
 	// helper methods
