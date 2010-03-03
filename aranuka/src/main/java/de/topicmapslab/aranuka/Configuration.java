@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
 import de.topicmapslab.aranuka.connectors.IEngineConnector;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
@@ -66,7 +67,7 @@ public class Configuration {
 			throw new RuntimeException("");
 		
 		this.driver = (IEngineConnector)obj;
-
+		((AbstractEngineConnector) this.driver).setConfiguration(this);
 	}
 	
 	public void setProperty(String key, String value){

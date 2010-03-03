@@ -5,9 +5,9 @@ Bundle-SymbolicName: aranuka_connector_tinytim
 Bundle-Version: 1.0.0.qualifier
 Export-Package: de.topicmapslab.aranuka.connectors
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Require-Bundle: aranuka;bundle-version="1.0.1",
- org.junit4;bundle-version="4.5.0";resolution:=optional
-Import-Package: org.tinytim,
+Require-Bundle: aranuka;bundle-version="1.0.1"
+Import-Package: org.junit;resolution:=optional,
+ org.tinytim,
  org.tinytim.core,
  org.tinytim.index,
  org.tinytim.mio,

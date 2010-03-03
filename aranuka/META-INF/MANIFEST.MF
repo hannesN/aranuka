@@ -12,9 +12,12 @@ Export-Package: de.topicmapslab.aranuka,
  de.topicmapslab.aranuka.exception,
  de.topicmapslab.aranuka.persist,
  de.topicmapslab.aranuka.utils
+ 
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Bundle-ClassPath: .,
- lib/junit-4.7.jar,
- lib/slf4j-api-1.5.8.jar,
- lib/tmapi-2.0.jar,
- lib/trove-2.0.4.jar
+Bundle-ClassPath: .
+Import-Package: gnu.trove,
+ gnu.trove.decorator,
+ org.slf4j,
+ org.slf4j.impl,
+ org.tmapi.core,
+ org.tmapi.index

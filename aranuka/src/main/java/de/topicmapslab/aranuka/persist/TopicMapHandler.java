@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -565,6 +566,31 @@ public class TopicMapHandler {
 			return id;
 		else
 			return url+id.substring(idx+1);
+		
+	}
+	
+	private String prefixIdentifier(String id) {
+		
+		// check if we got a :
+		int idx = id.indexOf(':');
+		if (idx==-1)
+			return id;
+		
+		for (Entry<String, String> e : config.getPrefixMap().entrySet()) {
+			
+			String value = e.getValue();
+			
+			if (id.startsWith(value)) {
+				String tmp = id.substring(value.length());
+				if ( (tmp.contains("#")) || (tmp.contains("/")) )
+					continue;
+				else 
+					return e.getKey()+":"+tmp;
+			}
+		}
+		
+		return id;
+		
 		
 	}
 
@@ -1406,7 +1432,7 @@ public class TopicMapHandler {
 				}
 			}
 			
-			existingIds.add(iri);
+			existingIds.add(prefixIdentifier(iri));
 		}
 		
 		// add ids to field

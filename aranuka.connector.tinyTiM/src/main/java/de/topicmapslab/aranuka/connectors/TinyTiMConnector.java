@@ -2,6 +2,7 @@ package de.topicmapslab.aranuka.connectors;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Map.Entry;
 
 import org.tinytim.mio.CTMTopicMapReader;
 import org.tinytim.mio.CTMTopicMapWriter;
@@ -45,6 +46,9 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 				writer = new XTM20TopicMapWriter(fo, baseLocator);
 			} else {
 				writer = new CTMTopicMapWriter(fo, baseLocator);
+				for (Entry<String, String> e : getPrefixMap().entrySet()) {
+			 		((CTMTopicMapWriter)writer).addPrefix(e.getKey(), e.getValue());
+				}
 			}
 			writer.write(this.topicMap);
 
