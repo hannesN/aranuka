@@ -48,6 +48,9 @@ import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
+import de.topicmapslab.tmql4j.common.core.exception.TMQLRuntimeException;
+import de.topicmapslab.tmql4j.common.core.process.TMQLRuntimeFactory;
+import de.topicmapslab.tmql4j.common.model.process.ITMQLRuntime;
 
 
 /**
@@ -266,15 +269,41 @@ public class TopicMapHandler {
 	 * TODO Check behavior of the topic map engine wrt. cascading delete.
 	 */
 	public boolean removeTopic(Object object) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
-		
-		
-		Topic topic = getTopic(object);
-		
-		if(topic != null){
+	
+		try {
 			
-			topic.remove();
+			
+			TopicBinding binding = (TopicBinding) bindingHandler.getBinding(object.getClass());
+			Set<String> ids = getIdentifier(object, binding, IdType.SUBJECT_IDENTIFIER);
+			String axis = "indicators";
+			
+			if (ids.size()==0) {
+				ids = getIdentifier(object, binding, IdType.ITEM_IDENTIFIER);
+				axis = "item";
+			}
+			
+			if (ids.size()==0) {
+				ids = getIdentifier(object, binding, IdType.SUBJECT_LOCATOR);
+				axis = "locators";
+			}
+			
+			if (ids.size()==0)
+				throw new RuntimeException("No identifier found");
+			
+			String id = ids.iterator().next();
+			
+			ITMQLRuntime runtime = TMQLRuntimeFactory.newFactory().newRuntime(getTopicMap());
+			runtime.getProperties().enableLanguageExtensionTmqlUl(true);
+			
+			
+			String query = "DELETE CASCADE \""+id+"\" << "+axis;
+			runtime.run(query);
 			return true;
+		} catch (TMQLRuntimeException e) {
+			new RuntimeException("Error while removing topic", e);
 		}
+		
+		
 				
 		return false;
 	}
@@ -287,6 +316,7 @@ public class TopicMapHandler {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
 	 */
+	@SuppressWarnings("unused")
 	private Topic getTopic(Object object) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		Topic topic = getTopicFromCache(object);
