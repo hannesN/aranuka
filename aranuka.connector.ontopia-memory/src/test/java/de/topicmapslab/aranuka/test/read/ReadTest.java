@@ -59,7 +59,7 @@ public class ReadTest extends  AbstractTest{
 		readTest();
 	}
 	
-//	@Test
+//	@DeleteTest
 //	public void testCase02() throws Exception{
 //		
 //		setupDatabaseTest();

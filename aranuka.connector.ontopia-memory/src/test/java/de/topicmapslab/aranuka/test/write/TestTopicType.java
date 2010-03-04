@@ -14,7 +14,7 @@ import de.topicmapslab.aranuka.annotations.Topic;
 import de.topicmapslab.aranuka.enummerations.IdType;
 
 @Ignore
-@Topic(subject_identifier="test:test_topic_type", name="Test Topic Type")
+@Topic(subject_identifier="test:test_topic_type", name="DeleteTest Topic Type")
 public class TestTopicType {
 
 	// subject identifier

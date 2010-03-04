@@ -200,15 +200,20 @@ public class Session {
 	}
 	
 	/**
-	 * Removes a specific topic from the topic map. NOT YET IMPLEMENTED
+	 * Removes a specific topic from the topic map.
+	 * 
+	 * This method removes every construct using the type from the topic map.
+	 * 
 	 * @param object - The object representing the specific topic.
 	 * @return True if a topic was removed, otherwise false.
+	 * @throws TopicMapException 
+	 * @throws ClassNotSpecifiedException 
+	 * @throws NoSuchMethodException 
+	 * @throws BadAnnotationException 
 	 */
-	public boolean remove(Object object){
+	public boolean remove(Object object) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{
 		
-		throw new UnsupportedOperationException();
-		//return getTopicMapHandler().removeTopic(object);
-		
+		return getTopicMapHandler().removeTopic(object);
 	}
 	
 	/**
