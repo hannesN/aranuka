@@ -14,6 +14,7 @@ public class OntopiaMemoryConnector extends AbstractEngineConnector{
 
 
 	private TopicMap topicMap;
+	private TopicMapSystem topicMapSystem;
 	
 	// interface methods
 	
@@ -28,8 +29,8 @@ public class OntopiaMemoryConnector extends AbstractEngineConnector{
 		try{
 			
 			TopicMapSystemFactory factory = TopicMapSystemFactory.newInstance();
-			TopicMapSystem sys = factory.newTopicMapSystem();
-			this.topicMap = sys.createTopicMap(sys.createLocator(getProperty(IProperties.BASE_LOCATOR)));
+			topicMapSystem = factory.newTopicMapSystem();
+			this.topicMap = topicMapSystem.createTopicMap(topicMapSystem.createLocator(getProperty(IProperties.BASE_LOCATOR)));
 			
 			if(getProperty(IProperties.FILENAME) != null){
 			
@@ -52,6 +53,10 @@ public class OntopiaMemoryConnector extends AbstractEngineConnector{
 			return null;
 		}
 		
+	}
+	
+	public TopicMapSystem getTopicMapSystem() {
+		return topicMapSystem;
 	}
 	
 	public boolean flushTopicMap() {

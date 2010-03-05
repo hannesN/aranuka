@@ -18,4 +18,11 @@ public interface IPersistListener {
 	 * @param model the persisted model
 	 */
 	public void persisted(Object model);
+	
+	/**
+	 * Notifies that the given model was removed by the session.
+	 * 
+	 * @param model the removed model
+	 */
+	public void removed(Object model);
 }

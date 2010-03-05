@@ -19,6 +19,7 @@ public class OntopiaRDBMSConnector extends AbstractEngineConnector {
 	
 	private TopicMapStoreIF store;
 	private TopicMap topicMap;
+	private TopicMapSystem topicMapSystem;
 	
 	// interface methods
 	
@@ -39,7 +40,7 @@ public class OntopiaRDBMSConnector extends AbstractEngineConnector {
 			source.setSupportsCreate(true);
 			
 			TopicMapSystemFactory factory = TopicMapSystemFactory.newInstance();
-			TopicMapSystem sys = factory.newTopicMapSystem();
+			topicMapSystem = factory.newTopicMapSystem();
 			
 			// try to open an existing file
 			
@@ -53,7 +54,7 @@ public class OntopiaRDBMSConnector extends AbstractEngineConnector {
 				 if(store.getBaseAddress().getExternalForm().equals(baseLocator)){
 					 
 					TopicMapIF tm = store.getTopicMap();
-					this.topicMap = ((MemoryTopicMapSystemImpl) sys).createTopicMap(tm); 
+					this.topicMap = ((MemoryTopicMapSystemImpl) topicMapSystem).createTopicMap(tm); 
 					return this.topicMap;
 				 }
 				 
@@ -68,7 +69,7 @@ public class OntopiaRDBMSConnector extends AbstractEngineConnector {
 			this.store = ref.createStore(false);
 			TopicMapIF tm = this.store.getTopicMap();
 			
-			this.topicMap = ((MemoryTopicMapSystemImpl) sys).createTopicMap(tm); 
+			this.topicMap = ((MemoryTopicMapSystemImpl) topicMapSystem).createTopicMap(tm); 
 			return this.topicMap;
 			
 		}catch(Exception e){
@@ -77,6 +78,10 @@ public class OntopiaRDBMSConnector extends AbstractEngineConnector {
 			return null;
 		}
 
+	}
+	
+	public TopicMapSystem getTopicMapSystem() {
+		return topicMapSystem;
 	}
 	
 	public boolean flushTopicMap() {

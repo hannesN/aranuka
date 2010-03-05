@@ -213,7 +213,12 @@ public class Session {
 	 */
 	public boolean remove(Object object) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{
 		
-		return getTopicMapHandler().removeTopic(object);
+		boolean result = getTopicMapHandler().removeTopic(object);
+		
+		if (result)
+			notifyRemove(object);
+		
+		return result;
 	}
 	
 	/**
@@ -275,6 +280,21 @@ public class Session {
 	}
 	
 	/**
+	 * Notifies all registered listeners that the given model was persisted. 
+	 * 
+	 * @param model the model which was persisted
+	 */
+	private void notifyRemove(Object model) {
+		int size = getPersistListeners().size();
+		if (size==0)
+			return;
+		IPersistListener[] listeners = getPersistListeners().toArray(new IPersistListener[size]);
+		for (IPersistListener l : listeners) {
+			l.removed(model);
+		}
+	}
+	
+	/**
 	 * Returns {@link #listeners} which contains the persist listeners or {@link Collections#emptyList()}.
 	 * @return the list of listeners or an empty list
 	 */
@@ -291,8 +311,10 @@ public class Session {
 	 */
  	private TopicMapHandler getTopicMapHandler() throws TopicMapException{
 
- 		if(this.topicMapHandler == null)
+ 		if(this.topicMapHandler == null) {
  			this.topicMapHandler = new TopicMapHandler(this.config, this.config.getDriver().getTopicMap());
+ 			this.topicMapHandler.setTopicMapSystem(this.config.getDriver().getTopicMapSystem());
+ 		}
  		 		
  		return this.topicMapHandler;
 	}

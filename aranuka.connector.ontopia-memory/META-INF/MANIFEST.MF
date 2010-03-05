@@ -5,7 +5,8 @@ Bundle-SymbolicName: aranuka_connector_ontopia_memory
 Bundle-Version: 1.0.1
 Export-Package: de.topicmapslab.aranuka.connectors
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Require-Bundle: aranuka;bundle-version="1.0.1"
+Require-Bundle: aranuka;bundle-version="1.0.1",
+ org.tmapi;bundle-version="2.0.1"
 Import-Package: net.ontopia.infoset.core,
  net.ontopia.infoset.fulltext.core,
  net.ontopia.infoset.fulltext.impl.lucene,
@@ -35,8 +36,6 @@ Import-Package: net.ontopia.infoset.core,
  net.ontopia.utils,
  net.ontopia.xml,
  org.junit,
- org.tmapi.core,
- org.tmapi.index,
  org.tmapix.io
 Bundle-ClassPath: .
 

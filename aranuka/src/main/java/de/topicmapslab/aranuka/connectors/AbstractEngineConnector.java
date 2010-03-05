@@ -50,6 +50,5 @@ public abstract class AbstractEngineConnector implements IEngineConnector {
 	protected Map<String, String> getPrefixMap() {
 		return configuration.getPrefixMap();
 	}
-	
-	
+		
 }
