@@ -18,6 +18,7 @@ import org.tmapi.core.TopicMapSystemFactory;
 public class TinyTiMConnector extends AbstractEngineConnector {
 
 	private TopicMap topicMap;
+	private TopicMapSystem topicMapSystem;
 
 	public boolean flushTopicMap() {
 		if (this.topicMap==null)
@@ -59,6 +60,10 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	public TopicMapSystem getTopicMapSystem() {
+		return topicMapSystem;
+	}
 
 	public TopicMap getTopicMap() {
 
@@ -70,8 +75,8 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 
 		try {
 			TopicMapSystemFactory factory = TopicMapSystemFactory.newInstance();
-			TopicMapSystem sys = factory.newTopicMapSystem();
-			this.topicMap = sys.createTopicMap(sys
+			topicMapSystem = factory.newTopicMapSystem();
+			this.topicMap = topicMapSystem.createTopicMap(topicMapSystem
 					.createLocator(getProperty(IProperties.BASE_LOCATOR)));
 
 			if (getProperty(IProperties.FILENAME) != null) {

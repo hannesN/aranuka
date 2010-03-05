@@ -28,6 +28,7 @@ import org.tmapi.core.Occurrence;
 import org.tmapi.core.Role;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
+import org.tmapi.core.TopicMapSystem;
 import org.tmapi.index.TypeInstanceIndex;
 
 import de.topicmapslab.aranuka.Configuration;
@@ -86,6 +87,7 @@ public class TopicMapHandler {
 	
 	private Map<Association,AssociationBinding> associationCache;
 	
+	private TopicMapSystem topicMapSystem;
 	
 	
 	/**
@@ -143,6 +145,10 @@ public class TopicMapHandler {
 	public TopicMap getTopicMap()
 	{
 		return this.topicMap;
+	}
+	
+	public void setTopicMapSystem(TopicMapSystem topicMapSystem) {
+		this.topicMapSystem = topicMapSystem;
 	}
 	
 	/**
@@ -290,9 +296,9 @@ public class TopicMapHandler {
 			if (ids.size()==0)
 				throw new RuntimeException("No identifier found");
 			
-			String id = ids.iterator().next();
+			String id = resolveIdentifier(ids.iterator().next());
 			
-			ITMQLRuntime runtime = TMQLRuntimeFactory.newFactory().newRuntime(getTopicMap());
+			ITMQLRuntime runtime = TMQLRuntimeFactory.newFactory().newRuntime(topicMapSystem, getTopicMap());
 			runtime.getProperties().enableLanguageExtensionTmqlUl(true);
 			
 			
