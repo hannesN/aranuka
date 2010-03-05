@@ -304,6 +304,13 @@ public class TopicMapHandler {
 			
 			String query = "DELETE CASCADE \""+id+"\" << "+axis;
 			runtime.run(query);
+			
+			Topic t = getTopicFromCache(object);
+			if (t!=null) {
+				topicCache.remove(object);
+				if (objectCache!=null)
+					objectCache.remove(t);
+			}
 			return true;
 		} catch (TMQLRuntimeException e) {
 			new RuntimeException("Error while removing topic", e);
