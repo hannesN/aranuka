@@ -1,4 +1,4 @@
-package de.topicmapslab.aranuka.connectors;
+package de.topicmapslab.aranuka.ontopiy.rdbms.connectors;
 
 import java.util.Collection;
 
@@ -11,6 +11,9 @@ import net.ontopia.topicmaps.impl.tmapi2.MemoryTopicMapSystemImpl;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
+
+import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
+import de.topicmapslab.aranuka.connectors.IProperties;
 
 
 public class OntopiaRDBMSConnector extends AbstractEngineConnector {

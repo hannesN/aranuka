@@ -7,11 +7,11 @@ Bundle-Activator: de.topicmapslab.genericeditor.application.Activator
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: 
- de.topicmapslab.aranuka.connectors
+ de.topicmapslab.aranuka.ontopiy.memory.connectors
 Import-Package: de.topicmapslab.aranuka,
  de.topicmapslab.aranuka.annotations,
  de.topicmapslab.aranuka.binding,
- de.topicmapslab.aranuka.connectors,
+ de.topicmapslab.aranuka.ontopiy.memory.connectors,
  de.topicmapslab.aranuka.constants,
  de.topicmapslab.aranuka.enummerations,
  de.topicmapslab.aranuka.exception,

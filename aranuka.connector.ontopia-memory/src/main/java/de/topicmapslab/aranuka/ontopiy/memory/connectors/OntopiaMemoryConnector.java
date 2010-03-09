@@ -1,4 +1,4 @@
-package de.topicmapslab.aranuka.connectors;
+package de.topicmapslab.aranuka.ontopiy.memory.connectors;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,6 +8,9 @@ import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
 import org.tmapix.io.XTM20TopicMapReader;
 import org.tmapix.io.XTM20TopicMapWriter;
+
+import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
+import de.topicmapslab.aranuka.connectors.IProperties;
 
 public class OntopiaMemoryConnector extends AbstractEngineConnector{
 

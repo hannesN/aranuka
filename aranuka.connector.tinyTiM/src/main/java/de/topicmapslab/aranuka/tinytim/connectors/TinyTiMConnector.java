@@ -1,4 +1,4 @@
-package de.topicmapslab.aranuka.connectors;
+package de.topicmapslab.aranuka.tinytim.connectors;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -13,6 +13,9 @@ import org.tinytim.mio.XTM20TopicMapWriter;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
+
+import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
+import de.topicmapslab.aranuka.connectors.IProperties;
 
 
 public class TinyTiMConnector extends AbstractEngineConnector {
