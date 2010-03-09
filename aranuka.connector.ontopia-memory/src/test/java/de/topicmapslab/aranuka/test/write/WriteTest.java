@@ -22,8 +22,8 @@ import org.tmapi.core.TopicMap;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
-import de.topicmapslab.aranuka.connectors.OntopiaMemoryConnector;
 import de.topicmapslab.aranuka.exception.TopicMapIOException;
+import de.topicmapslab.aranuka.ontopiy.memory.connectors.OntopiaMemoryConnector;
 import de.topicmapslab.aranuka.test.AbstractTest;
 
 public class WriteTest extends AbstractTest {

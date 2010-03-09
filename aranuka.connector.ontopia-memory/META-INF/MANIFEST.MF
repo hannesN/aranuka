@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: aranuka_connector_ontopia_memory
 Bundle-SymbolicName: aranuka_connector_ontopia_memory
 Bundle-Version: 1.0.1
-Export-Package: de.topicmapslab.aranuka.connectors
+Export-Package: de.topicmapslab.aranuka.ontopiy.memory.connectors
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Require-Bundle: aranuka;bundle-version="1.0.1",
  org.tmapi;bundle-version="2.0.1"

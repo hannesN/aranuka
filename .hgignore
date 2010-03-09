@@ -36,6 +36,7 @@ aranuka.codegen/target
 aranuka/target
 **/generated
 **/target
+target
 aranuka.codegen/tmp/test_result/**
 
 aranuka/doc/**/*.aux

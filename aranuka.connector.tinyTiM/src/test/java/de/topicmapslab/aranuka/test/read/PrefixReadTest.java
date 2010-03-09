@@ -15,8 +15,8 @@ import org.junit.Test;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
-import de.topicmapslab.aranuka.connectors.TinyTiMConnector;
 import de.topicmapslab.aranuka.test.AbstractTest;
+import de.topicmapslab.aranuka.tinytim.connectors.TinyTiMConnector;
 
 
 public class PrefixReadTest extends  AbstractTest{
