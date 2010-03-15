@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: aranuka_connector_tinytim
 Bundle-SymbolicName: aranuka_connector_tinytim
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.1.qualifier
 Export-Package: de.topicmapslab.aranuka.tinytim.connectors
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Require-Bundle: aranuka;bundle-version="1.0.1",
