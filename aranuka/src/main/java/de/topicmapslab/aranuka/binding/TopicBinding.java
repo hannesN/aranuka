@@ -2,10 +2,9 @@ package de.topicmapslab.aranuka.binding;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import de.topicmapslab.aranuka.utils.HashUtil;
 
 /**
  * Binding class for a topic type.
@@ -93,7 +92,7 @@ public class TopicBinding extends AbstractClassBinding{
 	 */
 	public void addIdentifier(String id) {
 		if (identifiers==null)
-			identifiers = HashUtil.createSet();
+			identifiers = new HashSet<String>();
 		identifiers.add(id);
 	}
 	

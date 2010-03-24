@@ -1,7 +1,7 @@
 package de.topicmapslab.aranuka.codegen.core.definition;
 
-import gnu.trove.THashSet;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.tmapi.core.Topic;
@@ -23,10 +23,10 @@ public class TopicAnnotationDefinition implements ITopicAnnotationDefinition {
 
 	private String superType;
 
-	private final Set<IdAnnotationDefinition> idAnnotationDefinitions = new THashSet<IdAnnotationDefinition>();
-	private final Set<NameAnnotationDefinition> nameAnnotationDefinitions = new THashSet<NameAnnotationDefinition>();
-	private final Set<OccurrenceAnnotationDefinition> occurrenceAnnotationDefinitions = new THashSet<OccurrenceAnnotationDefinition>();
-	private final Set<AssociationAnnotationDefinition> associationAnnotationDefinitions = new THashSet<AssociationAnnotationDefinition>();
+	private final Set<IdAnnotationDefinition> idAnnotationDefinitions = new HashSet<IdAnnotationDefinition>();
+	private final Set<NameAnnotationDefinition> nameAnnotationDefinitions = new HashSet<NameAnnotationDefinition>();
+	private final Set<OccurrenceAnnotationDefinition> occurrenceAnnotationDefinitions = new HashSet<OccurrenceAnnotationDefinition>();
+	private final Set<AssociationAnnotationDefinition> associationAnnotationDefinitions = new HashSet<AssociationAnnotationDefinition>();
 
 	public TopicAnnotationDefinition(String name, String type, String subjectIdentifer) {
 		this.name = name;

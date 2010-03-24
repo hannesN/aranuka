@@ -30,7 +30,6 @@ import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TOPIC_ROLE_
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TOPIC_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TYPE_INSTANCE;
-import gnu.trove.THashSet;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -208,7 +207,7 @@ public class DefinitionFactory {
 
 	public Set<TopicAnnotationDefinition> getTopicAnnotationDefinitions() throws InvalidOntologyException {
 
-		Set<TopicAnnotationDefinition> defs = new THashSet<TopicAnnotationDefinition>();
+		Set<TopicAnnotationDefinition> defs = new HashSet<TopicAnnotationDefinition>();
 
 		idx = topicMap.getIndex(TypeInstanceIndex.class);
 		try {
