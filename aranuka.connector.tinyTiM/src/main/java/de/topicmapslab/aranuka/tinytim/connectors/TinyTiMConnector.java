@@ -2,17 +2,15 @@ package de.topicmapslab.aranuka.tinytim.connectors;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.Map.Entry;
 
-import org.tinytim.mio.CTMTopicMapReader;
-import org.tinytim.mio.CTMTopicMapWriter;
-import org.tinytim.mio.TopicMapReader;
-import org.tinytim.mio.TopicMapWriter;
-import org.tinytim.mio.XTM20TopicMapReader;
-import org.tinytim.mio.XTM20TopicMapWriter;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
+import org.tmapix.io.CTMTopicMapReader;
+import org.tmapix.io.TopicMapReader;
+import org.tmapix.io.TopicMapWriter;
+import org.tmapix.io.XTM20TopicMapReader;
+import org.tmapix.io.XTM20TopicMapWriter;
 
 import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
 import de.topicmapslab.aranuka.connectors.IProperties;
@@ -49,12 +47,13 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 			if (f.getName().endsWith(".xtm")) {
 				writer = new XTM20TopicMapWriter(fo, baseLocator);
 			} else {
-				writer = new CTMTopicMapWriter(fo, baseLocator);
-				for (Entry<String, String> e : getPrefixMap().entrySet()) {
-					if (e.getKey().equals(IProperties.BASE_LOCATOR))
-						continue;
-			 		((CTMTopicMapWriter)writer).addPrefix(e.getKey(), e.getValue());
-				}
+//				TODO CTMWriter einbauen
+//				writer = new CTMTopicMapWriter(fo, baseLocator);
+//				for (Entry<String, String> e : getPrefixMap().entrySet()) {
+//					if (e.getKey().equals(IProperties.BASE_LOCATOR))
+//						continue;
+//			 		((CTMTopicMapWriter)writer).addPrefix(e.getKey(), e.getValue());
+//				}
 			}
 			writer.write(this.topicMap);
 
