@@ -571,7 +571,8 @@ public class TopicMapHandler {
 			
 			for(Map.Entry<Locator, Match> entry:actualSubjectIdentifier.entrySet()){
 	
-				if(entry.getKey().toExternalForm().equals(resolvedSi)){
+				String resolvedLoactor = resolveIdentifier(entry.getKey().toExternalForm());
+				if(resolvedLoactor.equals(resolvedSi)){
 					entry.setValue(Match.INSTANCE); // set to found
 					found = true;
 					break;
@@ -658,7 +659,8 @@ public class TopicMapHandler {
 			
 			for(Map.Entry<Locator, Match> entry:actualSubjectLocator.entrySet()){
 	
-				if(entry.getKey().toExternalForm().equals(resolvedSl)){
+				String resolvedLoactor = resolveIdentifier(entry.getKey().toExternalForm());
+				if(resolvedLoactor.equals(resolvedSl)){
 					entry.setValue(Match.INSTANCE); // set to found
 					found = true;
 					break;
@@ -704,8 +706,9 @@ public class TopicMapHandler {
 			
 			for(Map.Entry<Locator, Match> entry:actualItemIdentifier.entrySet()){
 	
-				if(entry.getKey().toExternalForm().equals(resolvedII)){
-					
+				String resolvedLoactor = resolveIdentifier(entry.getKey().toExternalForm());
+				if(resolvedLoactor.equals(resolvedII)){
+
 					entry.setValue(Match.INSTANCE); // set to found
 					found = true;
 					break;
