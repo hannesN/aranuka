@@ -7,10 +7,7 @@ Export-Package: de.topicmapslab.aranuka.ontopiy.rdbms.connectors
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Require-Bundle: aranuka.runtime;bundle-version="1.0.1"
 Bundle-ClassPath: .
-Import-Package: org.tmapi.core,
- org.tmapi.index,
- org.junit,
- net.ontopia.infoset.core,
+Import-Package: net.ontopia.infoset.core,
  net.ontopia.infoset.fulltext.core,
  net.ontopia.infoset.fulltext.impl.lucene,
  net.ontopia.infoset.fulltext.impl.rdbms,
@@ -37,4 +34,8 @@ Import-Package: org.tmapi.core,
  net.ontopia.topicmaps.impl.tmapi2.index,
  net.ontopia.topicmaps.impl.utils,
  net.ontopia.utils,
- net.ontopia.xml
+ net.ontopia.xml,
+ org.junit;resolution:=optional,
+ org.h2.util;resolution:=optional,
+ org.tmapi.core,
+ org.tmapi.index
