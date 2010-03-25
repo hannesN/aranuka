@@ -2,6 +2,7 @@ package de.topicmapslab.aranuka.tinytim.connectors;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Map.Entry;
 
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
@@ -14,6 +15,7 @@ import org.tmapix.io.XTM20TopicMapWriter;
 
 import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
 import de.topicmapslab.aranuka.connectors.IProperties;
+import de.topicmapslab.ctm.writer.core.CTMTopicMapWriter;
 
 
 public class TinyTiMConnector extends AbstractEngineConnector {
@@ -47,13 +49,13 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 			if (f.getName().endsWith(".xtm")) {
 				writer = new XTM20TopicMapWriter(fo, baseLocator);
 			} else {
-//				TODO CTMWriter einbauen
-//				writer = new CTMTopicMapWriter(fo, baseLocator);
-//				for (Entry<String, String> e : getPrefixMap().entrySet()) {
-//					if (e.getKey().equals(IProperties.BASE_LOCATOR))
-//						continue;
-//			 		((CTMTopicMapWriter)writer).addPrefix(e.getKey(), e.getValue());
-//				}
+				writer = new CTMTopicMapWriter(fo, baseLocator);
+				
+				for (Entry<String, String> e : getPrefixMap().entrySet()) {
+					if (e.getKey().equals(IProperties.BASE_LOCATOR))
+						continue;
+			 		((CTMTopicMapWriter)writer).setPrefix(e.getKey(), e.getValue());
+				}
 			}
 			writer.write(this.topicMap);
 
@@ -93,7 +95,6 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 					} else  {
 						reader = new CTMTopicMapReader(this.topicMap, f);
 					}
-					
 					reader.read();
 				}
 			}
