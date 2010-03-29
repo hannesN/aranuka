@@ -20,7 +20,7 @@ public interface IXsdDatatypes {
 	/**
 	 * XML datatype for date.
 	 */
-	public static final String XSD_DATE = XSD+"dateTime";
+	public static final String XSD_DATE = XSD+"date";
 	/**
 	 * XML datatype for boolean.
 	 */
