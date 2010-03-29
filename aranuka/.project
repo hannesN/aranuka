@@ -35,8 +35,14 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
+		<buildCommand>
+			<name>org.maven.ide.eclipse.maven2Builder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
+		<nature>org.maven.ide.eclipse.maven2Nature</nature>
 		<nature>net.sourceforge.texlipse.builder.TexlipseNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>com.stateofflow.eclipse.metrics.MetricsNature</nature>
