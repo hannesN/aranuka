@@ -1,0 +1,17 @@
+Changelog
+=========
+
+
+
+
+////////////////////////
+
+Template for new versions:
+
+== Version y.x.z ==
+
+////////////////////////
+
+
+
+ 
