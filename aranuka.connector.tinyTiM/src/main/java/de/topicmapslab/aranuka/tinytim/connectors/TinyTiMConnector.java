@@ -2,8 +2,12 @@ package de.topicmapslab.aranuka.tinytim.connectors;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Map.Entry;
 
+import org.tmapi.core.Locator;
+import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
@@ -35,6 +39,9 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 		if (filename == null)
 			return false;
 		
+		// TODO remove me after TMAPIX works properly
+		removeItemIdentifiers();
+		
 		try {
 			File f = new File(filename);
 
@@ -48,6 +55,7 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 
 			if (f.getName().endsWith(".xtm")) {
 				writer = new XTM20TopicMapWriter(fo, baseLocator);
+				((XTM20TopicMapWriter)writer).setPrettify(true);
 			} else {
 				writer = new CTMTopicMapWriter(fo, baseLocator);
 				
@@ -65,6 +73,16 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 		}
 	}
 	
+	private void removeItemIdentifiers() {
+		for (Topic t : topicMap.getTopics()) {
+			Set<Locator> iiSet = new HashSet<Locator>(t.getItemIdentifiers());
+			for (Locator l : iiSet) {
+				if (l.toExternalForm().startsWith("file:"))
+					t.removeItemIdentifier(l);
+			}
+		}
+	}
+
 	public TopicMapSystem getTopicMapSystem() {
 		return topicMapSystem;
 	}
