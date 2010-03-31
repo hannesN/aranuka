@@ -45,3 +45,7 @@ aranuka/doc/**/*.pdf
 
 aranuka/src/test/resources/*.ctm
 aranuka/src/test/resources/*.ctm.swp
+aranuka/doc/oslo/presentation/document.nav
+aranuka/doc/oslo/presentation/document.out
+aranuka/doc/oslo/presentation/document.snm
+aranuka/doc/oslo/presentation/document.toc
