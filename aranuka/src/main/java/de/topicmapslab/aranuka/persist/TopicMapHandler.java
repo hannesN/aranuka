@@ -176,7 +176,7 @@ public class TopicMapHandler {
 		Topic type = null;
 		
 		for(String id:binding.getIdentifier()){
-			
+			id = resolveIdentifier(id);
 			type = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(id));
 			if(type != null)
 				break;
@@ -568,11 +568,12 @@ public class TopicMapHandler {
 			
 			// resolving identifier if possible
 			String resolvedSi = resolveIdentifier(si);
-			
+			Locator resolvedSiLoc = topicMap.createLocator(resolvedSi);
 			for(Map.Entry<Locator, Match> entry:actualSubjectIdentifier.entrySet()){
 	
-				String resolvedLoactor = resolveIdentifier(entry.getKey().toExternalForm());
-				if(resolvedLoactor.equals(resolvedSi)){
+				Locator resolvedLocator = resolveIdentifier(entry.getKey());
+				
+				if(resolvedLocator.equals(resolvedSiLoc)){
 					entry.setValue(Match.INSTANCE); // set to found
 					found = true;
 					break;
@@ -611,6 +612,16 @@ public class TopicMapHandler {
 		else
 			return url+id.substring(idx+1);
 		
+	}
+	
+	private Locator resolveIdentifier(Locator id) {
+		String extForm = id.toExternalForm();
+		
+		String resolvedId = resolveIdentifier(extForm);
+		if (extForm.equals(resolvedId))
+			return id;
+
+		return topicMap.createLocator(resolvedId);
 	}
 	
 	private String prefixIdentifier(String id) {
@@ -656,11 +667,11 @@ public class TopicMapHandler {
 			
 			// resolving identifier if possible
 			String resolvedSl = resolveIdentifier(sl);
-			
+			Locator resolvedSlLoc = topicMap.createLocator(resolvedSl);
 			for(Map.Entry<Locator, Match> entry:actualSubjectLocator.entrySet()){
 	
-				String resolvedLoactor = resolveIdentifier(entry.getKey().toExternalForm());
-				if(resolvedLoactor.equals(resolvedSl)){
+				Locator resolvedLoactor = resolveIdentifier(entry.getKey());
+				if(resolvedLoactor.equals(resolvedSlLoc)){
 					entry.setValue(Match.INSTANCE); // set to found
 					found = true;
 					break;
@@ -703,11 +714,11 @@ public class TopicMapHandler {
 			
 			// resolving identifier if possible
 			String resolvedII = resolveIdentifier(ii);
-			
+			Locator resolvedIILoc = topicMap.createLocator(resolvedII);
 			for(Map.Entry<Locator, Match> entry:actualItemIdentifier.entrySet()){
 	
-				String resolvedLoactor = resolveIdentifier(entry.getKey().toExternalForm());
-				if(resolvedLoactor.equals(resolvedII)){
+				Locator resolvedLocator = resolveIdentifier(entry.getKey());
+				if(resolvedLocator.equals(resolvedIILoc)){
 
 					entry.setValue(Match.INSTANCE); // set to found
 					found = true;
