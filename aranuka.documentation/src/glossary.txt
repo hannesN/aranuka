@@ -1,0 +1,37 @@
+Glossary
+========
+[glossary]
+
+Association::
+	TODO
+
+Connector::
+	TODO
+
+Item Identifier::
+	TODO
+
+Name::
+	TODO
+
+Occurrence::
+	TODO
+
+Player::
+	TODO
+
+Role::
+	TODO
+
+Subject Identifier::
+	TODO
+	
+Subject Locator::
+	TODO
+
+TMAPI::
+	http://tmapi.org/2
+	
+Topic Maps::
+	A topic map is..
+	

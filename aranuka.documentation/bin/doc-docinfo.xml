@@ -1,0 +1,35 @@
+
+	<!--
+		article-docinfo.xml Example DocBook document information file for
+		article.txt.
+	-->
+
+<authorgroup>
+	<author>
+		<honorific>Dipl. Inf</honorific>
+		<firstname>Hannes</firstname>
+		<surname>Niederhausen</surname>
+		<email>niederhausen@informatik.uni-leipzig.de</email>
+		<affiliation>
+			<shortaffil>Main Developer of Onotoa</shortaffil>
+			<orgname>Topic Maps Lab</orgname>
+		</affiliation>
+	</author>
+
+</authorgroup>
+
+<copyright>
+	<year>2010</year>
+	<holder>Hannes Niederhausen, Topic Maps Lab</holder>
+</copyright>
+
+<revhistory>
+	<revision>
+		<revnumber>1.0.1</revnumber>
+		<date>April 2010</date>
+		<authorinitials>HN</authorinitials>
+		<revremark>
+			First release
+    	</revremark>
+	</revision>
+</revhistory>
