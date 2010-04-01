@@ -1,0 +1,13 @@
+#TeXlipse project settings
+#Thu Apr 01 17:26:13 CEST 2010
+builderNum=2
+outputDir=doc/oslo/presentation/
+makeIndSty=
+bibrefDir=
+outputFormat=pdf
+tempDir=doc/oslo/presentation
+mainTexFile=document.tex
+outputFile=document.pdf
+langSpell=
+markDer=true
+srcDir=doc/oslo/presentation/
