@@ -5,7 +5,7 @@ syntax: glob
 Diplomarbeit
 Website
 */\${builder}
-
+*.orig
 
 **/*.log*
 
