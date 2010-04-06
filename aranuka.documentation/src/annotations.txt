@@ -49,7 +49,7 @@ subject identifier of the containing class and the name of the field.
 The *Association* annotation is the modst complex annotation. It us used to specify an association between 
 the containing instance and the instance which is the value of the field. The type of the field must be either
 *boolean* which indicates a unary association or another class annotated with *Topic* or *AssociationContainer*.
-This annotation has the following property:
+This annotation has the following properties:
 
 * *persistOnCascade*: specifies if the value of the field should be persisted as automatically when the 
 containing instance is persisted
@@ -66,7 +66,11 @@ Their are three types of associations:
 * unary association: This association maps a boolean field to an association. Only the *type* and *played_role* property are allowed.
 * binary association: This association maps the field container to an association with another instance represented
 by the value of the field. The type of field needs to be annotated with *Topic*. 
-* n-nary association: This association maps the field container 
+* n-nary association: This association maps the field container with an association with more than two players. These players
+are fields of an additional class which is annotated with *AssociationContainer*. Only the *type* and *played_role* property are allowed.
+
+If multiple instances are needed it is possible to use Collections of the types. For every instance in the collection an association
+will be created.
 
 
 ===  *AssociationContainer* ===
@@ -76,6 +80,9 @@ annotated with *Role*.
 The *AssociationContainer* is used to annotate a class like *Topic*. 
 
 === *Role* ===
-The *Role* annotation is used to specify the role type of a value of the field in a 
+The *Role* annotation is used to specify the role type of a value of the field in an *AssociationContainer*.
+This annotation has the following property:
+
+* *type* the subject identifier of the role type
 
 
