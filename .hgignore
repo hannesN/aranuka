@@ -5,30 +5,7 @@ syntax: glob
 Diplomarbeit
 Website
 */\${builder}
-onotoa-update-site/artifacts.jar
-onotoa-update-site/content.jar
-onotoa-update-site/features/
-onotoa-update-site/plugins/*
-de.topicmapslab.tmcledit.releng/releases
-de.topicmapslab.tmcledit.releng/repository
-onotoa.documentation/doc
-de.topicmapslab.tmcledit.doc/html/*
-glob:onotoa.documentation/build.properties
-de.topicmapslab.tmcledit.doc/toc.xml
-annoTM/doc/presentation/document.aux
-annoTM/doc/presentation/document.log
-annoTM/doc/presentation/document.nav
-annoTM/doc/presentation/document.out
-annoTM/doc/presentation/document.pdf
-annoTM/doc/presentation/document.snm
-annoTM/doc/presentation/document.toc
-annoTM/doc/proposal/document.aux
-annoTM/doc/proposal/document.log
-annoTM/doc/proposal/document.pdf
-annoTM/doc/proposal/document.dvi
-annoTM/target
 
-*/lib/*jar
 
 **/*.log*
 
@@ -39,14 +16,14 @@ aranuka/target
 target
 aranuka.codegen/tmp/test_result/**
 
-aranuka/doc/**/*.aux
-aranuka/doc/**/*.dvi
-aranuka/doc/**/*.pdf
+**/*.aux
+**/*.dvi
+**/*.pdf
 
 aranuka/src/test/resources/*.ctm
 aranuka/src/test/resources/*.ctm.swp
-aranuka/doc/oslo/presentation/document.nav
-aranuka/doc/oslo/presentation/document.out
-aranuka/doc/oslo/presentation/document.snm
-aranuka/doc/oslo/presentation/document.toc
-aranuka/doc/oslo/presentation/document.vrb
+**/*.out
+**/*.snm
+**/*.toc
+**/*.vrb
+**/*.nav

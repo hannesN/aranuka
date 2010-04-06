@@ -22,11 +22,7 @@ import org.tmapi.core.TopicMap;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
-import de.topicmapslab.aranuka.exception.BadAnnotationException;
-import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
-import de.topicmapslab.aranuka.exception.TopicMapException;
 import de.topicmapslab.aranuka.exception.TopicMapIOException;
-import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.test.AbstractTest;
 import de.topicmapslab.aranuka.tinytim.connectors.TinyTiMConnector;
 
@@ -52,7 +48,6 @@ public class WriteTest extends AbstractTest {
 		
 		this.config.addClass(TestTopicType.class);
 		this.config.addClass(TestCounterPlayer.class);
-		this.config.addClass(TestIdentifier.class);
 		
 		this.config.addName("test:named_occurrence", "Named Occurrence");
 		this.config.addName("http://topicmapslab.de/aranuka/test/resolved_named_occurrence", "Resolved Named Occurrence");
@@ -543,28 +538,7 @@ public class WriteTest extends AbstractTest {
 		assertEquals("Resolved Named Occurrence",occType.getNames().iterator().next().getValue());
 	}
 	
-	@Test
-	public void testCase18() throws Exception {
-		String loc = "http://dbpedia.org/page/J%C3%BAlio_C%C3%A9sar_Soares_Esp%C3%ADndola";
-		
-		TestIdentifier id = new TestIdentifier();
-		id.setStringSubjectIdentifier(loc);
-		
-		this.session.persist(id);
-		
-		System.out.println(this.session.getTopicMap().getTopics());
-		assertEquals(3, this.session.getTopicMap().getTopics().size());
-		
-		assertEquals(1, this.session.getAll(TestIdentifier.class).size());
-		
-		TestIdentifier id2 = (TestIdentifier) this.session.getAll(
-				TestIdentifier.class).iterator().next();
-		
-		assertNotNull(id2);
-		assertEquals(loc, id2.getStringSubjectIdentifier());
-		
-		
-	}
+	
 	
 	@After
 	public void tearDown(){
