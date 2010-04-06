@@ -31,12 +31,12 @@ public @interface Association {
 	String type() default "base_locator:is-attribute-of";
 	
 	/**
-	 * The role type played by "this", default base_locator:attribute.
+	 * The role type played by "this", default base_locator:attributed.
 	 */
-	String played_role() default "base_locator:attribute";
+	String played_role() default "base_locator:attributed";
 	
 	/**
-	 * The role type of the other object, default base_locator:attributed, not needed for unary associations.
+	 * The role type of the other object, default base_locator:attribute, not needed for unary associations.
 	 */
-	String other_role() default "base_locator:attributed";
+	String other_role() default "base_locator:attribute";
 }

@@ -32,7 +32,7 @@ public class TopicMapsUtils {
 		StringBuilder builder = new StringBuilder();
 		String nameSuffix = clazz.getName().replaceAll("\\.", "/");
 
-		builder.append("base_locator:");
+		builder.append("class:");
 		
 		builder.append(nameSuffix);
 		return builder.toString();

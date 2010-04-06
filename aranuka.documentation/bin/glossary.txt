@@ -35,3 +35,7 @@ TMAPI::
 Topic Maps::
 	A topic map is..
 	
+Topic Type::
+	A topic type is a topic which is used in the type-instance association and plays the role type.
+	
+	

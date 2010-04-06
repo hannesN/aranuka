@@ -1,18 +1,17 @@
 Aranuka Handbook
-===============
+================
 
 include::preface.txt[]
 
 Using Aranuka
-===========
+=============
 
 include::architecture.txt[]
 
 include::annotations.txt[]
 
-
-
 include::glossary.txt[]
 
-
+///////////////////////////////
 include::changelog.txt[]
+///////////////////////////////
