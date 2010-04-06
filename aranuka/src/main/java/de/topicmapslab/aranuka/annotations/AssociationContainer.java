@@ -14,8 +14,6 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation to map an class to an association.
- * @author Christian Haß
- *
  */
 @Target(TYPE)
 @Retention(RetentionPolicy.RUNTIME)

@@ -11,8 +11,6 @@ import java.util.Map;
 
 /**
  * Occurrence field binding class.
- * @author Christian Haß
- *
  */
 public class OccurrenceBinding extends AbstractFieldBinding {
 
@@ -65,10 +63,5 @@ public class OccurrenceBinding extends AbstractFieldBinding {
 	public void setDataType(String dataType) {
 		this.dataType = dataType;
 	}
-	
-	@Override
-	public String toString() {
-		return "OccurrenceBinding [dataType=" + dataType + ", occurrenceType="
-				+ occurrenceType + "]";
-	}
+
 }

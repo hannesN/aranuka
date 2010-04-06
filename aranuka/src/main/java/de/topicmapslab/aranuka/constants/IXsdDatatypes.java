@@ -9,8 +9,6 @@ package de.topicmapslab.aranuka.constants;
 
 /**
  * Interface to define constants.
- * @author Christian Haß
- *
  */
 public interface IXsdDatatypes {
 

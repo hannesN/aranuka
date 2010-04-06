@@ -13,9 +13,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation to specifie an specific scope.
- * @author Christian Haß
- *
+ * Annotation to specify an specific scope.
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

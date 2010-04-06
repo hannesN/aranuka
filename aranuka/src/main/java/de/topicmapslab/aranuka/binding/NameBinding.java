@@ -11,8 +11,6 @@ import java.util.Map;
 
 /**
  * Name field binding class.
- * @author Christian Haß
- *
  */
 public class NameBinding extends AbstractFieldBinding {
 
@@ -45,11 +43,7 @@ public class NameBinding extends AbstractFieldBinding {
 	public void setNameType(String nameIdentifier) {
 		this.nameType = nameIdentifier;
 	}
-	
-	@Override
-	public String toString() {
-		return "NameBinding [nameType=" + nameType + "]";
-	}
+
 }
 
 

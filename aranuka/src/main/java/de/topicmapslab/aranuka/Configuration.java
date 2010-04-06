@@ -22,11 +22,6 @@ import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
-/**
- * Configuration class for Aranuka.
- * @author Christian haß
- *
- */
 public class Configuration {
 
 	/**
@@ -55,10 +50,14 @@ public class Configuration {
 	private IEngineConnector connector;
 	
 	
+	/**
+	 * Constructor
+	 * @param connectorClass - Used connector class.
+	 */
 	public Configuration(Class<?> connectorClass){
 		
 		if(connectorClass == null)
-			throw new RuntimeException("Driver specification must not be null.");
+			throw new RuntimeException("Connector specification must not be null.");
 				
 		Object obj = null;
 		
@@ -67,7 +66,7 @@ public class Configuration {
 			obj = connectorClass.getConstructor().newInstance();
 
 		}catch(Exception e){
-			throw new RuntimeException("Can't instanciate driver.", e);
+			throw new RuntimeException("Can't instanciate connector.", e);
 		}
 		
 		if(!(obj instanceof IEngineConnector))
@@ -77,6 +76,11 @@ public class Configuration {
 		((AbstractEngineConnector) this.connector).setConfiguration(this);
 	}
 	
+	/**
+	 * Sets a property.
+	 * @param key - Property identifier.
+	 * @param value - Property value.
+	 */
 	public void setProperty(String key, String value){
 		
 		this.connector.setProperty(key, value);
@@ -84,8 +88,10 @@ public class Configuration {
 			addPrefix(key, value);
 		}
 	}
-	
-	/// TODO find a way to avoid public
+
+	/**
+	 * Returns the connector.
+	 */
  	IEngineConnector getConnector(){
 		
 		return this.connector;
@@ -93,8 +99,8 @@ public class Configuration {
 	}
 	
 	/**
-	 * Adds a class.
-	 * @param clazz - The class object.
+	 * Adds an annotated class.
+	 * @param clazz - The class.
 	 */
 	public void addClass(Class<?> clazz) {
 		if (classes == null) {
@@ -114,9 +120,9 @@ public class Configuration {
 	
 	/**
 	 * Adds a new prefix to the configuration.
-	 * If a prefix is used in the annotation is must be added to configuration, otherwise it will not be poissible to resolve the uri.
+	 * If a prefix is used in the annotation it must be added to configuration, otherwise it will not be possible to resolve the iri.
 	 * @param prefix - The predix string.
-	 * @param uri - The represented uri.
+	 * @param uri - The represented iri.
 	 */
 	public void addPrefix(String prefix, String uri) {
 		if (prefixMap == null)
@@ -142,8 +148,8 @@ public class Configuration {
 	
 	/**
 	 * Returns the session. If no session exist, a new one will be created.
-	 * @param lasyBinding - Flag specifiing whether lazy binding should be used or not. If not, all bindings for the configured classes will be created while the session is generated.
-	 * @return The sesson.
+	 * @param lasyBinding - Flag specifying whether lazy binding should be used or not. If not, all bindings for the configured classes will be created while the session is generated.
+	 * @return The session.
 	 * @throws BadAnnotationException
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
@@ -151,17 +157,18 @@ public class Configuration {
 	 */
 	public Session getSession(boolean lasyBinding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{
 		
-		/// TODO implement
-		if(session != null)
-			return session;
+		if(this.session == null)
+			this.session = new Session(this, lasyBinding);
 
-		/// TODO check if it is problematic to change the configuration after the session is already use since it gets a copy!
-		session = new Session(this, lasyBinding);
-
-		return session;
+		return this.session;
 		
 	}
 
+	/**
+	 * Adds a topic name.
+	 * @param identifier - The identifier of the topic.
+	 * @param name - The name value.
+	 */
 	public void addName(String identifier, String name){
 		
 		if(this.nameMap == null)
@@ -170,6 +177,11 @@ public class Configuration {
 		this.nameMap.put(identifier, name);
 	}
 	
+	/**
+	 * Returns the name for a specific topic.
+	 * @param identifier - The identifier of the topic.
+	 * @return The name or null if non specified.
+	 */
 	public String getName(String identifier){
 		
 		if(this.nameMap == null)
@@ -182,9 +194,7 @@ public class Configuration {
 		
 		if(this.getPrefixMap() == null)
 			return null;
-		
-		// try to find the name in unresolved identifier
-		
+
 		for(Map.Entry<String,String> entry:this.nameMap.entrySet()){
 			
 			if(TopicMapsUtils.resolveURI(entry.getKey(),this.getPrefixMap()).equals(identifier)){
@@ -196,13 +206,18 @@ public class Configuration {
 		
 	}
 	
+	/**
+	 * Sets a name map, will overwrite current specified names.
+	 * @param nameMap - The new name map.
+	 */
 	public void setNameMap(Map<String, String> nameMap) {
 	
 		this.nameMap = nameMap;
 	}
 
 	/**
-	 * @param properties
+	 * Sets properties. Will overwrite current specified properties.
+	 * @param properties - The properties.
 	 */
 	public void setProperties(Properties properties) {
 		this.connector.setProperties(properties);
@@ -212,6 +227,11 @@ public class Configuration {
 		}
 	}
 	
+	/**
+	 * Get a specific property.
+	 * @param key - The key of the property.
+	 * @return The property.
+	 */
 	public String getProperty(String key) {
 		return this.connector.getProperty(key);
 	}

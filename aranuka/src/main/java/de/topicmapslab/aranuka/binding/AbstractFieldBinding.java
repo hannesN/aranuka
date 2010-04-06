@@ -24,8 +24,6 @@ import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 /**
  * Abstract class for field bindings.
- * @author christian haß
- *
  */
 public abstract class AbstractFieldBinding{
 
@@ -163,9 +161,7 @@ public abstract class AbstractFieldBinding{
 	 * @param isArray - The value.
 	 */
 	public void setArray(boolean isArray) {
-		
-		//logger.info(this.getClass() + " set array to " + isArray);
-		
+
 		this.isArray = isArray;
 	}
 	
@@ -249,13 +245,6 @@ public abstract class AbstractFieldBinding{
 	 */
 	public void setParameterisedType(Type parameterisedType) {
 		this.parameterisedType = parameterisedType;
-	}
-
-	@Override
-	public String toString() {
-		return "AbstractFieldBinding [getter=" + getter + ", isArray="
-				+ isArray + ", isCollection=" + isCollection + ", parent="
-				+ ", setter=" + setter + ", themes=" + themes + "]";
 	}
 
 }

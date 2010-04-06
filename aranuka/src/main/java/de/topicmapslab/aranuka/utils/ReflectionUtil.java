@@ -17,13 +17,11 @@ import java.util.Collection;
 
 /**
  * Utils class for the work with reflections.
- * @author Christian Haß
- *
  */
 public class ReflectionUtil {
 
 	/**
-	 * Chacks if a field is a collection.
+	 * Checks if a field is a collection.
 	 * @param field - The field.
 	 * @return True or false.
 	 */

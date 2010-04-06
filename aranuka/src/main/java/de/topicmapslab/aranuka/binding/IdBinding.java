@@ -13,8 +13,6 @@ import de.topicmapslab.aranuka.enummerations.IdType;
 
 /**
  * Identifier field binding class.
- * @author Christian Haß
- *
  */
 public class IdBinding extends AbstractFieldBinding {
 
@@ -49,8 +47,4 @@ public class IdBinding extends AbstractFieldBinding {
 		return idtype;
 	}
 
-	@Override
-	public String toString() {
-		return "IdBinding [idtype=" + idtype + "]";
-	}
 }

@@ -14,8 +14,6 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation for an attribute which should be mapped to an occurrence
- * @author Christian Haß
- *
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

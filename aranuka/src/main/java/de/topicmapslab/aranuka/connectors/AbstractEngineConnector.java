@@ -14,15 +14,27 @@ import de.topicmapslab.aranuka.Configuration;
 
 public abstract class AbstractEngineConnector implements IEngineConnector {
 
+	/**
+	 * Properties object.
+	 */
 	private Properties properties;
 	
+	/**
+	 * Configuration object.
+	 */
 	private Configuration configuration;
 	
-	
+	/**
+	 * Sets the configuration object.
+	 * @param configuration - The configuration.
+	 */
 	final public void setConfiguration(Configuration configuration) {
 		this.configuration = configuration;
 	}
-
+	
+	/**
+	 * {@inheritDoc}
+	 */
 	public void setProperty(String propertyKey, String propertyValue) {
 		
 		if(this.properties == null)
@@ -32,6 +44,9 @@ public abstract class AbstractEngineConnector implements IEngineConnector {
 		
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	public String getProperty(String key){
 		
 		if(this.properties == null)
@@ -48,12 +63,17 @@ public abstract class AbstractEngineConnector implements IEngineConnector {
 	}
 	
 	/**
-	 * @return the properties
+	 * Returns the properties.
+	 * @return Properties object.
 	 */
 	protected Properties getProperties() {
 		return properties;
 	}
 
+	/**
+	 * Returns the prefix map.
+	 * @return Prefix map object.
+	 */
 	protected Map<String, String> getPrefixMap() {
 		return configuration.getPrefixMap();
 	}

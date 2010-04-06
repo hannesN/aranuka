@@ -10,9 +10,7 @@ package de.topicmapslab.aranuka.binding;
 import java.util.Map;
 
 /**
- * Anstract class for topic field binding classes.
- * @author christian haß
- *
+ * Abstract class for topic field binding classes.
  */
 public abstract class AbstractTopicFieldBinding extends AbstractFieldBinding {
 

@@ -11,8 +11,6 @@ import java.util.Map;
 
 /**
  * Abstract class for association field binding classes.
- * @author christian haß
- *
  */
 public abstract class AbstractAssociationFieldBinding extends AbstractFieldBinding {
 

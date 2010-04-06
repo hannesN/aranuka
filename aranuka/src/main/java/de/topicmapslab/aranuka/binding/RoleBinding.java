@@ -11,8 +11,6 @@ import java.util.Map;
 
 /**
  * Role field binding class.
- * @author Christian Haß
- *
  */
 public class RoleBinding extends AbstractFieldBinding {
 
@@ -65,10 +63,5 @@ public class RoleBinding extends AbstractFieldBinding {
 	public void setPlayerBinding(TopicBinding playerBinding) {
 		this.playerBinding = playerBinding;
 	}
-	
-	@Override
-	public String toString() {
-		return "RoleBinding [playerBinding=" + playerBinding + ", roleType="
-				+ roleType + "]";
-	}
+
 }

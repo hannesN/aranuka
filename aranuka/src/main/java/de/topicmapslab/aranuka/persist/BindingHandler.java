@@ -51,8 +51,6 @@ import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 /**
  * Class which handles the annotation bindings.
- * @author Christian Haß
- *
  */
 public class BindingHandler {
 
@@ -114,7 +112,6 @@ public class BindingHandler {
 	 * @throws BadAnnotationException
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
-	 * TODO Split in two methods to avoid necessary cast.
 	 */
 	public AbstractClassBinding getBinding(Class<?> clazz) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
@@ -219,7 +216,6 @@ public class BindingHandler {
 		
 		logger.info("Create topic binding for " + clazz.getName());
 		
-		// check if class is correct annotated
 		if(!isTopicAnnotated(clazz))
 			throw new BadAnnotationException("Class " + clazz.getName() + " must have an @Topic annotation.");
 
@@ -371,7 +367,7 @@ public class BindingHandler {
 	/**
 	 * Creates a new association container binding for an specific class. Throws a BadAnnotationException if the class is not @AssociationContainer annotated.
 	 * @param clazz - The class.
-	 * @return The new bindind.
+	 * @return The new binding.
 	 * @throws ClassNotSpecifiedException
 	 * @throws BadAnnotationException
 	 * @throws NoSuchMethodException
@@ -502,7 +498,6 @@ public class BindingHandler {
 		
 		ib.setArray(field.getType().isArray());
 		ib.setCollection(ReflectionUtil.isCollection(field));
-		/// TODO throw exception when generic type is not int or string?
 		ib.setParameterisedType(ReflectionUtil.getGenericType(field));
 
 		/// add id to topic binding
@@ -633,7 +628,6 @@ public class BindingHandler {
 		if(isTopicAnnotated(genericType)){
 			
 			// is binary association
-			
 			ab.setOtherPlayerBinding(getTopicBinding(genericType));
 			ab.setKind(AssociationKind.BINARY);
 			
@@ -641,7 +635,6 @@ public class BindingHandler {
 			
 			// is nnary association
 			// set association container binding
-			
 			AssociationContainerBinding binding = getAssociationContainerBinding(genericType);
 			
 			ab.setAssociationContainerBinding(binding);
