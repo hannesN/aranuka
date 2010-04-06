@@ -14,19 +14,19 @@ EXAMPLE: The base locator "http://test.de" is set. A topic type for a class *de.
 automatically generated subject identifier "class:de/test/Person"
 
 === *Id* ===
-The annotation is used for class properties which tells aranuka, that the value of this property is a
+The annotation is used for class properties which tells Aranuka, that the value of this property is a
 topic identifier. The type of the property must be either a String or an integer value.
-If it is the first the value has to be a valid IRI. In case of the latter an uri is generated using the
+If it is the first the value has to be a valid IRI. In case of the latter an URI is generated using the
 subject identifier of the topic type and adds the value of the number. 
 
 This annotation has the following property:
 
 * *type*: The kind of identifier is set via the *type* property. The type is specified via the enumeration 
 *aranuka.src.main.java.de.topicmapslab.aranuka.enummerations.IdType.java*
-Default: The defaultvalue is IdType.ITEM_IDENTIFIER
+Default: The default value is IdType.ITEM_IDENTIFIER
 
 The type of the property can also be a collection of *String* or *Integer*. This indicated, that the topic
-has more than one identifier of this type. It is also possible to have more than one proeprty with an identifier
+has more than one identifier of this type. It is also possible to have more than one property with an identifier
 annotation. If this is the case they must not have the same type. 
 
 ===  *Name* ===
@@ -46,7 +46,7 @@ This annotation has the following property:
 subject identifier of the containing class and the name of the field.
 
 ===  *Association* ===
-The *Association* annotation is the modst complex annotation. It us used to specify an association between 
+The *Association* annotation is the most complex annotation. It us used to specify an association between 
 the containing instance and the instance which is the value of the field. The type of the field must be either
 *boolean* which indicates a unary association or another class annotated with *Topic* or *AssociationContainer*.
 This annotation has the following properties:
