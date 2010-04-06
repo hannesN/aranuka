@@ -11,6 +11,9 @@ Connector::
 Item Identifier::
 	TODO
 
+Field Container::
+	A field is a property of a class. This class is called the field container.
+
 Name::
 	TODO
 
