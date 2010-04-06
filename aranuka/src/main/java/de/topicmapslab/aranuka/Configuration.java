@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright: Copyright 2010 Topic Maps Lab, University of Leipzig. http://www.topicmapslab.de/    
+ * License:   Apache License, Version 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
+ *  
+ * @author Christian Haß
+ * @author Hannes Niederhausen
+ ******************************************************************************/
 package de.topicmapslab.aranuka;
 
 import java.util.Collections;
@@ -23,7 +30,7 @@ import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 public class Configuration {
 
 	/**
-	 * Set of annoteted classes which should be supported by the session.
+	 * Set of annotated classes.
 	 */
 	private Set<Class<?>> classes;
 	
@@ -42,23 +49,22 @@ public class Configuration {
 	 */
 	private Session session;
 
-	private IEngineConnector driver;
-	
 	/**
-	 * Constructor.
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
+	 * The used connector.
 	 */
-	public Configuration(Class<?> driverClass){
+	private IEngineConnector connector;
+	
+	
+	public Configuration(Class<?> connectorClass){
 		
-		if(driverClass == null)
+		if(connectorClass == null)
 			throw new RuntimeException("Driver specification must not be null.");
 				
 		Object obj = null;
 		
 		try{
 		
-			obj = driverClass.getConstructor().newInstance();
+			obj = connectorClass.getConstructor().newInstance();
 
 		}catch(Exception e){
 			throw new RuntimeException("Can't instanciate driver.", e);
@@ -67,22 +73,22 @@ public class Configuration {
 		if(!(obj instanceof IEngineConnector))
 			throw new RuntimeException("");
 		
-		this.driver = (IEngineConnector)obj;
-		((AbstractEngineConnector) this.driver).setConfiguration(this);
+		this.connector = (IEngineConnector)obj;
+		((AbstractEngineConnector) this.connector).setConfiguration(this);
 	}
 	
 	public void setProperty(String key, String value){
 		
-		this.driver.setProperty(key, value);
+		this.connector.setProperty(key, value);
 		if (IProperties.BASE_LOCATOR.equals(key)) {
 			addPrefix(key, value);
 		}
 	}
 	
 	/// TODO find a way to avoid public
- 	IEngineConnector getDriver(){
+ 	IEngineConnector getConnector(){
 		
-		return this.driver;
+		return this.connector;
 		
 	}
 	
@@ -199,7 +205,7 @@ public class Configuration {
 	 * @param properties
 	 */
 	public void setProperties(Properties properties) {
-		this.driver.setProperties(properties);
+		this.connector.setProperties(properties);
 		Object val = properties.get(IProperties.BASE_LOCATOR);
 		if (val!=null) {
 			addPrefix(IProperties.BASE_LOCATOR, (String) val);
@@ -207,7 +213,7 @@ public class Configuration {
 	}
 	
 	public String getProperty(String key) {
-		return this.driver.getProperty(key);
+		return this.connector.getProperty(key);
 	}
 	
 	

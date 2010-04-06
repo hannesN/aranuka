@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright: Copyright 2010 Topic Maps Lab, University of Leipzig. http://www.topicmapslab.de/    
+ * License:   Apache License, Version 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
+ *  
+ * @author Christian Haß
+ * @author Hannes Niederhausen
+ ******************************************************************************/
 package de.topicmapslab.aranuka;
 
 import java.util.ArrayList;
@@ -85,7 +92,7 @@ public class Session {
 	 */
 	public void flushTopicMap(){
 		
-		this.config.getDriver().flushTopicMap(); /// TODO handle return value
+		this.config.getConnector().flushTopicMap(); /// TODO handle return value
 		
 //		CTMTopicMapWriter writer;
 //		
@@ -312,8 +319,8 @@ public class Session {
  	private TopicMapHandler getTopicMapHandler() throws TopicMapException{
 
  		if(this.topicMapHandler == null) {
- 			this.topicMapHandler = new TopicMapHandler(this.config, this.config.getDriver().getTopicMap());
- 			this.topicMapHandler.setTopicMapSystem(this.config.getDriver().getTopicMapSystem());
+ 			this.topicMapHandler = new TopicMapHandler(this.config, this.config.getConnector().getTopicMap());
+ 			this.topicMapHandler.setTopicMapSystem(this.config.getConnector().getTopicMapSystem());
  		}
  		 		
  		return this.topicMapHandler;
