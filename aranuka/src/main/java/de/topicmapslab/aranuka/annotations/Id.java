@@ -16,8 +16,6 @@ import de.topicmapslab.aranuka.enummerations.IdType;
 
 /**
  * Annotation for field which represents identifier.
- * @author Christian Haß
- *
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

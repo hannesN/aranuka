@@ -23,11 +23,6 @@ import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.persist.TopicMapHandler;
 
-/**
- * The session is used to persist and get objects from the topic map.
- * @author Christian Haß
- *
- */
 public class Session {
 
 	private static Logger logger = LoggerFactory.getLogger(Session.class);
@@ -46,9 +41,7 @@ public class Session {
 	 * Instance of the topicMapHandler.
 	 */
 	TopicMapHandler topicMapHandler;
-	
-	// --[ public methods ]------------------------------------------------------------------------------
-	
+
 	/**
 	 * Constructor
 	 * @param config - The configuration which creates the session.
@@ -79,8 +72,7 @@ public class Session {
 	 * @throws TopicMapException
 	 */
 	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException, TopicMapException {
-		// flag if notification is needed
-		// TODO set it by topic map handler according to real model changes
+		
 		boolean fireNotification = true; 
 		getTopicMapHandler().persist(topicObject);
 		if (fireNotification)
@@ -92,63 +84,20 @@ public class Session {
 	 */
 	public void flushTopicMap(){
 		
-		this.config.getConnector().flushTopicMap(); /// TODO handle return value
-		
-//		CTMTopicMapWriter writer;
-//		
-//		try {
-//			
-//			String filename = config.getProperty(Property.FILENAME);
-//			logger.info("Writing to "+filename);
-//			writer = new CTMTopicMapWriter(new FileOutputStream(filename), config.getBaseLocator());
-//			
-//			
-//			writer.setExportItemIdentifiers(true);
-//			String bl = config.getBaseLocator();
-//			Map<String, String> prefixMap = config.getPrefixMap();
-//			
-//			boolean foundBaseLocator = false;
-//			// adding all specified prefixes but the base locator
-//			for (String key : prefixMap.keySet()) {
-//				if (!key.equals("base_locator")) {
-//					String uri = prefixMap.get(key);
-//					writer.addPrefix(key, uri);
-//					if (uri.equals(bl))
-//						foundBaseLocator=true;
-//				}
-//			}
-//			// if no prefix with the base locators uri found, add it to the prefix list
-//			if (!foundBaseLocator)
-//				writer.addPrefix("base_locator", bl);
-//			
-//			for (Class<?> clazz : config.getClasses()) {
-//				String prefix = bl+clazz.getName().replaceAll("\\.", "/")+"/";
-//				writer.addPrefix(clazz.getSimpleName().toLowerCase(), prefix);
-//			}
-//
-//			writer.write(getTopicMapHandler().getTopicMap());
-//			
-//		} catch (Exception e) {
-//			logger.error("", e);
-//		}
-		
-		
+		this.config.getConnector().flushTopicMap();
 	}
 	
 	/**
-	 * Returns all object of a spcific class which can be retrieved from the topic map.
-	 * All objects are newly created and can not be compared to allready existing object representing the same topics.
+	 * Returns all object of a specific class which can be retrieved from the topic map.
+	 * All objects are newly created and can not be compared to already existing object representing the same topics.
 	 * @param clazz - The class.
 	 * @return Set of objects.
 	 */
-	public Set<Object> getAll(Class<?> clazz){ //	returns all instances of the class in the topic map
+	public Set<Object> getAll(Class<?> clazz){
 		
 		try{
 			
-			Set<Object> instances = getTopicMapHandler().getTopicsByType(clazz);
-
-			
-			return instances;
+			return getTopicMapHandler().getTopicsByType(clazz);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -236,6 +185,9 @@ public class Session {
 		throw new UnsupportedOperationException();
 	}
 	
+	/**
+	 * Returns the topic map.
+	 */
 	public TopicMap getTopicMap(){
 		
 		try {
@@ -266,11 +218,7 @@ public class Session {
 		if (getPersistListeners().contains(listener))
 			listeners.remove(listener);
 	}
-	
-	// getter and setter
-	
-	// --[ private methods ]-------------------------------------------------------------------------------
-	
+
 	/**
 	 * Notifies all registered listeners that the given model was persisted. 
 	 * 

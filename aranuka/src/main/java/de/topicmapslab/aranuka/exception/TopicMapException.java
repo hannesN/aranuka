@@ -9,14 +9,9 @@ package de.topicmapslab.aranuka.exception;
 
 /**
  * Exception thrown in case an interaction with the topic map went wrong.
- * @author Christian Haß
- *
  */
 public class TopicMapException extends Exception {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 4177758602546789715L;
 
 	/**

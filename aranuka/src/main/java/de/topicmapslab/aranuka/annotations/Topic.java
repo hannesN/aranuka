@@ -12,11 +12,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Annotation for an class which is meant to be an topic type.
- * @author Christian Haß
- *
- */
 @Target(TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Topic {
@@ -27,7 +22,7 @@ public @interface Topic {
 	String name() default "";
 	
 	/**
-	 * the subject identifier of the topic, default is path of the class
+	 * the subject identifier of the topic, default is the qualified name of the class, but using slashes instead of the dots.
 	 */
 	String[] subject_identifier() default {};
 	

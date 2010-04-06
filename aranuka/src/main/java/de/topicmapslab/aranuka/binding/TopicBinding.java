@@ -15,8 +15,6 @@ import java.util.Set;
 
 /**
  * Binding class for a topic type.
- * @author Christian Haß
- *
  */
 public class TopicBinding extends AbstractClassBinding{
 

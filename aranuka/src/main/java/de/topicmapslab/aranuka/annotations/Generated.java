@@ -15,8 +15,6 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation used by code generator
- * @author Christian Haß
- *
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)

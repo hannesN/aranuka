@@ -62,8 +62,6 @@ import de.topicmapslab.tmql4j.common.model.process.ITMQLRuntime;
 
 /**
  * Class which encapsulates interactions with the topic map.
- * @author Christian Haß
- *
  */
 public class TopicMapHandler {
 
@@ -91,8 +89,14 @@ public class TopicMapHandler {
 	 */
 	private Map<Topic, Object> objectCache;
 	
+	/**
+	 * Cache for associations.
+	 */
 	private Map<Association,AssociationBinding> associationCache;
 	
+	/**
+	 * The topic map system.
+	 */
 	private TopicMapSystem topicMapSystem;
 	
 	
@@ -153,6 +157,10 @@ public class TopicMapHandler {
 		return this.topicMap;
 	}
 	
+	/**
+	 * Sets the topic map system.
+	 * @param topicMapSystem - The topic map system.
+	 */
 	public void setTopicMapSystem(TopicMapSystem topicMapSystem) {
 		this.topicMapSystem = topicMapSystem;
 	}
@@ -380,7 +388,6 @@ public class TopicMapHandler {
 	 * Returns the topic binding for an specific topic.
 	 * @param topic - The topic.
 	 * @return The binding or null if not found.
-	 * TODO maybe invoke binding creation for all registered classes
 	 */
 	private TopicBinding getTopicBinding(Topic topic){
 		
@@ -604,6 +611,11 @@ public class TopicMapHandler {
 		}
 	}
 	
+	/**
+	 * Resolves an identifier against the prefix map.
+	 * @param id
+	 * @return The resolved identifier.
+	 */
 	private String resolveIdentifier(String id) {
 		
 		// check if we got a :
@@ -620,6 +632,11 @@ public class TopicMapHandler {
 		
 	}
 	
+	/**
+	 * Resolves an locator against the prefix map.
+	 * @param id - The locator.
+	 * @return The resolved locator
+	 */
 	private Locator resolveIdentifier(Locator id) {
 		String extForm = id.toExternalForm();
 		
@@ -630,6 +647,11 @@ public class TopicMapHandler {
 		return topicMap.createLocator(resolvedId);
 	}
 	
+	/**
+	 * Reduces an identifier to an prefixed version if a prefix is available.
+	 * @param id - The identifier.
+	 * @return - The reduced identifier.
+	 */
 	private String prefixIdentifier(String id) {
 		
 		// check if we got a :
@@ -768,7 +790,6 @@ public class TopicMapHandler {
 		for(Map.Entry<NameBinding, Set<String>> newName:newNames.entrySet()){
 			
 			// get type and scope for this binding/field
-			//Topic nameType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(newName.getKey().getNameType(),this.config.getPrefixMap())));
 			Topic nameType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(newName.getKey().getNameType(),this.config.getPrefixMap()));
 			
 			Set<Topic> scope = newName.getKey().getScope(getTopicMap());
@@ -951,7 +972,7 @@ public class TopicMapHandler {
 	
 	/**
 	 * Updates a number of specific unary associations.
-	 * @param topic - The topic which playes a role in the associations.
+	 * @param topic - The topic which plays a role in the associations.
 	 * @param binding - The association binding.
 	 * @param associationObjects - The association objects, i.e. the boolean values.
 	 * @param playedRoles - The roles played by the topic.
@@ -961,10 +982,8 @@ public class TopicMapHandler {
 		if(associationObjects.size() != 1)
 			throw new RuntimeException("Unary association has more the one type."); // TODO use other exception type and better message
 		
-		//Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap())));
 		Topic associationType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap()));
-		
-		//Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getPlayedRole(),this.config.getPrefixMap())));
+				
 		Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getPlayedRole(),this.config.getPrefixMap()));
 			
 		Set<Topic> scope = binding.getScope(getTopicMap());
@@ -1024,16 +1043,12 @@ public class TopicMapHandler {
 	 */
 	private void updateBinaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles, List<Object> topicObjects) throws TopicMapInconsistentException, TopicMapIOException, BadAnnotationException{
 
-		//Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap())));
 		Topic associationType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap()));
-		//Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getPlayedRole(), this.config.getPrefixMap())));
 		Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getPlayedRole(), this.config.getPrefixMap()));
-		//Topic otherRoleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getOtherRole(),this.config.getPrefixMap())));
 		Topic otherRoleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getOtherRole(),this.config.getPrefixMap()));
 			
 		Set<Topic> scope = binding.getScope(getTopicMap());
 
-		/// TODO dirty hack to integrate remove of binary associations, improve
 		for (Object associationObject : associationObjects) { // check each binary association
 			
 			Topic counterPlayer = null;
@@ -1099,9 +1114,7 @@ public class TopicMapHandler {
 	 */
 	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects, Map<Role, Match> playedRoles, List<Object> topicObjects) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException{
 
-		//Topic associationType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getAssociationType(),this.config.getPrefixMap())));
 		Topic associationType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getAssociationType(),this.config.getPrefixMap()));
-		//Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getPlayedRole(),this.config.getPrefixMap())));
 		Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getPlayedRole(),this.config.getPrefixMap()));
 			
 		Set<Topic> scope = binding.getScope(getTopicMap());
@@ -1111,8 +1124,6 @@ public class TopicMapHandler {
 			if(associationObject == null)
 				continue; // skip when the association object is null
 
-			// TODO try to use the cache here as well, but check if there are problems when the same association was already created by another topic 
-			
 			boolean found = false;
 			
 			// get role-player for container
@@ -1295,7 +1306,6 @@ public class TopicMapHandler {
 		
 		for(RoleBinding roleBinding:binding.getRoleBindings()){
 			
-			//Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(roleBinding.getRoleType(),this.config.getPrefixMap())));
 			Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(roleBinding.getRoleType(),this.config.getPrefixMap()));
 			Set<Topic> player = null;
 			if(result.get(roleType) == null)
@@ -1402,7 +1412,6 @@ public class TopicMapHandler {
 		addObjectToCache(object, topic);
 
 		// add identifier
-		
 		addIdentifier(topic, object, binding);
 		
 		// add names
@@ -1451,7 +1460,7 @@ public class TopicMapHandler {
 					
 				}else{
 					
-					/// TODO handle uhnknown idtype
+					/// TODO handle unknown id-type
 				}
 					
 			}
@@ -1487,9 +1496,7 @@ public class TopicMapHandler {
 					
 					if(iri.startsWith(typeId + "/")){
 						
-						logger.info("Reduce identifier from " + iri);
 						iri = iri.replace(typeId + "/", ""); // remove the start
-						logger.info("to " + iri);
 						break;
 					}
 				}
@@ -1919,9 +1926,7 @@ public class TopicMapHandler {
 				Object[] tmp = (Object[])Array.newInstance((Class<?>)associationBinding.getParameterisedType(), counterPlayers.size());
 				counterPlayers.toArray(tmp);
 				associationBinding.setValue(tmp, object);
-				
-	//			associationBinding.setValue(counterPlayers.toArray(), object);
-				
+
 			}else{
 				
 				// is collection
@@ -1980,8 +1985,6 @@ public class TopicMapHandler {
 		
 		Type fieldType = associationBinding.getFieldType();
 		Class<?> containerClass = ReflectionUtil.getGenericType(fieldType);
-
-		logger.info("Container class is " + containerClass);
 		
 		Set<Object> counterSet = new HashSet<Object>();
 		
@@ -2178,7 +2181,7 @@ public class TopicMapHandler {
 		Set<Topic> types = new HashSet<Topic>();
 		
 		for(RoleBinding roleBinding:containerBinding.getRoleBindings()){
-			//Topic roleType = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(TopicMapsUtils.resolveURI(roleBinding.getRoleType(),this.config.getPrefixMap())));
+			
 			Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(roleBinding.getRoleType(),this.config.getPrefixMap()));
 			types.add(roleType);
 		}
@@ -2351,9 +2354,6 @@ public class TopicMapHandler {
 			identifier = getIdentifier(topicObject, binding.getParent(), type);
 		else identifier = new HashSet<String>();
 
-		// create base locator
-		//String baseLocator = TopicMapsUtils.resolveURI("base_locator:", this.config.getPrefixMap()) + topicObject.getClass().getName().replaceAll("\\.", "/") + "/";
-
 		String typeLocator = binding.getIdentifier().iterator().next(); // get first
 		
 		
@@ -2372,7 +2372,7 @@ public class TopicMapHandler {
 							if (obj instanceof String){
 								identifier.add(obj.toString());
 							}else{
-								//identifier.add(baseLocator + obj.toString());
+								
 								identifier.add(typeLocator + "/" + obj.toString());
 							}
 						}
@@ -2384,7 +2384,7 @@ public class TopicMapHandler {
 							if (obj instanceof String){
 								identifier.add(obj.toString());
 							}else{
-								//identifier.add(baseLocator + obj.toString());
+								
 								identifier.add(typeLocator + "/" + obj.toString());
 							}
 						}
@@ -2393,7 +2393,7 @@ public class TopicMapHandler {
 						if (((IdBinding)afb).getValue(topicObject) instanceof String){
 							identifier.add(((IdBinding)afb).getValue(topicObject).toString());
 						}else{
-							//identifier.add(baseLocator + ((IdBinding)afb).getValue(topicObject).toString());
+							
 							identifier.add(typeLocator + "/" + ((IdBinding)afb).getValue(topicObject).toString());
 						}
 					}
@@ -2705,6 +2705,11 @@ public class TopicMapHandler {
 		this.objectCache = null;
 	}
 	
+	/**
+	 * Adds an association to the cache.
+	 * @param association - The association.
+	 * @param binding - The related association binding.
+	 */
 	private void addAssociationToCache(Association association, AssociationBinding binding){
 		
 		if(this.associationCache == null)
@@ -2714,6 +2719,10 @@ public class TopicMapHandler {
 		
 	}
 	
+	/**
+	 * Removes an association from cache.
+	 * @param association - The association.
+	 */
 	private void removeAssociationFromCache(Association association){
 		
 		if(this.associationCache == null)
@@ -2723,6 +2732,11 @@ public class TopicMapHandler {
 	
 	}
 	
+	/**
+	 * Gets the association binding of a specific association.
+	 * @param association - The association
+	 * @return The Binding or null of not found.
+	 */
 	private AssociationBinding getAssociationBindingFromCache(Association association){
 		
 		if(this.associationCache == null)
@@ -2732,6 +2746,11 @@ public class TopicMapHandler {
 		
 	}
 	
+	/**
+	 * Creates a topic by subject identifier, but checks first if the topic already exists. Adds also a name if specified.
+	 * @param subjectIdentifier - The subject identifier.
+	 * @return The topic.
+	 */
 	private Topic createTopicBySubjectIdentifier(String subjectIdentifier){
 		
 		

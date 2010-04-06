@@ -13,8 +13,6 @@ import de.topicmapslab.aranuka.enummerations.AssociationKind;
 
 /**
  * Association field binding.
- * @author christian haß
- *
  */
 public class AssociationBinding extends AbstractFieldBinding {
 
@@ -47,9 +45,7 @@ public class AssociationBinding extends AbstractFieldBinding {
 	 * The kind of the association, unary, binary or nnary.
 	 */
 	private AssociationKind kind;
-	
-	// --[ public methods ]--------------------------------------------------------------------------------
-	
+
 	/**
 	 * Constructor
 	 */
@@ -170,13 +166,5 @@ public class AssociationBinding extends AbstractFieldBinding {
 	public void setKind(AssociationKind kind) {
 		this.kind = kind;
 	}
-	
-	@Override
-	public String toString() {
-		return "AssociationBinding [associationContainer="
-				+ associationContainerBinding + ", associationType=" + associationType
-				+ ", otherPlayer=" + otherPlayerBinding
-				+ ", otherRole=" + otherRole + ", playedRole=" + playedRole
-				+ "]";
-	}
+
 }

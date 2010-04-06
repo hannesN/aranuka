@@ -13,8 +13,6 @@ import java.util.List;
 
 /**
  * Binding of an association container class.
- * @author christian haß
- *
  */
 public class AssociationContainerBinding extends AbstractClassBinding {
 

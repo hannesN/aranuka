@@ -14,8 +14,6 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation for an element which is used as topic name.
- * @author Christian Haß
- *
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

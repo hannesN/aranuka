@@ -19,8 +19,6 @@ import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 
 /**
  * Utils class for the work with the topic map.
- * @author Christian Haß
- *
  */
 public class TopicMapsUtils {
 
