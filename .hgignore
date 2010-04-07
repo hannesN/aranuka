@@ -18,7 +18,7 @@ aranuka.codegen/tmp/test_result/**
 
 **/*.aux
 **/*.dvi
-**/*.pdf
+**/document.pdf
 
 aranuka/src/test/resources/*.ctm
 aranuka/src/test/resources/*.ctm.swp

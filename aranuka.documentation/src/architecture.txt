@@ -1,3 +1,4 @@
 == Architecture ==
 
-Connectors
+_Aranuka_ maps Java POJOs to topics of a topic map. It provides a set of annotations
+and a facility to use and configure _Aranuka_. It does not provide its own Topic Maps engine.

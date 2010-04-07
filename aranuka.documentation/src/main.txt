@@ -3,8 +3,8 @@ Aranuka Handbook
 
 include::preface.txt[]
 
-Using Aranuka
-=============
+Aranuka
+=======
 
 include::architecture.txt[]
 
