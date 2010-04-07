@@ -1,0 +1,98 @@
+== Using _Aranuka_ ==
+
+=== Configuration ===
+
+After annotating the domain model _Aranuke_ needs some configuration parameters to create a session.
+This configuration is done with an instance of *de.topicmapslab.aranuka.Configuration*.
+
+The constructor of Configuration needs one Parameter, the class of the connector to use, for instance:
+
+----
+Configuration conf = new Configuration(TinyTiMConnector.class);
+----
+
+After instantiating the configuration it is necessary to add all annotated classes to the configuration, like:
+
+----
+conf.addClass(Person.class);
+---- 
+
+The next step is to set a base locator for the topic map with:
+
+----
+conf.setProperty(IProperties.BASE_LOCATOR, "http://docs.aranuka.de/documentation/");
+---- 
+
+If qnames were used to specify the identifiers for the types the qname identifier, called prefix, and the URI should be
+set to the configuration. It is also possible to specify new prefixes which will be used for identifiers of the prefixes.
+Add a prefix definition like:
+
+----
+conf.addPrefix("tp", "http://test.de/");
+---- 
+
+NOTE: The base locator is used to resolve the prefix 'base_locator'. If another prefix is desired it is possible to overwrite the
+prefix by adding a new prefix with the base locator URI.
+
+The memory connectors of _Aranuka_ store their topic maps into a file. This can be either XTM or CTM. The filename is also set in the configuration:
+
+------------
+conf.setProperty(IProperties.FILENAME, "/path/to/file.ctm");
+------------
+
+NOTE: The serializer is chosen based on the file suffix. If it's 'ctm' the ctm serializer is used. If it's 'xtm' the xtm2.0 serializer is used.
+
+It is possible to change the filename property after the session is created. This means the topic map is stored in the new file overwrting any existent
+file.
+
+=== Session ===
+
+After the configuration is finished a session can be retrieved from the configuration instance:
+
+--------
+conf.getSession(false);
+--------
+
+The parameter asks if the classes annotations should be parsed before creating the session (*false*) or lazy when the class is used the first time (*true*).
+
+NOTE: If the filename of the configuration points to an existing topic map it will be loaded and the topics.
+
+==== Persist Topics ====
+
+To persist an instance of an annotated class the session class provides the method persist.
+Every instance must have a property annotated with *Id*. Persist checks if a topic identified by  
+the value of this property exists and updates the other properties and association according to the 
+values of the instance. If no topic exists a new one is created. 
+
+==== Retrieve Topics ====
+
+Of course it is possible to get instances from the topic map. The session provides two ways to retrieve an instance
+from the topic map. The first retrieves all instances from a specific type. The method:
+
+-------
+getAll(Class<?> clazz)
+-------
+
+The parameter of this method is the class object of the annotated class. This method returns a set of instances which 
+represent the topics of that type.
+
+
+The other way is to retrieve a instance by identifier. The session provides three methods one for each kind of Topic Maps 
+identifier and returns either *null* if no topic with the given identifier exists or the instance representing the topic.
+
+--------------
+getByItemIdentifier(String)
+getBySubjectIdentifier(String)
+getBySubjectLocator(String)
+-------------- 
+
+NOTE: The given identifier must be resolved. QNames are not allowed at the moment.
+
+==== Persist the Topic Map ====
+
+The session provides the following method:
+---------
+flushTopicMap()
+---------
+
+The memory connectors serialise the file according to the filename set in the configuration.
