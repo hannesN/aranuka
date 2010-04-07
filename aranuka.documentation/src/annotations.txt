@@ -1,4 +1,4 @@
-== Aranuka Annotations ==
+== _Aranuka_ Annotations ==
 
 For every construct an annotation exists. The following sections describe 
 the annotations and their properties.
@@ -14,7 +14,7 @@ EXAMPLE: The base locator "http://test.de" is set. A topic type for a class *de.
 automatically generated subject identifier "class:de/test/Person"
 
 === *Id* ===
-The annotation is used for class properties which tells Aranuka, that the value of this property is a
+The annotation is used for class properties which tells_Aranuka_, that the value of this property is a
 topic identifier. The type of the property must be either a String or an integer value.
 If it is the first the value has to be a valid IRI. In case of the latter an URI is generated using the
 subject identifier of the topic type and adds the value of the number. 

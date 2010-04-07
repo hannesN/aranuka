@@ -4,8 +4,8 @@ Preface
 Aranuka is a framework which allows user to persist information stored in Java objects into a topic map 
 without the need to implement the necessary calls to the used Topic Maps engine. The mapping between the 
 Java model and the topic map is defined directly in the related model classes via Java-Annotation. 
-The Annotations hold all information needed by Aranuka which makes it very easy to use Aranuka with 
+The Annotations hold all information needed by _Aranuka_ which makes it very easy to use _Aranuka_ with 
 an existing model or to change the model or mapping.
 
-This documentation describes the general concept and architecture of Aranuka as well as shows how to 
+This documentation describes the general concept and architecture of _Aranuka_ as well as shows how to 
 use it and provides tutorials.
