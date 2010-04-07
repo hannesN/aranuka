@@ -2,3 +2,15 @@
 
 _Aranuka_ maps Java POJOs to topics of a topic map. It provides a set of annotations
 and a facility to use and configure _Aranuka_. It does not provide its own Topic Maps engine.
+Instead it uses connectors which use a specific Topic Maps engine. Currently _Aranuka_ provides 
+three conntectors:
+
+* tinyTiM Connector
+* Ontopia Database Connector
+* Ontopia Memory Connector
+
+image::images/arch.svg["Architexture of _Aranuka_"]
+
+To use _Aranuka_ it is necessary to use one of the connectors.
+
+NOTE: The database connector is still experiemental.

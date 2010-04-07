@@ -10,6 +10,8 @@ include::architecture.txt[]
 
 include::annotations.txt[]
 
+include::configuration.txt[]
+
 include::glossary.txt[]
 
 ///////////////////////////////
