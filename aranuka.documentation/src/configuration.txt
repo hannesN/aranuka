@@ -45,6 +45,23 @@ NOTE: The serializer is chosen based on the file suffix. If it's 'ctm' the ctm s
 It is possible to change the filename property after the session is created. This means the topic map is stored in the new file overwrting any existent
 file.
 
+
+==== Naming the types ====
+
+Every type used in the annotations only has a subject identifier. For a easier understanding of the type, the user might want to add
+names to the types. This is possible via the configuration. 
+---------------
+conf.addName(id, name)
+---------------  
+
+Alternatively create a map and fill it using the subject identifier of the type as key
+and its name as value. After filling the map add it to the configuration with:
+---------------
+conf.setNameMap(nameMap)
+--------------- 
+
+NOTE: If you use setNameMap all names put in the configuration via addName will be overwritten.
+
 === Session ===
 
 After the configuration is finished a session can be retrieved from the configuration instance:
@@ -96,3 +113,4 @@ flushTopicMap()
 ---------
 
 The memory connectors serialise the file according to the filename set in the configuration.
+
