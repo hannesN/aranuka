@@ -12,6 +12,8 @@ include::annotations.txt[]
 
 include::configuration.txt[]
 
+include::example.txt[]
+
 include::glossary.txt[]
 
 ///////////////////////////////
