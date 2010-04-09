@@ -25,7 +25,7 @@
 		<dependency>
 			<groupId>de.topicmapslab.aranuka</groupId>
 			<artifactId>aranuka-runtime</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>tmapi</artifactId>
@@ -36,15 +36,8 @@
 		<dependency>
 			<groupId>de.topicmapslab.aranuka</groupId>
                         <artifactId>aranuka-connector-tinytim</artifactId>
-                        <version>1.0.1</version>
+                        <version>1.0.0</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.codemodel</groupId>
-			<artifactId>codemodel</artifactId>
-			<version>2.2</version>
-			<type>java-source</type>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -60,12 +53,6 @@
 			<groupId>com.sun.codemodel</groupId>
 			<artifactId>codemodel</artifactId>
 			<version>2.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tmapi</groupId>
-			<artifactId>tmapi</artifactId>
-			<version>2.0</version>
-			<type>javadoc</type>
 		</dependency>
 		<dependency>
 			<groupId>org.tmapi</groupId>
