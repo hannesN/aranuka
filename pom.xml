@@ -26,7 +26,7 @@
 	<repositories>
 		<repository>
 			<id>tmlab</id>
-			<url>http://maven.topicmapslab.de/third_party</url>
+			<url>http://maven.topicmapslab.de/public</url>
 		</repository>
 		<repository>
 			<id>tmapi</id>
