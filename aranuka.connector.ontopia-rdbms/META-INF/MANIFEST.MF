@@ -2,10 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: aranuka_connector_ontopia_rdbms
 Bundle-SymbolicName: aranuka_connector_ontopia_rdbms
-Bundle-Version: 1.0.1
+Bundle-Version: 1.0.0
 Export-Package: de.topicmapslab.aranuka.ontopiy.rdbms.connectors
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Require-Bundle: aranuka.runtime;bundle-version="1.0.1"
+Require-Bundle: aranuka.runtime;bundle-version="1.0.0"
 Bundle-ClassPath: .
 Import-Package: net.ontopia.infoset.core,
  net.ontopia.infoset.fulltext.core,
