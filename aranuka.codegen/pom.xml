@@ -61,7 +61,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.topicmapslab</groupId>
-			<artifactId>tmcl_loader</artifactId>
+			<artifactId>tmcl-loader</artifactId>
 			<version>1.0.0</version>
 			<exclusions>
 				<exclusion>
