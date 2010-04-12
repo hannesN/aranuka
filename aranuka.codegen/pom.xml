@@ -4,14 +4,14 @@
 	<parent>
 		<groupId>de.topicmapslab</groupId>
 		<artifactId>aranuka</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1-SNAPSHOT</version>
 	</parent>
 	
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab.aranuka</groupId>
 	<artifactId>aranuka-codegen</artifactId>
 	<name>Aranuka Codegen</name>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<description>This project provides a code generation facility for Aranuka based on TMCL schemas.</description>
 	
 	<repositories>

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Aranuka Runtime
 Bundle-SymbolicName: aranuka.runtime
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1.SNAPSHOT
 Export-Package: de.topicmapslab.aranuka,
  de.topicmapslab.aranuka.annotations,
  de.topicmapslab.aranuka.binding,
