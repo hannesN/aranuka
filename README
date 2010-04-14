@@ -1,0 +1,50 @@
+This software is released under the Apache License Version 2.0.
+
+Use Aranuka
+===========
+
+Aranuka has a lot of dependencies to resolve them all it is 
+advised to use the maven repository.
+
+You can add the repository of the topic maps lab with adding the following
+to your pom.xml:
+
+
+<repository>
+     <id>tmlab</id>
+     <url>http://maven.topicmapslab.de/public</url>
+</repository>
+
+After that add the dependency:
+
+
+<dependency>
+      <groupId>de.topicmapslab.aranuka</groupId>
+      <artifactId>aranuka-connector-tinytim</artifactId>
+      <version>1.0.0</version>
+      <scope>compile</scope>
+</dependency>
+<dependency>
+      <groupId>de.topicmapslab.aranuka</groupId>
+      <artifactId>aranuka-runtime</artifactId>
+      <version>1.0.0</version>
+      <scope>compile</scope>
+</dependency>
+
+Change the artifactId of the connector the one you want. You can choose between:
+
+* aranuka-connector-tinytim
+* aranuka-connector-ontopia-rdbms
+* aranuka-connector-ontopia-memory
+
+
+Questions?
+==========
+
+You can ask any question in the aranuka gougle group:
+
+http://groups.google.com/group/aranuka
+
+
+Have fun
+The Aranuka Team
