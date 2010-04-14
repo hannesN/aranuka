@@ -9,7 +9,7 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab.aranuka</groupId>
-	<artifactId>aranuka-connector-ontopia-memory</artifactId>
+	<artifactId>aranuka-connector-ontopia-rdbms</artifactId>
 	<version>1.0.0</version>
 
 	<name>Aranuka Ontopia Memory Connector</name>
