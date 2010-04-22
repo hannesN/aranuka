@@ -44,16 +44,6 @@
 			<artifactId>tmapix-io</artifactId>
 			<version>0.3.0</version>
 		</dependency>
-		<dependency>
-			<groupId>semagia</groupId>
-			<artifactId>semagia-mio-xtm</artifactId>
-			<version>0.9.5</version>
-		</dependency>
-		<dependency>
-			<groupId>semagia</groupId>
-			<artifactId>semagia-mio</artifactId>
-			<version>0.9.5</version>
-		</dependency>
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -68,6 +58,13 @@
 			<version>4.8.1</version>
 			<type>jar</type>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.topicmapslab</groupId>
+			<artifactId>ctm-writer</artifactId>
+			<version>1.0.5.a1</version>
+			<type>pom</type>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 	

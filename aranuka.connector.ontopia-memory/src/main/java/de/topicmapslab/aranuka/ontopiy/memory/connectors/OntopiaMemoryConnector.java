@@ -1,13 +1,17 @@
 package de.topicmapslab.aranuka.ontopiy.memory.connectors;
 
 import java.io.File;
-import java.io.FileOutputStream;
+
+import net.ontopia.topicmaps.core.TopicMapIF;
+import net.ontopia.topicmaps.impl.tmapi2.TopicMapImpl;
+import net.ontopia.topicmaps.impl.tmapi2.TopicMapSystemIF;
+import net.ontopia.topicmaps.utils.ctm.CTMTopicMapReader;
+import net.ontopia.topicmaps.xml.XTM2TopicMapWriter;
+import net.ontopia.topicmaps.xml.XTMTopicMapReader;
 
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
-import org.tmapix.io.XTM20TopicMapReader;
-import org.tmapix.io.XTM20TopicMapWriter;
 
 import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
 import de.topicmapslab.aranuka.connectors.IProperties;
@@ -35,15 +39,23 @@ public class OntopiaMemoryConnector extends AbstractEngineConnector{
 			topicMapSystem = factory.newTopicMapSystem();
 			this.topicMap = topicMapSystem.createTopicMap(topicMapSystem.createLocator(getProperty(IProperties.BASE_LOCATOR)));
 			
-			if(getProperty(IProperties.FILENAME) != null){
+			String filename = getProperty(IProperties.FILENAME);
+			if(filename != null){
 			
-				File f = new File(getProperty(IProperties.FILENAME));
+				File f = new File(filename);
 				
 				if(f.exists()){
 					
 					// load
-					XTM20TopicMapReader reader = new XTM20TopicMapReader(this.topicMap, f);
-					reader.read();
+					if (filename.endsWith(".xtm")) {
+						XTMTopicMapReader  reader = new XTMTopicMapReader(f);
+						TopicMapIF tm = reader.read();
+						this.topicMap = new TopicMapImpl((TopicMapSystemIF) topicMapSystem, tm.getStore());
+					} else if (filename.endsWith(".ctm")) {
+						CTMTopicMapReader reader = new CTMTopicMapReader(f);
+						TopicMapIF tm = reader.read();
+						this.topicMap = new TopicMapImpl((TopicMapSystemIF) topicMapSystem, tm.getStore());
+					}
 				}
 			}
 			
@@ -67,15 +79,22 @@ public class OntopiaMemoryConnector extends AbstractEngineConnector{
 		if(this.topicMap == null)
 			return false;
 		
-		if(getProperty(IProperties.FILENAME) == null)
+		String filename = getProperty(IProperties.FILENAME);
+		if(filename == null)
 			throw new RuntimeException("Filename property not specified.");
 		
-		File f = new File(getProperty(IProperties.FILENAME));
+		File f = new File(filename);
 
 		try{
 			
-			XTM20TopicMapWriter writer = new XTM20TopicMapWriter(new FileOutputStream(f), getProperty(IProperties.BASE_LOCATOR));
-			writer.write(this.topicMap);
+			if (filename.endsWith(".xtm")) {
+				XTM2TopicMapWriter writer = new XTM2TopicMapWriter(f);
+				writer.write(((TopicMapImpl) topicMap).getWrapped());
+			} else if (filename.endsWith(".ctm")) {
+				// TODO add CTMWriter
+//				CTMTopicMapWriter writer = new CTMTopicMapWriter(new FileOutputStream(f), topicMap.getBaseLocator());
+//				writer.write(((TopicMapImpl) topicMap).getWrapped());
+			} 
 			
 			
 		}catch(Exception e){
