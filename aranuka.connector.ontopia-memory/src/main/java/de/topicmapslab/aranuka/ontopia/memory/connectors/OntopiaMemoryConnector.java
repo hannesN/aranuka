@@ -1,4 +1,4 @@
-package de.topicmapslab.aranuka.ontopiy.memory.connectors;
+package de.topicmapslab.aranuka.ontopia.memory.connectors;
 
 import java.io.File;
 import java.util.HashSet;

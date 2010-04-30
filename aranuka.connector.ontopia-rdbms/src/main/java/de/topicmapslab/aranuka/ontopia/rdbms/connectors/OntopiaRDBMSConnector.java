@@ -1,4 +1,4 @@
-package de.topicmapslab.aranuka.ontopiy.rdbms.connectors;
+package de.topicmapslab.aranuka.ontopia.rdbms.connectors;
 
 import java.util.Collection;
 
