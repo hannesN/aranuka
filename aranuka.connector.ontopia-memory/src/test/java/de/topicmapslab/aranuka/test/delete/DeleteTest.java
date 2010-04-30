@@ -19,7 +19,7 @@ import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
 import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
-import de.topicmapslab.aranuka.ontopiy.memory.connectors.OntopiaMemoryConnector;
+import de.topicmapslab.aranuka.ontopia.memory.connectors.OntopiaMemoryConnector;
 /**
  * @author Hannes Niederhausen
  *

@@ -22,7 +22,7 @@ import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
 import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
-import de.topicmapslab.aranuka.ontopiy.rdbms.connectors.OntopiaRDBMSConnector;
+import de.topicmapslab.aranuka.ontopia.rdbms.connectors.OntopiaRDBMSConnector;
 import de.topicmapslab.aranuka.test.AbstractTest;
 
 /**

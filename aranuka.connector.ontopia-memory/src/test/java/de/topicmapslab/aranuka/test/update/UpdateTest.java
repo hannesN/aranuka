@@ -20,7 +20,7 @@ import org.junit.Test;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
-import de.topicmapslab.aranuka.ontopiy.memory.connectors.OntopiaMemoryConnector;
+import de.topicmapslab.aranuka.ontopia.memory.connectors.OntopiaMemoryConnector;
 import de.topicmapslab.aranuka.test.AbstractTest;
 import de.topicmapslab.aranuka.test.write.TestAssociationContainer;
 import de.topicmapslab.aranuka.test.write.TestCounterPlayer;
