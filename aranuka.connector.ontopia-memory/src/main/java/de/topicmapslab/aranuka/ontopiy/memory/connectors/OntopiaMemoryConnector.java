@@ -1,6 +1,8 @@
 package de.topicmapslab.aranuka.ontopiy.memory.connectors;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 import net.ontopia.topicmaps.core.TopicMapIF;
 import net.ontopia.topicmaps.impl.tmapi2.TopicMapImpl;
@@ -9,6 +11,8 @@ import net.ontopia.topicmaps.utils.ctm.CTMTopicMapReader;
 import net.ontopia.topicmaps.xml.XTM2TopicMapWriter;
 import net.ontopia.topicmaps.xml.XTMTopicMapReader;
 
+import org.tmapi.core.Locator;
+import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
@@ -70,6 +74,16 @@ public class OntopiaMemoryConnector extends AbstractEngineConnector{
 		
 	}
 	
+	private void removeItemIdentifiers() {
+		for (Topic t : topicMap.getTopics()) {
+			Set<Locator> iiSet = new HashSet<Locator>(t.getItemIdentifiers());
+			for (Locator l : iiSet) {
+				if (l.toExternalForm().startsWith("file:"))
+					t.removeItemIdentifier(l);
+			}
+		}
+	}
+	
 	public TopicMapSystem getTopicMapSystem() {
 		return topicMapSystem;
 	}
@@ -85,6 +99,7 @@ public class OntopiaMemoryConnector extends AbstractEngineConnector{
 		
 		File f = new File(filename);
 
+		removeItemIdentifiers();
 		try{
 			
 			if (filename.endsWith(".xtm")) {
