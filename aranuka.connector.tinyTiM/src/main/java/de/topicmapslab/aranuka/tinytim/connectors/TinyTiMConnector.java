@@ -39,7 +39,6 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 		if (filename == null)
 			return false;
 		
-		// TODO remove me after TMAPIX works properly
 		removeItemIdentifiers();
 		
 		try {
