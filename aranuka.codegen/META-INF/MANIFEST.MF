@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Codegen
 Bundle-SymbolicName: aranuka.codegen
-Bundle-Version: 1.0.1.snapshot
+Bundle-Version: 1.0.1.SNAPSHOT
 Export-Package: codemodel.test,
  de.topicmapslab.aranuka.codegen.core,
  de.topicmapslab.aranuka.codegen.core.definition,
