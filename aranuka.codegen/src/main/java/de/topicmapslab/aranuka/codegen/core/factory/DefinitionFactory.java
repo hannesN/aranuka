@@ -604,8 +604,9 @@ public class DefinitionFactory {
 	private boolean isMany(Topic constraint) {
 		
 		Set<Occurrence> occs = constraint.getOccurrences(cardMax);
+		// no occurrences means default values which are 0..*
 		if (occs.isEmpty())
-			return false;
+			return true;
 		int i = 0;
 		String value = occs.iterator().next().getValue();
 		if (value.equals("*"))

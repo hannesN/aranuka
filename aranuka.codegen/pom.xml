@@ -60,17 +60,6 @@
 			<version>2.0</version>
 		</dependency>
 		<dependency>
-			<groupId>de.topicmapslab</groupId>
-			<artifactId>tmcl-loader</artifactId>
-			<version>1.0.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.tmapi</groupId>
-					<artifactId>tmapi</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.7</version>

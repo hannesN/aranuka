@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
@@ -29,10 +30,10 @@ import org.junit.Test;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
+import org.tmapix.io.XTM20TopicMapReader;
 
 import de.topicmapslab.aranuka.codegen.core.CodeGenerator;
 import de.topicmapslab.aranuka.codegen.core.exception.InvalidOntologyException;
-import de.topicmapslab.tmcl_loader.TMCLLoader;
 
 /**
  * 
@@ -59,28 +60,6 @@ public class GeneratorTest extends AbstractGeneratorTest {
 
 	static public void generateCode() throws IOException, InvalidOntologyException {
 		new CodeGenerator().generateCode(topicMap, path, "test.model");
-	}
-
-	@Test
-	public void testNumberOfFiles() {
-		File srcDir = new File(path.getAbsolutePath() + "/test/model");
-		assertEquals("Number of Files ", 8, srcDir.listFiles().length);
-
-	}
-
-	@Test
-	public void testFilenames() {
-		File srcDir = new File(path.getAbsolutePath() + "/test/model");
-		List<String> names = Arrays.asList(new String[] { "Author.java", "City.java", "Corporation.java",
-		        "Document.java", "Person.java", "Project.java", "DiplomaThesis.java", "Student.java" });
-
-		for (File f : srcDir.listFiles()) {
-			assertTrue(f.getName() + " is an invallid filename", names.contains(f.getName()));
-		}
-	}
-
-	@Test
-	public void testCompileFiles() {
 		File srcDir = new File(path.getAbsolutePath() + "/test/model");
 		String classpath = System.getProperty("java.class.path") + ":" + path.getAbsolutePath();
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -90,6 +69,33 @@ public class GeneratorTest extends AbstractGeneratorTest {
 		}
 	}
 
+	@Test
+	public void testNumberOfFiles() {
+		File srcDir = new File(path.getAbsolutePath() + "/test/model");
+		assertEquals("Number of Files ", 8, srcDir.listFiles(new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".java");
+			}
+		}).length);
+
+	}
+
+	@Test
+	public void testFilenames() {
+		File srcDir = new File(path.getAbsolutePath() + "/test/model");
+		List<String> names = Arrays.asList(new String[] { "Author.java", "City.java", "Corporation.java",
+		        "Document.java", "Person.java", "Project.java", "DiplomaThesis.java", "Student.java" });
+
+		for (File f : srcDir.listFiles(new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".java");
+			}
+		})) {
+			assertTrue(f.getName() + " is an invallid filename", names.contains(f.getName()));
+		}
+	}
+
+	
 	@Test
 	public void testPersonClass() throws URISyntaxException {
 		String urlString = "file://" + path.getAbsolutePath() + "/";
@@ -114,7 +120,9 @@ public class GeneratorTest extends AbstractGeneratorTest {
 
 			assertEquals(middleNames, PropertyUtils.getProperty(o, "middlename"));
 		} catch (Exception e) {
+			e.printStackTrace();
 			Assert.fail("Could not load Person.class");
+			
 
 		}
 	}
@@ -238,7 +246,8 @@ public class GeneratorTest extends AbstractGeneratorTest {
 		TopicMapSystem topicMapSystem = TopicMapSystemFactory.newInstance().newTopicMapSystem();
 		topicMap = topicMapSystem.createTopicMap("http://www.topicmapslab.de/aranuka-codegen");
 
-		TMCLLoader.readTMCLSchema(topicMap, new File("src/test/resources/tmclschema.ctm"));
-
+		File file = new File("src/test/resources/tmclschema.xtm");
+		XTM20TopicMapReader reader = new XTM20TopicMapReader(topicMap, file);
+		reader.read();
 	}
 }
