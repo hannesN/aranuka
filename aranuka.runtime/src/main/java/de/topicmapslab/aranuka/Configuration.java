@@ -114,6 +114,8 @@ public class Configuration {
 	 * @return Set of classes.
 	 */
 	public Set<Class<?>> getClasses(){
+		if (classes==null)
+			return Collections.emptySet();
 		return classes;
 	}
 

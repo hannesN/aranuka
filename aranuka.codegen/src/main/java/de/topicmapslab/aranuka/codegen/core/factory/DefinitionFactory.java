@@ -300,8 +300,10 @@ public class DefinitionFactory {
 
 		for (Role constrainedTopic : t.getRolesPlayed(constrained,
 				constrainedTopicType)) {
-			Topic ntc = constrainedTopic.getParent().getRoles(constrains)
-					.iterator().next().getPlayer();
+			Set<Role> roles = constrainedTopic.getParent().getRoles(constrains);
+			if (roles.size()==0)
+				continue;
+			Topic ntc = roles.iterator().next().getPlayer();
 			if (!ntc.getTypes().contains(topicNameConstraint))
 				continue;
 
@@ -338,8 +340,10 @@ public class DefinitionFactory {
 
 		for (Role constrainedTopic : t.getRolesPlayed(constrained,
 				constrainedTopicType)) {
-			Topic otc = constrainedTopic.getParent().getRoles(constrains)
-					.iterator().next().getPlayer();
+			Set<Role> roles = constrainedTopic.getParent().getRoles(constrains);
+			if (roles.size()==0)
+				continue;
+			Topic otc = roles.iterator().next().getPlayer();
 			if (!otc.getTypes().contains(topicOccurrenceConstraint))
 				continue;
 
@@ -392,8 +396,10 @@ public class DefinitionFactory {
 
 		for (Role constrainedTopic : t.getRolesPlayed(constrained,
 				constrainedTopicType)) {
-			Topic ic = constrainedTopic.getParent().getRoles(constrains)
-					.iterator().next().getPlayer();
+			Set<Role> roles = constrainedTopic.getParent().getRoles(constrains);
+			if (roles.size()==0)
+				continue;
+			Topic ic = roles.iterator().next().getPlayer();
 			IdType type;
 			if (ic.getTypes().contains(subjectIdentifierConstraint)) {
 				type = IdType.SUBJECT_IDENTIFIER;
@@ -416,8 +422,10 @@ public class DefinitionFactory {
 
 		for (Role constrainedTopic : t.getRolesPlayed(constrained,
 				constrainedTopicType)) {
-			Topic ttc = constrainedTopic.getParent().getRoles(constrains)
-					.iterator().next().getPlayer();
+			Set<Role> roles = constrainedTopic.getParent().getRoles(constrains);
+			if (roles.size()==0)
+				continue;
+			Topic ttc = roles.iterator().next().getPlayer();
 			
 			if (!ttc.getTypes().contains(topicRoleConstraint))
 				continue;
