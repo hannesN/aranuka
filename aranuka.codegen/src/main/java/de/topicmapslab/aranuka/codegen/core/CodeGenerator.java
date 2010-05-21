@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
+import org.tmapi.core.TopicMapSystem;
 
 import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JClass;
@@ -35,12 +36,12 @@ import de.topicmapslab.aranuka.annotations.Name;
 import de.topicmapslab.aranuka.annotations.Occurrence;
 import de.topicmapslab.aranuka.annotations.Role;
 import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition;
+import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition.AssocOtherPlayers;
 import de.topicmapslab.aranuka.codegen.core.definition.FieldDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.IdAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.NameAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.OccurrenceAnnotationDefinition;
 import de.topicmapslab.aranuka.codegen.core.definition.TopicAnnotationDefinition;
-import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition.AssocOtherPlayers;
 import de.topicmapslab.aranuka.codegen.core.exception.InvalidOntologyException;
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
 import de.topicmapslab.aranuka.codegen.core.factory.DefinitionFactory;
@@ -66,10 +67,9 @@ public class CodeGenerator {
 
 	private Map<String, JClass> classMap = new HashMap<String, JClass>();
 	
-	public void generateCode(TopicMap schemaMap, File directory,
+	public void generateCode(TopicMapSystem system, TopicMap schemaMap, File directory,
 			String packageName) throws IOException, InvalidOntologyException {
-		Set<TopicAnnotationDefinition> annotations = new DefinitionFactory(
-				schemaMap).getTopicAnnotationDefinitions();
+		Set<TopicAnnotationDefinition> annotations = new DefinitionFactory(system, schemaMap).getTopicAnnotationDefinitions();
 
 		cm = new JCodeModel();
 		topicAnnotation = cm
@@ -103,13 +103,14 @@ public class CodeGenerator {
 	private void createType(TopicAnnotationDefinition tad) {
 		try {
 			
-			JDefinedClass type = getType(tad.getName());
+			JDefinedClass type = getType(tad.getName(), tad.isAbstract());
+			
 			
 			JAnnotationUse use = type.annotate(topicAnnotation);
 			use.param("subject_identifier", tad.getSubjectIdentifer());
 
 			if (tad.getSuperType()!=null)
-				type._extends(getType(tad.getSuperType()));
+				type._extends(getType(tad.getSuperType(), tad.isAbstract()));
 			
 			for (IdAnnotationDefinition idad : tad.getIdAnnotationDefinitions()) {
 				createIdFiled(type, idad);
@@ -137,10 +138,13 @@ public class CodeGenerator {
 
 	}
 
-	private JDefinedClass getType(String name) throws JClassAlreadyExistsException {
-	    JDefinedClass type = (JDefinedClass) classMap.get(name);
+	private JDefinedClass getType(String name, boolean isAbtract) throws JClassAlreadyExistsException {
+		JDefinedClass type = (JDefinedClass) classMap.get(name);
 	    if (type == null) {
-	    	type = modelPackage._class(name);
+	    	int mods = JMod.PUBLIC;
+	    	if (isAbtract)
+	    		mods |= JMod.ABSTRACT;
+	    	type = modelPackage._class(mods, name);
 	    	classMap.put(name, type);
 	    }
 	    return type;
@@ -167,7 +171,7 @@ public class CodeGenerator {
 	 * Used to reference a class cretaed later
 	 */
 	private JClass getModelReference(Topic t) throws POJOGenerationException {
-		return cm.ref(modelPackage.name() + "." + TypeUtility.getJavaName(t));
+		return cm.ref(modelPackage.name() + "." + TypeUtility.getTypeName(t));
 	}
 
 	private void createBinaryAssociationField(JDefinedClass type,

@@ -45,6 +45,8 @@ public class GeneratorTest extends AbstractGeneratorTest {
 
 	static TopicMap topicMap;
 	static File path = null;
+	private static TopicMapSystemFactory topicMapSystemFactory;
+	private static TopicMapSystem topicMapSystem;
 
 	@BeforeClass
 	public static void prepare() throws Exception {
@@ -59,7 +61,7 @@ public class GeneratorTest extends AbstractGeneratorTest {
 	}
 
 	static public void generateCode() throws IOException, InvalidOntologyException {
-		new CodeGenerator().generateCode(topicMap, path, "test.model");
+		new CodeGenerator().generateCode(topicMapSystem, topicMap, path, "test.model");
 		File srcDir = new File(path.getAbsolutePath() + "/test/model");
 		String classpath = System.getProperty("java.class.path") + ":" + path.getAbsolutePath();
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -243,7 +245,7 @@ public class GeneratorTest extends AbstractGeneratorTest {
 	}
 
 	static private void init() throws Exception {
-		TopicMapSystem topicMapSystem = TopicMapSystemFactory.newInstance().newTopicMapSystem();
+		topicMapSystem = TopicMapSystemFactory.newInstance().newTopicMapSystem();
 		topicMap = topicMapSystem.createTopicMap("http://www.topicmapslab.de/aranuka-codegen");
 
 		File file = new File("src/test/resources/tmclschema.xtm");

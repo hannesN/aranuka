@@ -269,8 +269,7 @@ public interface Vocabular {
 	 * 
 	 * See 7.12 Role Combination Constraint
 	 */
-	public static final String ROLE_COMBINATION_CONSTRAINT = TMCL
-			+ "role-combination-constraint";
+	public static final String ROLE_COMBINATION_CONSTRAINT = TMCL + "role-combination-constraint";
 
 	/**
 	 * Provides a way to constrain the allowed datatype of an occurrence of a
@@ -280,8 +279,7 @@ public interface Vocabular {
 	 * 
 	 * See 7.13 Occurrence Data Type Constraint.
 	 */
-	public static final String OCCURRENCE_DATATYPE_CONSTRAINT = TMCL
-			+ "occurrence-datatype-constraint";
+	public static final String OCCURRENCE_DATATYPE_CONSTRAINT = TMCL + "occurrence-datatype-constraint";
 
 	/**
 	 * Provides a way to require all names or occurrences of a given type to
@@ -321,6 +319,7 @@ public interface Vocabular {
 	/**
 	 * 
 	 * Used as role type.
+	 * @deprecated
 	 */
 	public static final String CONSTRAINS = TMCL + "constrains";
 

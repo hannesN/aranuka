@@ -20,6 +20,7 @@ public class TopicAnnotationDefinition implements ITopicAnnotationDefinition {
 	private String subjectIdentifer = null;
 	private final String name;
 	private final Topic topic;
+	private boolean _abstract;
 
 	private String superType;
 
@@ -78,6 +79,14 @@ public class TopicAnnotationDefinition implements ITopicAnnotationDefinition {
 		return topic;
 	}
 
+	public boolean isAbstract() {
+	    return _abstract;
+    }
+	
+	public void setAbstract(boolean isAbstract) {
+	    this._abstract = isAbstract;
+    }
+	
 	public void addAssociationAnnotationDefinitions(
 	        Set<AssociationAnnotationDefinition> associationAnnotationDefinitions) {
 		this.associationAnnotationDefinitions.addAll(associationAnnotationDefinitions);
