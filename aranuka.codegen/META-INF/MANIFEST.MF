@@ -12,7 +12,8 @@ Export-Package: codemodel.test,
  de.topicmapslab.aranuka.codegen.core.util
 Require-Bundle: aranuka.runtime;bundle-version="1.0.1",
  commons-beanutils;bundle-version="1.8.2",
- org.tmapix_0.3;bundle-version="0.3.0";resolution:=optional
+ org.tmapix_0.3;bundle-version="0.3.0";resolution:=optional,
+ tmql4j;bundle-version="2.5.3"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: com.sun.codemodel,
  com.sun.codemodel.fmt,

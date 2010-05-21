@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.tmapi.core.Locator;
+import org.tmapi.core.Name;
 import org.tmapi.core.Topic;
 
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
@@ -51,9 +52,16 @@ public class TypeUtility {
 		return builder.toString();
     }
 
+	/**
+	 * Creates an attribute name based on a type
+	 * @param topic
+	 * @return
+	 * @throws POJOGenerationException
+	 */
 	public static String getTypeAttribute(final Topic topic)
 			throws POJOGenerationException {
-		return getTypeAttribute(getLocator(topic));
+		String name = getTypeName(topic); 
+		return Character.toLowerCase(name.charAt(0))+name.substring(1);
 	}
 
 	public static final String getTypeAttribute(Locator locator) {
@@ -101,6 +109,44 @@ public class TypeUtility {
 			}
 		}
 		throw new POJOGenerationException();
+	}
+	
+	private static String getTopicName(Topic t) {
+		for (Name name : t.getNames()) {
+			return name.getValue();
+		}
+		return null;
+	}
+
+	public static String getTypeName(Topic t) {
+		try {
+			if (t==null)
+				return null;
+			
+			String name = getTopicName(t);
+			if (name == null)
+				return TypeUtility.getJavaName(t);
+
+			StringBuilder builder = new StringBuilder();
+			char lastChar = name.charAt(0);
+			builder.append(Character.toUpperCase(lastChar));
+			for (int i = 1; i < name.length(); i++) {
+				char c = name.charAt(i);
+				if (c != '-' && c != '_' && c != ':') {
+					if ('-' == lastChar || '_' == lastChar || ':' == lastChar
+							|| ' ' == lastChar) {
+						builder.append(Character.toUpperCase(c));
+					} else if (c != ' ') {
+						builder.append(c);
+					}
+				}
+				lastChar = c;
+			}
+			return builder.toString();
+		} catch (POJOGenerationException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	private static final Map<String, Class<?>> xsdToJavaMappings = new HashMap<String, Class<?>>();

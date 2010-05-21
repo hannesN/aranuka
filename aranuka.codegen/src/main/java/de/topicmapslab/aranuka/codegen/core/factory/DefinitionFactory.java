@@ -1,13 +1,13 @@
 package de.topicmapslab.aranuka.codegen.core.factory;
 
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ASSOCIATION_TYPE;  
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ASSOCIATION_ROLE_CONSTRAINT;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ASSOCIATION_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CARD_MAX;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED_ROLE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED_STATEMENT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED_TOPIC_TYPE;
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINS;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONTAINEE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONTAINER;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.DATATYPE;
@@ -16,8 +16,8 @@ import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.NAME_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.OCCURRENCE_DATATYPE_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.OTHER_CONSTRAINED_ROLE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.OTHER_CONSTRAINED_TOPIC_TYPE;
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ROLE_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ROLE_COMBINATION_CONSTRAINT;
+import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ROLE_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBJECT_IDENTIFIER_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBJECT_LOCATOR_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBTYPE;
@@ -42,6 +42,7 @@ import org.tmapi.core.Occurrence;
 import org.tmapi.core.Role;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
+import org.tmapi.core.TopicMapSystem;
 import org.tmapi.index.TypeInstanceIndex;
 
 import de.topicmapslab.aranuka.codegen.core.definition.AssociationAnnotationDefinition;
@@ -53,12 +54,16 @@ import de.topicmapslab.aranuka.codegen.core.exception.InvalidOntologyException;
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
 import de.topicmapslab.aranuka.codegen.core.util.TypeUtility;
 import de.topicmapslab.aranuka.enummerations.IdType;
+import de.topicmapslab.tmql4j.common.core.process.TMQLRuntimeFactory;
+import de.topicmapslab.tmql4j.common.model.process.ITMQLRuntime;
+import de.topicmapslab.tmql4j.common.model.query.IQuery;
 
 
 
 public class DefinitionFactory {
 
 	private final TopicMap topicMap;
+	private final TopicMapSystem system;
 
 	// -- topic types
 	private Topic topicType;
@@ -82,13 +87,13 @@ public class DefinitionFactory {
 //	private Topic belongsTo;
 
 	// -- roles
-	private Topic constrains;
 	private Topic constrained;
+	private Topic constraint; 
 //	private Topic allows;
 //	private Topic allowed;
 
-	// -- constrains
-	// private Topic constraint; // -- not needed is super type
+	// -- constraint
+	
 //	private Topic abstractConstraint;
 	private Topic subjectIdentifierConstraint;
 	private Topic subjectLocatorConstraint;
@@ -125,8 +130,9 @@ public class DefinitionFactory {
 
 	private TypeInstanceIndex idx;
 
-	public DefinitionFactory(TopicMap topicMap) {
+	public DefinitionFactory(TopicMapSystem system, TopicMap topicMap) {
 		this.topicMap = topicMap;
+		this.system = system;
 		init();
 	}
 
@@ -165,7 +171,7 @@ public class DefinitionFactory {
 //		seeAlso = createStandardTopic(SEE_ALSO);
 
 		// roles
-		constrains = createStandardTopic(CONSTRAINS);
+		constraint = createStandardTopic(CONSTRAINT);
 		constrained = createStandardTopic(CONSTRAINED);
 //		allowed = createStandardTopic(ALLOWED);
 //		allows = createStandardTopic(ALLOWS);
@@ -212,7 +218,6 @@ public class DefinitionFactory {
 		idx = topicMap.getIndex(TypeInstanceIndex.class);
 		try {
 			for (Topic t : idx.getTopics(topicType)) {
-
 				String typeName = getTypeName(t);
 				String si = null;
 				if (!t.getSubjectIdentifiers().isEmpty())
@@ -226,6 +231,7 @@ public class DefinitionFactory {
 
 				tad.setSuperType(getTypeName(getSuperType(t)));
 				
+				findAbstractConstraint(t, tad);
 				findNameConstraints(t, tad);
 				findOccurrenceConstraints(t, tad);
 				findIdentifierConstraints(t, tad);
@@ -294,13 +300,66 @@ public class DefinitionFactory {
 		}
 	}
 
+	private void findAbstractConstraint(Topic t, TopicAnnotationDefinition tad) {
+		try {
+	        ITMQLRuntime runtime = TMQLRuntimeFactory.newFactory().newRuntime(system, topicMap);
+	        runtime.getProperties().enableLanguageExtensionTmqlUl(true);
+	        
+	        String id = getIdentifierString(t);
+	        
+	        String query = "%prefix tmcl http://psi.topicmaps.org/tmcl/ \n"
+	                + "for $c in // tmcl:abstract-constraint\n"
+	                + "where tmcl:constrained-topic-type (tmcl:constraint : $c, tmcl:constrained : "+id+")"
+	                + "return $c";
+	        IQuery q = runtime.run(query);
+	        if (q.getResults().size()==0)
+	        	return;
+	        
+	        tad.setAbstract(true);
+	        
+	        
+        } catch (Exception e) {
+	       System.out.println(e); 
+        }
+        
+    }
+
+	private String getIdentifierString(Topic t) {
+	    StringBuilder b = new StringBuilder(10);
+	    char suffix = '~';
+	    b.append('"');
+	    
+	    Set<Locator> idSet = t.getSubjectIdentifiers();
+	    if (idSet.size()>0) {
+	    	b.append(idSet.iterator().next().toExternalForm());
+	    } else {
+	    	idSet = t.getSubjectLocators();
+		    if (idSet.size()>0) {
+		    	b.append(idSet.iterator().next().toExternalForm());
+		    	suffix = '=';
+		    } else {
+		    	idSet = t.getSubjectLocators();
+			    if (idSet.isEmpty()) {
+			    	throw new RuntimeException("No Identifier in topic found");
+			    }
+			    b.append(idSet.iterator().next().toExternalForm());
+		    	suffix = '!';
+		    }
+	    }
+	    
+	    b.append('"');
+	    b.append(suffix);
+	    
+	    return b.toString();
+    }
+
 	private void findNameConstraints(Topic t, TopicAnnotationDefinition tad)
 			throws POJOGenerationException {
 		Set<NameAnnotationDefinition> nadSet = new HashSet<NameAnnotationDefinition>();
 
 		for (Role constrainedTopic : t.getRolesPlayed(constrained,
 				constrainedTopicType)) {
-			Set<Role> roles = constrainedTopic.getParent().getRoles(constrains);
+			Set<Role> roles = constrainedTopic.getParent().getRoles(constraint);
 			if (roles.size()==0)
 				continue;
 			Topic ntc = roles.iterator().next().getPlayer();
@@ -308,7 +367,7 @@ public class DefinitionFactory {
 				continue;
 
 			Topic nameType = ntc
-					.getRolesPlayed(constrains, constraintStatement).iterator()
+					.getRolesPlayed(constraint, constraintStatement).iterator()
 					.next().getParent().getRoles(constrained).iterator().next()
 					.getPlayer();
 
@@ -340,14 +399,14 @@ public class DefinitionFactory {
 
 		for (Role constrainedTopic : t.getRolesPlayed(constrained,
 				constrainedTopicType)) {
-			Set<Role> roles = constrainedTopic.getParent().getRoles(constrains);
+			Set<Role> roles = constrainedTopic.getParent().getRoles(constraint);
 			if (roles.size()==0)
 				continue;
 			Topic otc = roles.iterator().next().getPlayer();
 			if (!otc.getTypes().contains(topicOccurrenceConstraint))
 				continue;
 
-			Topic occType = otc.getRolesPlayed(constrains, constraintStatement)
+			Topic occType = otc.getRolesPlayed(constraint, constraintStatement)
 					.iterator().next().getParent().getRoles(constrained)
 					.iterator().next().getPlayer();
 
@@ -371,7 +430,7 @@ public class DefinitionFactory {
 			String datatype = "xsd:string";
 			for (Role role : occType.getRolesPlayed(
 					constrained,constraintStatement)) {
-				for (Role r : role.getParent().getRoles(constrains)) {
+				for (Role r : role.getParent().getRoles(constraint)) {
 					Topic player = r.getPlayer();
 					if (player.getTypes()
 							.contains(occurrenceDatatypeConstraint)) {
@@ -396,7 +455,7 @@ public class DefinitionFactory {
 
 		for (Role constrainedTopic : t.getRolesPlayed(constrained,
 				constrainedTopicType)) {
-			Set<Role> roles = constrainedTopic.getParent().getRoles(constrains);
+			Set<Role> roles = constrainedTopic.getParent().getRoles(constraint);
 			if (roles.size()==0)
 				continue;
 			Topic ic = roles.iterator().next().getPlayer();
@@ -422,7 +481,7 @@ public class DefinitionFactory {
 
 		for (Role constrainedTopic : t.getRolesPlayed(constrained,
 				constrainedTopicType)) {
-			Set<Role> roles = constrainedTopic.getParent().getRoles(constrains);
+			Set<Role> roles = constrainedTopic.getParent().getRoles(constraint);
 			if (roles.size()==0)
 				continue;
 			Topic ttc = roles.iterator().next().getPlayer();
@@ -449,11 +508,11 @@ public class DefinitionFactory {
 			boolean isMany = false;
 			for (Role assocRole : assocType.getRolesPlayed(constrained, constraintStatement)) {
 				// find topic role constraint
-				Topic constraint = assocRole.getParent().getRoles(constrains).iterator().next().getPlayer();
+				Topic constraint = assocRole.getParent().getRoles(this.constraint).iterator().next().getPlayer();
 				if (!constraint.getTypes().contains(topicRoleConstraint))
 					continue;
 				
-				Association assoc = constraint.getRolesPlayed(constrains, constrainedRole).iterator().next().getParent();
+				Association assoc = constraint.getRolesPlayed(this.constraint, constrainedRole).iterator().next().getParent();
 				// check if we have the otherRole
 				Topic tmp = assoc.getRoles(constrained).iterator().next().getPlayer();
 				if (tmp.equals(roleType)) // ignore this role
@@ -462,7 +521,7 @@ public class DefinitionFactory {
 				otherRole = tmp;
 				isMany = isManyRole(assocType, otherRole);
 				
-				assoc = constraint.getRolesPlayed(constrains, constrainedTopicType).iterator().next().getParent();
+				assoc = constraint.getRolesPlayed(this.constraint, constrainedTopicType).iterator().next().getParent();
 				
 				// check if we have the otherRole
 				tmp = assoc.getRoles(constrained).iterator().next().getPlayer();
@@ -547,7 +606,7 @@ public class DefinitionFactory {
     }
 
 	private Topic getConstrainedPlayer(Topic assocType, Topic rcc) {
-	    Set<Role> roles = rcc.getRolesPlayed(constrains, assocType);
+	    Set<Role> roles = rcc.getRolesPlayed(constraint, assocType);
 	    if (roles.size()!=1)
 	    	return null;
 	    
@@ -567,13 +626,13 @@ public class DefinitionFactory {
 		for (Role r : assocType.getRolesPlayed(constrained, constraintStatement)) {
 			Association assoc = r.getParent();
 			//get constraint constraining the  assoctype
-			Topic constraint = assoc.getRoles(constrains).iterator().next().getPlayer();
+			Topic constraint = assoc.getRoles(this.constraint).iterator().next().getPlayer();
 			
 			if (!constraint.getTypes().contains(associationRoleConstraint))
 				continue;
 			
 			// check if constraint is playing in an assoc with the given role
-			Set<Role> roles = constraint.getRolesPlayed(constrains, constrainedRole);
+			Set<Role> roles = constraint.getRolesPlayed(this.constraint, constrainedRole);
 			
 			Association roleAssoc = roles.iterator().next().getParent(); 
 			Topic roleType = roleAssoc.getRoles(constrained).iterator().next().getPlayer();
@@ -587,8 +646,8 @@ public class DefinitionFactory {
 
 	private Topic getRoleType(Topic ttc) {
 		Topic roleType = null;
-		for (Role constrainsRole : ttc.getRolesPlayed(constrains, constrainedRole)) {
-			Topic tmp = constrainsRole.getParent().getRoles(constrained).iterator().next().getPlayer();
+		for (Role constraintRole : ttc.getRolesPlayed(constraint, constrainedRole)) {
+			Topic tmp = constraintRole.getParent().getRoles(constrained).iterator().next().getPlayer();
 			if (tmp.getTypes().contains(this.roleType)) {
 				roleType = tmp;
 				break;
@@ -599,8 +658,8 @@ public class DefinitionFactory {
 
 	private Topic getAssocType(Topic ttc) {
 		Topic assocType = null;
-		for (Role constrainsRole : ttc.getRolesPlayed(constrains, constraintStatement)) {
-			Topic tmp = constrainsRole.getParent().getRoles(constrained).iterator().next().getPlayer();
+		for (Role constraintRole : ttc.getRolesPlayed(constraint, constraintStatement)) {
+			Topic tmp = constraintRole.getParent().getRoles(constrained).iterator().next().getPlayer();
 			if (tmp.getTypes().contains(associationType)) {
 				assocType = tmp;
 				break;
