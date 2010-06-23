@@ -320,6 +320,7 @@ public class DefinitionFactory {
 	        
         } catch (Exception e) {
 	       System.out.println(e); 
+	       return;
         }
         
     }
