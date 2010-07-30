@@ -21,8 +21,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,8 +56,8 @@ import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 import de.topicmapslab.tmql4j.common.core.exception.TMQLRuntimeException;
-import de.topicmapslab.tmql4j.common.core.process.TMQLRuntimeFactory;
-import de.topicmapslab.tmql4j.common.model.process.ITMQLRuntime;
+import de.topicmapslab.tmql4j.common.core.runtime.TMQLRuntimeFactory;
+import de.topicmapslab.tmql4j.common.model.runtime.ITMQLRuntime;
 
 
 /**

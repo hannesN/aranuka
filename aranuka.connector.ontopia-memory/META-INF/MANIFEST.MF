@@ -2,11 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: aranuka_connector_ontopia_memory
 Bundle-SymbolicName: aranuka_connector_ontopia_memory
-Bundle-Version: 1.0.1.SNAPSHOT
+Bundle-Version: 1.0.1.snapshot
 Export-Package: de.topicmapslab.aranuka.ontopia.memory.connectors
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Require-Bundle: aranuka.runtime;bundle-version="1.0.1",
- org.tmapi;bundle-version="2.0.1"
+ org.tmapi;bundle-version="2.0.2"
 Import-Package: net.ontopia.infoset.core,
  net.ontopia.infoset.fulltext.core,
  net.ontopia.infoset.fulltext.impl.lucene,
@@ -38,7 +38,7 @@ Import-Package: net.ontopia.infoset.core,
  net.ontopia.topicmaps.xml,
  net.ontopia.utils,
  net.ontopia.xml,
- org.junit,
+ org.junit;resolution:=optional,
  org.tmapix.io
 Bundle-ClassPath: .
 Bundle-ActivationPolicy: lazy
