@@ -2,12 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: aranuka_connector_tinytim
 Bundle-SymbolicName: aranuka_connector_tinytim
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.0
 Export-Package: de.topicmapslab.aranuka.tinytim.connectors
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Require-Bundle: aranuka.runtime;bundle-version="1.0.1",
- org.tmapix_0.3;bundle-version="0.3.0",
- org.tmapi;bundle-version="2.0.1",
  org.tinytim;bundle-version="2.0.1",
- ctm-writer;bundle-version="1.0.5"
+ de.topicmapslab.ctmwriter;bundle-version="1.0.7",
+ org.tmapix_0.4_snapshot;bundle-version="0.4.0",
+ org.tmapi;bundle-version="2.0.2"
 Import-Package: org.junit;resolution:=optional

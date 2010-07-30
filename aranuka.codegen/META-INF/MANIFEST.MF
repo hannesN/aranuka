@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Codegen
 Bundle-SymbolicName: aranuka.codegen
-Bundle-Version: 1.0.1.SNAPSHOT
+Bundle-Version: 1.0.1.snapshot
 Export-Package: codemodel.test,
  de.topicmapslab.aranuka.codegen.core,
  de.topicmapslab.aranuka.codegen.core.definition,
@@ -12,14 +12,15 @@ Export-Package: codemodel.test,
  de.topicmapslab.aranuka.codegen.core.util
 Require-Bundle: aranuka.runtime;bundle-version="1.0.1",
  commons-beanutils;bundle-version="1.8.2",
- org.tmapix_0.3;bundle-version="0.3.0";resolution:=optional,
- tmql4j;bundle-version="2.5.3"
+ de.topicmapslab.tmql4j;bundle-version="2.6.4"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: com.sun.codemodel,
  com.sun.codemodel.fmt,
  com.sun.codemodel.util,
  com.sun.codemodel.writer,
- junit.framework;version="4.8.1",
+ junit.framework;version="4.8.1";resolution:=optional,
  org.junit;version="4.8.1";resolution:=optional,
  org.tmapi.core;version="2.0.2",
- org.tmapi.index;version="2.0.2"
+ org.tmapi.index;version="2.0.2",
+ org.tmapix.io,
+ org.tmapix.voc

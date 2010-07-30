@@ -62,7 +62,7 @@
 		<dependency>
 			<groupId>de.topicmapslab</groupId>
 			<artifactId>ctm-writer</artifactId>
-			<version>1.0.5.a1</version>
+			<version>1.0.8-SNAPSHOT</version>
 			<type>pom</type>
 			<scope>compile</scope>
 		</dependency>

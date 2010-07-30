@@ -14,8 +14,9 @@ import org.tmapi.core.TopicMapSystemFactory;
 import org.tmapix.io.CTMTopicMapReader;
 import org.tmapix.io.TopicMapReader;
 import org.tmapix.io.TopicMapWriter;
-import org.tmapix.io.XTM20TopicMapReader;
-import org.tmapix.io.XTM20TopicMapWriter;
+import org.tmapix.io.XTM2TopicMapWriter;
+import org.tmapix.io.XTMTopicMapReader;
+import org.tmapix.io.XTMVersion;
 
 import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
 import de.topicmapslab.aranuka.connectors.IProperties;
@@ -53,8 +54,8 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 			TopicMapWriter writer = null;
 
 			if (f.getName().endsWith(".xtm")) {
-				writer = new XTM20TopicMapWriter(fo, baseLocator);
-				((XTM20TopicMapWriter)writer).setPrettify(true);
+				writer = new XTM2TopicMapWriter(fo, baseLocator, XTMVersion.XTM_2_1);
+				((XTM2TopicMapWriter)writer).setPrettify(true);
 			} else {
 				writer = new CTMTopicMapWriter(fo, baseLocator);
 				
@@ -108,7 +109,7 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 					// read
 					TopicMapReader reader = null;
 					if (f.getName().endsWith(".xtm")) {
-						reader = new XTM20TopicMapReader(this.topicMap, f);
+						reader = new XTMTopicMapReader(this.topicMap, f);
 					} else  {
 						reader = new CTMTopicMapReader(this.topicMap, f);
 					}
