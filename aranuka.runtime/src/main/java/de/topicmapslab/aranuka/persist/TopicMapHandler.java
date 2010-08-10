@@ -57,6 +57,7 @@ import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 import de.topicmapslab.tmql4j.common.core.exception.TMQLRuntimeException;
 import de.topicmapslab.tmql4j.common.core.runtime.TMQLRuntimeFactory;
+import de.topicmapslab.tmql4j.common.model.query.IQuery;
 import de.topicmapslab.tmql4j.common.model.runtime.ITMQLRuntime;
 
 
@@ -317,7 +318,8 @@ public class TopicMapHandler {
 			
 			
 			String query = "DELETE CASCADE \""+id+"\" << "+axis;
-			runtime.run(query);
+			IQuery run = runtime.run(query);
+			System.out.println(run.getResults());
 			
 			Topic t = getTopicFromCache(object);
 			if (t!=null) {

@@ -41,7 +41,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.5.8</version>
+			<version>1.6.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.tmapi</groupId>
@@ -51,7 +51,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.5.8</version>
+			<version>1.6.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -87,6 +87,11 @@
 			<groupId>de.topicmapslab</groupId>
 			<artifactId>tmql4j</artifactId>
 			<version>2.6.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>de.topicmapslab.tmql4j-plugins</groupId>
+			<artifactId>tmql4j-tmml-extension</artifactId>
+			<version>1.0.2-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>

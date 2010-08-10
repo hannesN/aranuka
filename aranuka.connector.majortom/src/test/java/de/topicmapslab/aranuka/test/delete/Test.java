@@ -18,7 +18,7 @@ import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
 import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
-import de.topicmapslab.majortom.connector.MaJorToMEngineConnector;
+import de.topicmapslab.aranuka.majortom.connector.MaJorToMEngineConnector;
 import de.topicmapslab.majortom.core.TopicMapImpl;
 
 /**

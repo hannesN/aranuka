@@ -14,10 +14,9 @@ Export-Package: de.topicmapslab.aranuka,
  de.topicmapslab.aranuka.utils
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ClassPath: .
-Import-Package: de.topicmapslab.tmql4j.common.core.exception,
- de.topicmapslab.tmql4j.common.core.runtime,
- de.topicmapslab.tmql4j.common.model.runtime,
+Import-Package: org.apache.commons.beanutils,
  org.slf4j,
  org.tmapi.core;version="2.0.2",
  org.tmapi.index;version="2.0.2"
-Require-Bundle: commons-beanutils;bundle-version="1.8.2"
+Require-Bundle: de.topicmapslab.tmql4j;bundle-version="1.0.2",
+ de.topicmapslab.tmql4j-tmml-extension;bundle-version="1.0.2"
