@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapi.core.TopicMapSystemFactory;
-import org.tmapix.io.XTM20TopicMapReader;
+import org.tmapix.io.XTMTopicMapReader;
 
 import de.topicmapslab.aranuka.codegen.core.CodeGenerator;
 import de.topicmapslab.aranuka.codegen.core.exception.InvalidOntologyException;
@@ -45,7 +45,7 @@ public class GeneratorTest extends AbstractGeneratorTest {
 
 	static TopicMap topicMap;
 	static File path = null;
-	private static TopicMapSystemFactory topicMapSystemFactory;
+//	private static TopicMapSystemFactory topicMapSystemFactory;
 	private static TopicMapSystem topicMapSystem;
 
 	@BeforeClass
@@ -249,7 +249,7 @@ public class GeneratorTest extends AbstractGeneratorTest {
 		topicMap = topicMapSystem.createTopicMap("http://www.topicmapslab.de/aranuka-codegen");
 
 		File file = new File("src/test/resources/tmclschema.xtm");
-		XTM20TopicMapReader reader = new XTM20TopicMapReader(topicMap, file);
+		XTMTopicMapReader reader = new XTMTopicMapReader(topicMap, file);
 		reader.read();
 	}
 }

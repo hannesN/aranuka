@@ -33,24 +33,9 @@
 		<dependency>
 			<groupId>de.topicmapslab.aranuka</groupId>
 			<artifactId>aranuka-runtime</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1-SNAPSHOT</version>
 			<type>jar</type>
 			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>semagia</groupId>
-			<artifactId>semagia-mio-xtm</artifactId>
-			<version>0.9.5</version>
-		</dependency>
-		<dependency>
-			<groupId>semagia</groupId>
-			<artifactId>semagia-mio</artifactId>
-			<version>0.9.5</version>
-		</dependency>
-		<dependency>
-			<groupId>semagia</groupId>
-			<artifactId>semagia-mio-ctm</artifactId>
-			<version>0.9.3</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -62,7 +47,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.5.8</version>
+			<version>1.6.1</version>
 			<type>jar</type>
 			<scope>test</scope>
 		</dependency>

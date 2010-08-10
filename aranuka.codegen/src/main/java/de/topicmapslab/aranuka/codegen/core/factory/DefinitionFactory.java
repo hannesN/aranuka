@@ -54,9 +54,9 @@ import de.topicmapslab.aranuka.codegen.core.exception.InvalidOntologyException;
 import de.topicmapslab.aranuka.codegen.core.exception.POJOGenerationException;
 import de.topicmapslab.aranuka.codegen.core.util.TypeUtility;
 import de.topicmapslab.aranuka.enummerations.IdType;
-import de.topicmapslab.tmql4j.common.core.process.TMQLRuntimeFactory;
-import de.topicmapslab.tmql4j.common.model.process.ITMQLRuntime;
+import de.topicmapslab.tmql4j.common.core.runtime.TMQLRuntimeFactory;
 import de.topicmapslab.tmql4j.common.model.query.IQuery;
+import de.topicmapslab.tmql4j.common.model.runtime.ITMQLRuntime;
 
 
 
@@ -560,12 +560,11 @@ public class DefinitionFactory {
 	 * @param otherRole the role of the other player
 	 * @return <code>true</code> if a role combination constraint for this type exists
 	 */
-	@SuppressWarnings("unchecked")
     private boolean roleCombinationConstraintExists(Topic assocType, Topic topicType, Topic roleType, Topic otherPlayer, Topic otherRole) {
 		TypeInstanceIndex index = topicMap.getIndex(TypeInstanceIndex.class);
 		
 		// iterate through constraint instances
-		Iterator it = index.getTopics(roleCombinationConstraint).iterator();
+		Iterator<?> it = index.getTopics(roleCombinationConstraint).iterator();
 		
 		while (it.hasNext()) {
 			Topic rcc = (Topic) it.next();

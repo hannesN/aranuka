@@ -1,7 +1,7 @@
 /**
  * 
  */
-package de.topicmapslab.majortom.connector;
+package de.topicmapslab.aranuka.majortom.connector;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,12 +11,15 @@ import org.tmapi.core.TMAPIException;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 import org.tmapix.io.TopicMapWriter;
-import org.tmapix.io.XTM20TopicMapWriter;
+import org.tmapix.io.XTM2TopicMapWriter;
+import org.tmapix.io.XTMVersion;
 
 import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
 import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.ctm.writer.core.CTMTopicMapWriter;
 import de.topicmapslab.majortom.core.TopicMapSystemFactoryImpl;
+import de.topicmapslab.majortom.inmemory.store.InMemoryTopicMapStore;
+import de.topicmapslab.majortom.store.TopicMapStoreProperty;
 
 /**
  * @author Hannes Niederhausen
@@ -51,8 +54,8 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 			TopicMapWriter writer = null;
 
 			if (f.getName().endsWith(".xtm")) {
-				writer = new XTM20TopicMapWriter(fo, baseLocator);
-				((XTM20TopicMapWriter) writer).setPrettify(true);
+				writer = new XTM2TopicMapWriter(fo, baseLocator, XTMVersion.XTM_2_0);
+				((XTM2TopicMapWriter) writer).setPrettify(true);
 			} else {
 				writer = new CTMTopicMapWriter(fo, baseLocator);
 
@@ -92,8 +95,12 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 	 */
 	public TopicMapSystem getTopicMapSystem() {
 		try {
-			if (tmSystem==null)
-				tmSystem = new TopicMapSystemFactoryImpl().newTopicMapSystem();
+			if (tmSystem==null) {
+				TopicMapSystemFactoryImpl fac = new TopicMapSystemFactoryImpl();
+				fac.setProperty(TopicMapStoreProperty.TOPICMAPSTORE_CLASS, InMemoryTopicMapStore.class.getName()); 
+//						"de.topicmapslab.majortom.inmemory.store.InMemoryTopicMapStore");
+				tmSystem = fac.newTopicMapSystem();
+			}
 			return tmSystem;
 		} catch (TMAPIException e) {
 			throw new RuntimeException(e);

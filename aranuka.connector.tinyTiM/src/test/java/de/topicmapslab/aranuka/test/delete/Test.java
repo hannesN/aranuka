@@ -3,7 +3,11 @@
  */
 package de.topicmapslab.aranuka.test.delete;
 
+import java.util.Set;
+
 import org.junit.Before; 
+import org.tmapi.core.Topic;
+
 import static org.junit.Assert.*;
 
 import de.topicmapslab.aranuka.Configuration;
@@ -61,7 +65,7 @@ public class Test {
 	public void testRemoveT1() {
 		try {
 			assertNotNull(session.getBySubjectIdentifier(t1.getId()));
-			session.remove(t1);			
+			session.remove(t1);	
 			assertNull(session.getBySubjectIdentifier(t1.getId()));
 			Topic2 t2 = (Topic2) session.getByItemIdentifier(this.t2.getId());
 			assertNull(t2.getTopic1());

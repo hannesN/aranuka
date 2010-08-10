@@ -9,8 +9,8 @@ import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
+import de.topicmapslab.aranuka.majortom.connector.MaJorToMEngineConnector;
 import de.topicmapslab.aranuka.test.AbstractTest;
-import de.topicmapslab.majortom.connector.MaJorToMEngineConnector;
 
 public class AnnotationTest extends AbstractTest {
 
