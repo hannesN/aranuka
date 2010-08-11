@@ -20,6 +20,7 @@ Import-Package: de.topicmapslab.aranuka,
  org.tmapix.io
 Bundle-ClassPath: .
 Bundle-ActivationPolicy: lazy
-Require-Bundle: de.topicmapslab.majortom.inmemory;bundle-version="1.1.1",
- de.topicmapslab.majortom.core;bundle-version="1.1.1"
+Require-Bundle: de.topicmapslab.majortom.core;bundle-version="1.1.1",
+ de.topicmapslab.majortom.inmemory;bundle-version="1.1.1",
+ de.topicmapslab.majortom.model;bundle-version="1.1.1"
 
