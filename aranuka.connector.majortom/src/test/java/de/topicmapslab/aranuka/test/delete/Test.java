@@ -19,7 +19,6 @@ import de.topicmapslab.aranuka.exception.TopicMapException;
 import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.majortom.connector.MaJorToMEngineConnector;
-import de.topicmapslab.majortom.core.TopicMapImpl;
 
 /**
  * @author Hannes Niederhausen
@@ -59,7 +58,7 @@ public class Test {
 	
 	@org.junit.Test
 	public void testTopicMap() {
-		assertEquals("Check if topic map is an ontopia tm", TopicMapImpl.class.getName(), session.getTopicMap().getClass().getName());
+		assertEquals("Check if topic map is an ontopia tm", "de.topicmapslab.majortom.core.TopicMapImpl", session.getTopicMap().getClass().getName());
 	}
 	
 	@org.junit.Test
