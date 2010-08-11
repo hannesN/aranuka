@@ -14,15 +14,8 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: com.sun.codemodel,
  de.topicmapslab.aranuka.annotations,
  de.topicmapslab.aranuka.enummerations,
- de.topicmapslab.tmql4j.common.context,
- de.topicmapslab.tmql4j.common.core.runtime,
- de.topicmapslab.tmql4j.common.model.query,
- de.topicmapslab.tmql4j.common.model.runtime,
- de.topicmapslab.tmql4j.resultprocessing.model,
- javax.tools;resolution:=optional,
- junit.framework;version="4.8.1";resolution:=optional,
- org.apache.commons.beanutils;resolution:=optional,
- org.junit;version="4.8.1";resolution:=optional,
  org.tmapi.core;version="2.0.2",
  org.tmapi.index;version="2.0.2",
  org.tmapix.io
+Require-Bundle: de.topicmapslab.tmql4j.tmml.extension;bundle-version="1.0.2",
+ de.topicmapslab.tmql4j;bundle-version="2.6.4"
