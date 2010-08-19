@@ -77,7 +77,8 @@ public class PrefixReadTest extends  AbstractTest{
 		if(f.exists())
 			f.delete();
 
-		Configuration writeConfig = new Configuration(MaJorToMEngineConnector.class);
+		Configuration writeConfig = new Configuration();
+		writeConfig.setProperty(IProperties.CONNECTOR_CLASS, MaJorToMEngineConnector.class.getName());
 		writeConfig.setProperty(IProperties.BASE_LOCATOR, "http://topicmapslab.de/aranuka/test/");
 		writeConfig.setProperty(IProperties.FILENAME, filename);
 
@@ -94,7 +95,8 @@ public class PrefixReadTest extends  AbstractTest{
 		
 		// create the test session
 
-		this.config = new Configuration(MaJorToMEngineConnector.class);
+		this.config = new Configuration();
+		this.config.setProperty(IProperties.CONNECTOR_CLASS, MaJorToMEngineConnector.class.getName());
 		this.config.setProperty(IProperties.BASE_LOCATOR, "http://topicmapslab.de/aranuka/test/");
 		this.config.setProperty(IProperties.FILENAME, filename);
 
@@ -106,6 +108,8 @@ public class PrefixReadTest extends  AbstractTest{
 		this.session = this.config.getSession(false);
 		
 		assertNotNull(this.session);
+		
+		createTestMap(this.session);
 	}
 	
 	

@@ -20,5 +20,9 @@ Bundle-ClassPath: .
 Bundle-ActivationPolicy: lazy
 Require-Bundle: de.topicmapslab.majortom.core;bundle-version="1.1.1",
  de.topicmapslab.majortom.inmemory;bundle-version="1.1.1",
- de.topicmapslab.majortom.model;bundle-version="1.1.1"
+ de.topicmapslab.majortom.model;bundle-version="1.1.1",
+ de.topicmapslab.majortom.jdbc;bundle-version="1.0.0",
+ com.semagia.mio.core;bundle-version="0.9.6",
+ com.semagia.mio.syntaxpack;bundle-version="0.1.0"
+Service-Component:OSGI-INF/majortomconnector.xml
 

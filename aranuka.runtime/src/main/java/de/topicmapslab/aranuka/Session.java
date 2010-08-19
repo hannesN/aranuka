@@ -267,7 +267,7 @@ public class Session {
  	private TopicMapHandler getTopicMapHandler() throws TopicMapException{
 
  		if(this.topicMapHandler == null) {
- 			this.topicMapHandler = new TopicMapHandler(this.config, this.config.getConnector().getTopicMap());
+ 			this.topicMapHandler = new TopicMapHandler(this.config, this.config.getConnector().createTopicMap());
  			this.topicMapHandler.setTopicMapSystem(this.config.getConnector().getTopicMapSystem());
  		}
  		 		

@@ -57,7 +57,6 @@ import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 import de.topicmapslab.tmql4j.common.core.exception.TMQLRuntimeException;
 import de.topicmapslab.tmql4j.common.core.runtime.TMQLRuntimeFactory;
-import de.topicmapslab.tmql4j.common.model.query.IQuery;
 import de.topicmapslab.tmql4j.common.model.runtime.ITMQLRuntime;
 
 
@@ -202,7 +201,8 @@ public class TopicMapHandler {
 		
 		// type exist, get instances
 		TypeInstanceIndex index = getTopicMap().getIndex(TypeInstanceIndex.class);
-		
+		if (!index.isOpen())
+			index.open();
 		Set<Topic> topicInstances = new HashSet<Topic>(index.getTopics(type));
 		
 		Set<Object> instances = getInstancesFromTopics(topicInstances, binding, clazz);
@@ -318,8 +318,7 @@ public class TopicMapHandler {
 			
 			
 			String query = "DELETE CASCADE \""+id+"\" << "+axis;
-			IQuery run = runtime.run(query);
-			System.out.println(run.getResults());
+			runtime.run(query);
 			
 			Topic t = getTopicFromCache(object);
 			if (t!=null) {
@@ -329,6 +328,7 @@ public class TopicMapHandler {
 			}
 			return true;
 		} catch (TMQLRuntimeException e) {
+			e.printStackTrace();
 			new RuntimeException("Error while removing topic", e);
 		}
 		

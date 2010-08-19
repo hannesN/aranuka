@@ -21,7 +21,8 @@ public class AnnotationTest extends AbstractTest {
 
 		//OntopiaMemoryDriver driver = new OntopiaMemoryDriver("http://topicmapslab.de/aranuka/test/", "./src/test/resources/test.xtm");
 			
-		this.config = new Configuration(MaJorToMEngineConnector.class);
+		this.config = new Configuration();
+		this.config.setProperty(IProperties.CONNECTOR_CLASS, MaJorToMEngineConnector.class.getName());
 		this.config.setProperty(IProperties.BASE_LOCATOR, "http://topicmapslab.de/aranuka/test/");
 		this.config.setProperty(IProperties.FILENAME, "/tmp/test.xtm");
 

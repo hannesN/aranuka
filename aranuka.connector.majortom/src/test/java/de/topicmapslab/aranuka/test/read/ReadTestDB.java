@@ -21,7 +21,7 @@ import de.topicmapslab.aranuka.majortom.connector.MaJorToMEngineConnector;
 import de.topicmapslab.aranuka.test.AbstractTest;
 
 
-public class ReadTest extends  AbstractTest{
+public class ReadTestDB extends  AbstractTest{
 
 	private final static String topic_SI = "http://topicmapslab.de/aranuka/test/test_topic/1";
 	private final static Set<String> topic_SL = new HashSet<String>(Arrays.asList("http://topicmapslab.de/aranuka/test/test_topic/1/sl_1","http://topicmapslab.de/aranuka/test/test_topic/1/sl_2"));
@@ -151,7 +151,13 @@ public class ReadTest extends  AbstractTest{
 		Configuration writeConfig = new Configuration();
 		writeConfig.setProperty(IProperties.CONNECTOR_CLASS, MaJorToMEngineConnector.class.getName());
 		writeConfig.setProperty(IProperties.BASE_LOCATOR, "http://topicmapslab.de/aranuka/test/");
-		writeConfig.setProperty(IProperties.FILENAME, filename);
+		
+		// database connectors
+		this.config.setProperty(IProperties.BACKEND, "db");
+		this.config.setProperty(IProperties.DATABASESYSTEM, "postgresql");
+		this.config.setProperty(IProperties.DATABASE_NAME, "aranuka");
+		this.config.setProperty(IProperties.DATABASE_PASSWORD, "_testAranuka#");
+		this.config.setProperty(IProperties.DATABASE_LOGIN, "postgres");
 
 		writeConfig.addPrefix("test", "http://topicmapslab.de/aranuka/test/");
 		
