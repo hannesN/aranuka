@@ -24,7 +24,7 @@ import de.topicmapslab.aranuka.majortom.connector.MaJorToMEngineConnector;
  * @author Hannes Niederhausen
  *
  */
-public class Test {
+public class TestDB {
 
 	private Topic1 t1;
 	private Topic3 t3;
@@ -36,6 +36,15 @@ public class Test {
 		Configuration conf = new Configuration();
 		conf.setProperty(IProperties.CONNECTOR_CLASS, MaJorToMEngineConnector.class.getName());
 		conf.setProperty(IProperties.BASE_LOCATOR, "http://test.aranuka.de/testcase_delete");
+		
+		// database connectors
+		conf.setProperty(IProperties.BACKEND, "db");
+		conf.setProperty(IProperties.DATABASE_HOST, "localhost");
+		conf.setProperty(IProperties.DATABASESYSTEM, "postgresql");
+		conf.setProperty(IProperties.DATABASE_NAME, "aranuka");
+		conf.setProperty(IProperties.DATABASE_PASSWORD, "_testAranuka#");
+		conf.setProperty(IProperties.DATABASE_LOGIN, "postgres");
+		
 		conf.addPrefix("tp", "http://test.de/");
 		conf.addClass(Topic1.class);
 		conf.addClass(Topic2.class);
@@ -58,7 +67,7 @@ public class Test {
 	
 	@org.junit.Test
 	public void testTopicMap() {
-		assertEquals("Check if topic map is an ontopia tm", "de.topicmapslab.majortom.core.TopicMapImpl", session.getTopicMap().getClass().getName());
+		assertEquals("Check if topic map is an majortom tm", "de.topicmapslab.majortom.core.TopicMapImpl", session.getTopicMap().getClass().getName());
 	}
 	
 	@org.junit.Test

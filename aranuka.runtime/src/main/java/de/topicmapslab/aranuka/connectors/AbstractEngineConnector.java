@@ -25,14 +25,6 @@ public abstract class AbstractEngineConnector implements IEngineConnector {
 	private Configuration configuration;
 	
 	/**
-	 * Sets the configuration object.
-	 * @param configuration - The configuration.
-	 */
-	final public void setConfiguration(Configuration configuration) {
-		this.configuration = configuration;
-	}
-	
-	/**
 	 * {@inheritDoc}
 	 */
 	public void setProperty(String propertyKey, String propertyValue) {
@@ -44,15 +36,23 @@ public abstract class AbstractEngineConnector implements IEngineConnector {
 		
 	}
 	
+	public void setConfiguration(Configuration configuration) {
+		this.configuration = configuration;
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
 	public String getProperty(String key){
 		
 		if(this.properties == null)
-			return null;
+			return configuration.getProperty(key);
 		
-		return (String) this.properties.get(key);
+		String result = (String) this.properties.get(key);
+		if (result==null)
+			return configuration.getProperty(key);
+		
+		return result;
 	}
 	
 	/**
@@ -67,6 +67,8 @@ public abstract class AbstractEngineConnector implements IEngineConnector {
 	 * @return Properties object.
 	 */
 	protected Properties getProperties() {
+		if (properties==null)
+			properties = new Properties();
 		return properties;
 	}
 

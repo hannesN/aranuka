@@ -26,7 +26,7 @@ import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.majortom.connector.MaJorToMEngineConnector;
 import de.topicmapslab.aranuka.test.AbstractTest;
 
-public class WriteTest extends AbstractTest {
+public class WriteTestDB extends AbstractTest {
 
 	Configuration config;
 	Session session;
@@ -43,7 +43,13 @@ public class WriteTest extends AbstractTest {
 		this.config = new Configuration();
 		this.config.setProperty(IProperties.CONNECTOR_CLASS, MaJorToMEngineConnector.class.getName());
 		this.config.setProperty(IProperties.BASE_LOCATOR, "http://topicmapslab.de/aranuka/test/");
-		this.config.setProperty(IProperties.FILENAME, filename);
+
+		// database connectors
+		this.config.setProperty(IProperties.BACKEND, "db");
+		this.config.setProperty(IProperties.DATABASESYSTEM, "postgresql");
+		this.config.setProperty(IProperties.DATABASE_NAME, "aranuka");
+		this.config.setProperty(IProperties.DATABASE_PASSWORD, "_testAranuka#");
+		this.config.setProperty(IProperties.DATABASE_LOGIN, "postgres");
 
 		this.config.addPrefix("test", "http://topicmapslab.de/aranuka/test/");
 		

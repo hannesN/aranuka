@@ -12,6 +12,8 @@ import java.util.Properties;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 
+import de.topicmapslab.aranuka.Configuration;
+
 /**
  * Connector interface.
  */
@@ -20,7 +22,7 @@ public interface IEngineConnector {
 	/**
 	 * Returns the topic map.
 	 */
-	public TopicMap getTopicMap();
+	public TopicMap createTopicMap();
 	/**
 	 * Flush the topic map.
 	 */
@@ -46,4 +48,10 @@ public interface IEngineConnector {
 	 * Returns the topic map system.
 	 */
 	public TopicMapSystem getTopicMapSystem();
+	
+	/**
+	 * Sets the configuration which uses this connector 
+	 * @param conf the {@link Configuration} instance
+	 */
+	public void setConfiguration(Configuration conf);
 }

@@ -14,12 +14,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
 import de.topicmapslab.aranuka.connectors.IEngineConnector;
 import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
+import de.topicmapslab.aranuka.osgi.RuntimeActivator;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 public class Configuration {
@@ -49,32 +49,7 @@ public class Configuration {
 	 */
 	private IEngineConnector connector;
 	
-	
-	/**
-	 * Constructor
-	 * @param connectorClass - Used connector class.
-	 */
-	public Configuration(Class<?> connectorClass){
-		
-		if(connectorClass == null)
-			throw new RuntimeException("Connector specification must not be null.");
-				
-		Object obj = null;
-		
-		try{
-		
-			obj = connectorClass.getConstructor().newInstance();
-
-		}catch(Exception e){
-			throw new RuntimeException("Can't instanciate connector.", e);
-		}
-		
-		if(!(obj instanceof IEngineConnector))
-			throw new RuntimeException("");
-		
-		this.connector = (IEngineConnector)obj;
-		((AbstractEngineConnector) this.connector).setConfiguration(this);
-	}
+	private Properties properties;
 	
 	/**
 	 * Sets a property.
@@ -82,8 +57,10 @@ public class Configuration {
 	 * @param value - Property value.
 	 */
 	public void setProperty(String key, String value){
+		if (this.properties==null)
+			properties = new Properties();
 		
-		this.connector.setProperty(key, value);
+		this.properties.setProperty(key, value);
 		if (IProperties.BASE_LOCATOR.equals(key)) {
 			addPrefix(key, value);
 		}
@@ -92,10 +69,39 @@ public class Configuration {
 	/**
 	 * Returns the connector.
 	 */
- 	IEngineConnector getConnector(){
-		
+	IEngineConnector getConnector() {
+		if (this.connector == null) {
+			String className = getProperty(IProperties.CONNECTOR_CLASS);
+			
+			if (className==null)
+				throw new IllegalStateException("IProperties.CONNECTOR_CLASS property not found.");
+			
+			try {
+				
+				// trying to use the activator which throws an Error if the class isn't available which means no SOGi env
+				try {
+					this.connector = RuntimeActivator.getDefault().getConnector(className);
+				} catch (Throwable t) {
+					// do nothing
+				}
+
+				if (this.connector==null) {
+					Class<?> clazz = getClass().getClassLoader().loadClass(className);
+					Object obj = null;
+					obj = clazz.getConstructor().newInstance();
+	
+					if (!(obj instanceof IEngineConnector))
+						throw new RuntimeException("");
+	
+					this.connector = (IEngineConnector) obj;
+				}
+			} catch (Exception e) {
+				throw new RuntimeException("Can't instanciate connector.", e);
+			}
+		}
+		this.connector.setConfiguration(this);
 		return this.connector;
-		
+
 	}
 	
 	/**
@@ -222,7 +228,7 @@ public class Configuration {
 	 * @param properties - The properties.
 	 */
 	public void setProperties(Properties properties) {
-		this.connector.setProperties(properties);
+		this.properties = properties;
 		Object val = properties.get(IProperties.BASE_LOCATOR);
 		if (val!=null) {
 			addPrefix(IProperties.BASE_LOCATOR, (String) val);
@@ -235,7 +241,7 @@ public class Configuration {
 	 * @return The property.
 	 */
 	public String getProperty(String key) {
-		return this.connector.getProperty(key);
+		return this.properties.getProperty(key);
 	}
 	
 	

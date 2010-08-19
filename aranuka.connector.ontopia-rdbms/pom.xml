@@ -54,4 +54,14 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<repositories>
+		<repository>
+			<id>ontopia-snapshot</id>
+			<url>http://ontopia.googlecode.com/svn/maven-snapshot-repository</url>
+		</repository>
+		<repository>
+			<id>ontopia</id>
+			<url>http://ontopia.googlecode.com/svn/maven-repository</url>
+		</repository>
+	</repositories>
 </project>
