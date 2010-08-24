@@ -216,6 +216,9 @@ public class DefinitionFactory {
 		Set<TopicAnnotationDefinition> defs = new HashSet<TopicAnnotationDefinition>();
 
 		idx = topicMap.getIndex(TypeInstanceIndex.class);
+		if (!idx.isOpen()) {
+			idx.open();
+		}
 		try {
 			for (Topic t : idx.getTopics(topicType)) {
 				String typeName = getTypeName(t);
@@ -319,7 +322,7 @@ public class DefinitionFactory {
 	        
 	        
         } catch (Exception e) {
-	       System.out.println(e); 
+	       e.printStackTrace();
 	       return;
         }
         
