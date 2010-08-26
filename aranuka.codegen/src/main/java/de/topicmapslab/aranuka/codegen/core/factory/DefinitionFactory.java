@@ -370,6 +370,10 @@ public class DefinitionFactory {
 			if (!ntc.getTypes().contains(topicNameConstraint))
 				continue;
 
+			// check if the generate field annotation exists and is false
+			if (isHidden(ntc))
+				continue;
+			
 			Topic nameType = ntc
 					.getRolesPlayed(constraint, constraintStatement).iterator()
 					.next().getParent().getRoles(constrained).iterator().next()
@@ -397,6 +401,23 @@ public class DefinitionFactory {
 		tad.addNameAnnotationDefinitions(nadSet);
 	}
 
+	private boolean isHidden(Topic constraint) {
+		Locator loc = topicMap.createLocator("http://onotoa.topicmapslab.de/annotation/de/topicmapslab/aranuka/generateattribute");
+		Topic annotationtype = topicMap.createTopicBySubjectIdentifier(loc);
+		
+		Set<Occurrence> occs = constraint.getOccurrences(annotationtype);
+		if (occs.size()==0)
+			return false;
+		
+		// if the annotation exists and its value is false, the field is hidden and won't be generated
+		if ("false".equals(occs.iterator().next().getValue())) {
+			return true;
+		}
+		
+		
+	    return false;
+    }
+
 	private void findOccurrenceConstraints(Topic t,
 			TopicAnnotationDefinition tad) throws POJOGenerationException {
 		Set<OccurrenceAnnotationDefinition> oadSet = new HashSet<OccurrenceAnnotationDefinition>();
@@ -408,6 +429,8 @@ public class DefinitionFactory {
 				continue;
 			Topic otc = roles.iterator().next().getPlayer();
 			if (!otc.getTypes().contains(topicOccurrenceConstraint))
+				continue;
+			if (isHidden(otc))
 				continue;
 
 			Topic occType = otc.getRolesPlayed(constraint, constraintStatement)
@@ -471,6 +494,10 @@ public class DefinitionFactory {
 			} else {
 				continue;
 			}
+			
+			if (isHidden(ic))
+				continue;
+			
 			IdAnnotationDefinition idd = new IdAnnotationDefinition(type);
 			idd.setMany(isMany(ic));
 			iadSet.add(idd);
@@ -491,6 +518,9 @@ public class DefinitionFactory {
 			Topic ttc = roles.iterator().next().getPlayer();
 			
 			if (!ttc.getTypes().contains(topicRoleConstraint))
+				continue;
+			
+			if (isHidden(ttc))
 				continue;
 	
 			Topic assocType = getAssocType(ttc);
