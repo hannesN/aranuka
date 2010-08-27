@@ -36,9 +36,10 @@ public class PrefixReadTest extends  AbstractTest{
 	
 	@Test
 	public void testCase01() throws Exception{
-		
-		setupMemoryTest();
-		readTest();
+		if ("memory".equals(getProperties().getProperty(IProperties.BACKEND))) {
+			setupMemoryTest();
+			readTest();
+		}
 	}
 	
 //	@Test

@@ -31,8 +31,8 @@ public interface IProperties {
 	 * <ul>
 	 * 	<li>mysql</li>
 	 *  <li>postrgesql</li>
-	 *  <li>derby</li>
 	 *  <li>h2</li> 
+	 *  <li>sqlserver</li>
 	 * </ul>
 	 * 
 	 */
