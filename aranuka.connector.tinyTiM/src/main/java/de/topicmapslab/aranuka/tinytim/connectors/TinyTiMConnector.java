@@ -87,10 +87,7 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 		return topicMapSystem;
 	}
 
-	public TopicMap getTopicMap() {
-
-		if (this.topicMap != null)
-			return topicMap;
+	public TopicMap createTopicMap() {
 
 		if (getProperty(IProperties.BASE_LOCATOR) == null)
 			throw new RuntimeException("Base locator property not specified.");

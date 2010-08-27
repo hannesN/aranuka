@@ -1,0 +1,19 @@
+# database connection properties for the unit tests
+
+#  The host where the database is running or the path to the database for derby or h2.
+db_host=localhost
+
+#name of the database
+db_name=aranuka
+
+The port where the database is reachable
+db_port=5432
+
+# login for the database
+db_login=username
+
+#password of the login
+db_password=secret
+
+#database system: h2, mysql, postgresql, derby
+databasesystem=postgresql

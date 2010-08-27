@@ -23,7 +23,13 @@ public class Test {
 
 	public static void main(String[] args) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException, TopicMapIOException, TopicMapInconsistentException {
 		// create configuration with tinyTiM connector
-		Configuration conf = new Configuration(TinyTiMConnector.class);
+		Configuration conf = new Configuration();
+		
+		// set classname of connector
+		conf.setProperty(IProperties.CONNECTOR_CLASS, TinyTiMConnector.class.getName());
+		
+		// set backend - not needed for tinytimn but necessary for majortom and ontopia (soon)
+		conf.setProperty(IProperties.BACKEND, "memory");
 		
 		// add classes to map
 		conf.addClass(Person.class);

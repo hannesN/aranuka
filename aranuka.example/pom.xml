@@ -20,13 +20,13 @@
     <dependency>
       <groupId>de.topicmapslab.aranuka</groupId>
       <artifactId>aranuka-connector-tinytim</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>de.topicmapslab.aranuka</groupId>
       <artifactId>aranuka-runtime</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

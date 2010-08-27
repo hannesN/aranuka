@@ -44,6 +44,11 @@ public interface IProperties {
 	public static final String DATABASE_HOST = "db_host";
 	
 	/**
+	 * The port where the database is reachable
+	 */
+	public static final String DATABASE_PORT = "db_port";
+	
+	/**
 	 * The name of the database or the path to the database for derby or h2
 	 */
 	public static final String DATABASE_NAME = "db_name";

@@ -29,3 +29,5 @@ aranuka/src/test/resources/*.ctm.swp
 **/*.nav
 aranuka.documentation/doc/
 aranuka.documentation/bin
+
+**/db.properties

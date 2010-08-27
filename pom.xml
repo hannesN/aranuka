@@ -32,16 +32,7 @@
 			<id>tmapi</id>
 			<url>http://www.tmapi.org/maven-repository/</url>
 		</repository>
-		<!--
-		<repository>
-			<id>ontopia-snapshot</id>
-			<url>http://ontopia.googlecode.com/svn/maven-snapshot-repository</url>
-		</repository>
-		<repository>
-			<id>ontopia</id>
-			<url>http://ontopia.googlecode.com/svn/maven-repository</url>
-		</repository>
-		-->
+		
 	</repositories>
 	<distributionManagement>
 		<repository>
@@ -53,6 +44,7 @@
 	
 	<modules>
 		<module>aranuka.runtime</module>
+		<module>aranuka.tests</module>
 		<module>aranuka.codegen</module>
 		<module>aranuka.connector.ontopia-memory</module>
 		<module>aranuka.connector.ontopia-rdbms</module>
