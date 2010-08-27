@@ -46,8 +46,7 @@
 		<module>aranuka.runtime</module>
 		<module>aranuka.tests</module>
 		<module>aranuka.codegen</module>
-		<module>aranuka.connector.ontopia-memory</module>
-		<module>aranuka.connector.ontopia-rdbms</module>
+		<module>aranuka.connector.ontopia</module>
 		<module>aranuka.connector.tinyTiM</module>
 		<module>aranuka.connector.majortom</module>
 

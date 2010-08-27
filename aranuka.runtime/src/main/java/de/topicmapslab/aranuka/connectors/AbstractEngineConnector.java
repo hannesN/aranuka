@@ -80,4 +80,16 @@ public abstract class AbstractEngineConnector implements IEngineConnector {
 		return configuration.getPrefixMap();
 	}
 		
+	protected String getJDBCDriver(String dbms) {
+		if ("h2".equals(dbms))
+			return "org.h2.Driver";
+		
+		if ("postgresql".equals(dbms))
+			return "org.postgresql.Driver";
+		
+		if ("mysql".equals(dbms))
+			return "com.mysql.jdbc.Driver";
+		
+		throw new IllegalArgumentException("Unknown DB String");
+	}
 }

@@ -33,4 +33,12 @@ public class AranukaTestSuite {
 	protected static void setProperties (Properties props) {
 		AbstractTest.setProperties(props);
 	}
+	
+	/**
+	 * Returns the properties
+	 * @return
+	 */
+	protected static Properties getProperties () {
+		return AbstractTest.getProperties();
+	}
 }

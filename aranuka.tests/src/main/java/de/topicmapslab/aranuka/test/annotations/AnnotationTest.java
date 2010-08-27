@@ -2,8 +2,6 @@ package de.topicmapslab.aranuka.test.annotations;
 
 import static org.junit.Assert.assertNotNull;
 
-import java.util.Properties;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,10 +23,8 @@ public class AnnotationTest extends AbstractTest {
 		
 		// TODO set connector
 		this.config.setProperty(IProperties.BASE_LOCATOR, "http://topicmapslab.de/aranuka/test/");
-//		this.config.setProperty(IProperties.FILENAME, "/tmp/test.xtm");
-
 		this.config.addPrefix("test", "http://topicmapslab.de/aranuka/test/");
-		//this.config.setBaseLocator("http://topicmapslab.de/aranuka/");
+		
 	}
 
 	@Test
