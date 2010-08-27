@@ -1,34 +1,56 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	
+
 	<parent>
 		<groupId>de.topicmapslab</groupId>
 		<artifactId>aranuka</artifactId>
 		<version>1.0.1-SNAPSHOT</version>
 	</parent>
-	
+
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab.aranuka</groupId>
 	<artifactId>aranuka-connector-tinytim</artifactId>
 	<version>1.0.1-SNAPSHOT</version>
-	
+
 	<name>Aranuka tinyTiM Connector</name>
 	<url>http://maven.apache.org</url>
-	
+
 	<build>
 		<plugins>
 			<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifestFile>META-INF/MANIFEST.MF</manifestFile>
-                    </archive>
-                </configuration>
-            </plugin>
-        </plugins>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifestFile>META-INF/MANIFEST.MF</manifestFile>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!--<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					 To force maven to run the suite 
+					<includes>
+						<include>**/MavenSuite.java</include>
+					</includes>
+				</configuration>
+			</plugin>
+		--></plugins>
 	</build>
-	
+
+	<repositories>
+		<repository>
+			<id>Tiny TiM</id>
+			<url>http://tinytim.sourceforge.net/maven-repository/snapshots/</url>
+		</repository>
+		<repository>
+			<id>tmapix</id>
+			<url>http://repository.semagia.com/snapshots/</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>de.topicmapslab.aranuka</groupId>
@@ -45,16 +67,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.6.1</version>
-			<type>jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.tmapix</groupId>
 			<artifactId>tmapix-io</artifactId>
-			<version>0.4.0-SNAPSHOT</version>
+			<version>0.5.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>de.topicmapslab</groupId>
@@ -64,7 +79,14 @@
 		<dependency>
 			<groupId>org.tinytim</groupId>
 			<artifactId>tinytim</artifactId>
-			<version>2.0.0</version>
+			<version>2.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>de.topicmapslab.aranuka</groupId>
+			<artifactId>aranuka-tests</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
