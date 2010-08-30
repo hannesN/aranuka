@@ -6,7 +6,7 @@ db_host=localhost
 #name of the database
 db_name=aranuka
 
-The port where the database is reachable
+#The port where the database is reachable
 db_port=5432
 
 # login for the database

@@ -58,6 +58,12 @@ public class WriteTest extends AbstractTest {
 		assertNotNull(this.session);
 
 	}
+	
+	@After
+	public void tearDown() throws Exception {
+		
+		this.config.getSession(false).clearTopicMap();
+	}
 
 	@Test
 	public void testCase01() throws Exception {
@@ -536,14 +542,6 @@ public class WriteTest extends AbstractTest {
 		assertNotNull(occType);
 		assertEquals(1,occType.getNames().size());
 		assertEquals("Resolved Named Occurrence",occType.getNames().iterator().next().getValue());
-	}
-	
-	
-	
-	@After
-	public void tearDown(){
-		
-		
 	}
 	
 }

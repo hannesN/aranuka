@@ -41,7 +41,8 @@ import de.topicmapslab.aranuka.codegen.core.exception.InvalidOntologyException;
  * @author Hannes Niederhausen
  * 
  */
-public class GeneratorTest extends AbstractGeneratorTest {
+@SuppressWarnings("restriction")
+public class GeneratorTest extends AbstractGeneratorTester {
 
 	static TopicMap topicMap;
 	static File path = null;

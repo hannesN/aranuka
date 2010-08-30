@@ -9,7 +9,7 @@ import java.io.File;
  * @author niederhausen
  *
  */
-public abstract class AbstractGeneratorTest {
+public abstract class AbstractGeneratorTester {
 	static  protected File getDir() {
 		File dir = deleteTestDir();
 

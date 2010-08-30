@@ -22,16 +22,15 @@ import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
 import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.ctm.writer.core.CTMTopicMapWriter;
 
-
 public class TinyTiMConnector extends AbstractEngineConnector {
 
 	private TopicMap topicMap;
 	private TopicMapSystem topicMapSystem;
 
 	public boolean flushTopicMap() {
-		if (this.topicMap==null)
+		if (this.topicMap == null)
 			return false;
-		
+
 		String baseLocator = getProperty(IProperties.BASE_LOCATOR);
 		if (baseLocator == null)
 			throw new RuntimeException("Base locator property not specified.");
@@ -39,9 +38,9 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 		String filename = getProperty(IProperties.FILENAME);
 		if (filename == null)
 			return false;
-		
+
 		removeItemIdentifiers();
-		
+
 		try {
 			File f = new File(filename);
 
@@ -54,15 +53,17 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 			TopicMapWriter writer = null;
 
 			if (f.getName().endsWith(".xtm")) {
-				writer = new XTM2TopicMapWriter(fo, baseLocator, XTMVersion.XTM_2_1);
-				((XTM2TopicMapWriter)writer).setPrettify(true);
+				writer = new XTM2TopicMapWriter(fo, baseLocator,
+						XTMVersion.XTM_2_1);
+				((XTM2TopicMapWriter) writer).setPrettify(true);
 			} else {
 				writer = new CTMTopicMapWriter(fo, baseLocator);
-				
+
 				for (Entry<String, String> e : getPrefixMap().entrySet()) {
 					if (e.getKey().equals(IProperties.BASE_LOCATOR))
 						continue;
-			 		((CTMTopicMapWriter)writer).setPrefix(e.getKey(), e.getValue());
+					((CTMTopicMapWriter) writer).setPrefix(e.getKey(),
+							e.getValue());
 				}
 			}
 			writer.write(this.topicMap);
@@ -72,7 +73,7 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	private void removeItemIdentifiers() {
 		for (Topic t : topicMap.getTopics()) {
 			Set<Locator> iiSet = new HashSet<Locator>(t.getItemIdentifiers());
@@ -88,6 +89,10 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 	}
 
 	public TopicMap createTopicMap() {
+		return createTopicMap(true);
+	}
+
+	private TopicMap createTopicMap(boolean loadFile) {
 
 		if (getProperty(IProperties.BASE_LOCATOR) == null)
 			throw new RuntimeException("Base locator property not specified.");
@@ -98,7 +103,7 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 			this.topicMap = topicMapSystem.createTopicMap(topicMapSystem
 					.createLocator(getProperty(IProperties.BASE_LOCATOR)));
 
-			if (getProperty(IProperties.FILENAME) != null) {
+			if ((loadFile) && (getProperty(IProperties.FILENAME) != null)) {
 
 				File f = new File(getProperty(IProperties.FILENAME));
 
@@ -107,7 +112,7 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 					TopicMapReader reader = null;
 					if (f.getName().endsWith(".xtm")) {
 						reader = new XTMTopicMapReader(this.topicMap, f);
-					} else  {
+					} else {
 						reader = new CTMTopicMapReader(this.topicMap, f);
 					}
 					reader.read();
@@ -122,6 +127,13 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 			return null;
 		}
 
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void clearTopicMap(TopicMap topicMap) {
+		// TODO
 	}
 
 }

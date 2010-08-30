@@ -23,6 +23,7 @@ import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.ctm.writer.core.CTMTopicMapWriter;
 import de.topicmapslab.majortom.core.TopicMapSystemFactoryImpl;
 import de.topicmapslab.majortom.database.store.JdbcTopicMapStoreProperty;
+import de.topicmapslab.majortom.model.core.ITopicMap;
 import de.topicmapslab.majortom.store.TopicMapStoreProperty;
 import de.topicmapslab.majortom.util.FeatureStrings;
 
@@ -154,6 +155,14 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 			return "POSTGRESQL99";
 		
 		return null;
+	}
+
+	public void clearTopicMap(TopicMap topicMap) {
+		if (topicMap instanceof ITopicMap) { // should always be ture
+			((ITopicMap) topicMap).clear();
+			return;
+		}
+		throw new IllegalArgumentException("Argumant is not a MaJorToM TopicMap!");
 	}
 
 }
