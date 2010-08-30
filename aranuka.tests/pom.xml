@@ -2,12 +2,12 @@
 	<parent>
 		<artifactId>aranuka</artifactId>
 		<groupId>de.topicmapslab</groupId>
-		<version>1.0.1-SNAPSHOT</version>
+		<version>1.0.1</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
   <groupId>de.topicmapslab.aranuka</groupId>
   <artifactId>aranuka-tests</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>${project.parent.version}</version>
   <name>aranuka-tests</name>
   <dependencies>
     <dependency>

@@ -3,13 +3,13 @@
 	<parent>
 		<groupId>de.topicmapslab</groupId>
 		<artifactId>aranuka</artifactId>
-		<version>1.0.1-SNAPSHOT</version>
+		<version>1.0.1</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab.aranuka</groupId>
 	<artifactId>aranuka-connector-ontopia</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>${project.parent.version}</version>
 	
 	<name>Aranuka Ontopia Database Connector</name>
 	
@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>de.topicmapslab.aranuka</groupId>
 			<artifactId>aranuka-runtime</artifactId>
-			<version>1.0.1-SNAPSHOT</version>
+			<version>${project.version}</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -69,7 +69,7 @@
 		<dependency>
 			<groupId>de.topicmapslab.aranuka</groupId>
 			<artifactId>aranuka-tests</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 			<type>jar</type>
 			<scope>test</scope>
 		</dependency>

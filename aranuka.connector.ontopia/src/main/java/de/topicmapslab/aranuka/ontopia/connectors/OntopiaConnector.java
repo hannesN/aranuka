@@ -188,6 +188,26 @@ public class OntopiaConnector extends AbstractEngineConnector{
 	
 	private Properties getOntopiaDBProperties() {
 		Properties prop = new Properties();
+		if (getProperty("net.ontopia.topicmaps.impl.rdbms.Database")!=null) {
+			// copying the ontopia props into the new property
+			prop.setProperty("net.ontopia.topicmaps.impl.rdbms.Database", 
+				 getProperty("net.ontopia.topicmaps.impl.rdbms.Database"));
+			
+			prop.setProperty("net.ontopia.topicmaps.impl.rdbms.ConnectionString",
+					"net.ontopia.topicmaps.impl.rdbms.ConnectionString");
+			
+			prop.setProperty("net.ontopia.topicmaps.impl.rdbms.DriverClass", 
+					"net.ontopia.topicmaps.impl.rdbms.DriverClass");
+			
+			prop.setProperty("net.ontopia.topicmaps.impl.rdbms.UserName", 
+				 getProperty("net.ontopia.topicmaps.impl.rdbms.UserName"));
+			
+			prop.setProperty("net.ontopia.topicmaps.impl.rdbms.Password", 
+				 getProperty("net.ontopia.topicmaps.impl.rdbms.Password"));
+			
+			return prop;
+		}
+			
 		
 		prop.setProperty("net.ontopia.topicmaps.impl.rdbms.Database", getProperty(IProperties.DATABASESYSTEM));
 		prop.setProperty("net.ontopia.topicmaps.impl.rdbms.ConnectionString", getJDBCString());

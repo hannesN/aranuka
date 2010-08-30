@@ -32,7 +32,6 @@ public interface IProperties {
 	 * 	<li>mysql</li>
 	 *  <li>postrgesql</li>
 	 *  <li>h2</li> 
-	 *  <li>sqlserver</li>
 	 * </ul>
 	 * 
 	 */
@@ -68,7 +67,7 @@ public interface IProperties {
 	 * 
 	 * Possible values are
 	 * <ul>
-	 * 	<li>file</li>
+	 * 	<li>memory</li>
 	 *  <li>db</li>
 	 * </ul>
 	 */
