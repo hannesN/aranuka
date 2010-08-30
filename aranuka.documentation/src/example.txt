@@ -27,7 +27,7 @@ The pom for the example looks like:
 		<groupId>de.topicmapslab</groupId>
 		<version>1.0.1-SNAPSHOT</version>
 	</parent>
-	<modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
   <groupId>de.topicmapslab.aranuka</groupId>
   <artifactId>aranuka-example</artifactId>
   <version>${parent.project.version}</version>
