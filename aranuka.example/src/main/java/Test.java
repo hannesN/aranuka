@@ -28,7 +28,7 @@ public class Test {
 		// set classname of connector
 		conf.setProperty(IProperties.CONNECTOR_CLASS, TinyTiMConnector.class.getName());
 		
-		// set backend - not needed for tinytimn but necessary for majortom and ontopia (soon)
+		// set backend - not needed for tinytimn but necessary for majortom and ontopia
 		conf.setProperty(IProperties.BACKEND, "memory");
 		
 		// add classes to map

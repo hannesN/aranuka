@@ -5,7 +5,7 @@
 	<groupId>de.topicmapslab</groupId>
 	
 	<artifactId>aranuka</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<packaging>pom</packaging>
 	
 	<name>Aranuka Parent Project</name>
@@ -49,6 +49,5 @@
 		<module>aranuka.connector.ontopia</module>
 		<module>aranuka.connector.tinyTiM</module>
 		<module>aranuka.connector.majortom</module>
-
 	</modules>
 </project>

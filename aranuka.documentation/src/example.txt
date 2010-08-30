@@ -4,9 +4,67 @@ In the following sections an _Aranuka_ application will be developed. The task o
 Persons and their addresses into a Topic Map.
 
 NOTE: This tutorial presumes a project which provides the aranuka-runtime library, an aranuka connector with its dependencies and 
-an implementation of the slf4j-api library (version 1.5.8). YOu can find an example in the aranuka code repository.
+an implementation of the slf4j-api library (version 1.6.1). You can find an example in the aranuka code repository.
+
+=== Maven ===
+
+To manage the dependencies of _Aranuka_ it is advised to use maven, or an maven repository using dependency mangement tool (like ivy).
+In this example Maven2 is used. To add the _Aranuka_ dependency to the example project it is necessary to add the topic maps lab maven repository
+to the *pom.xml*. 
 
 
+
+The dependency entry for _Aranuka_ depends on the connector to use. In this tutorial the tinyTiM connector is used. 
+
+The pom for the example looks like:
+
+---------------------------------
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<parent>
+		<artifactId>aranuka</artifactId>
+		<groupId>de.topicmapslab</groupId>
+		<version>1.0.1-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+  <groupId>de.topicmapslab.aranuka</groupId>
+  <artifactId>aranuka-example</artifactId>
+  <version>${parent.project.version}</version>
+  <build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.0.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+  <dependencies>
+    <dependency>
+      <groupId>de.topicmapslab.aranuka</groupId>
+      <artifactId>aranuka-connector-tinytim</artifactId>
+      <version>1.0.1</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>de.topicmapslab.aranuka</groupId>
+      <artifactId>aranuka-runtime</artifactId>
+      <version>1.0.1</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.slf4j</groupId>
+    	<artifactId>slf4j-log4j12</artifactId>
+    	<version>1.6.1</version>
+    	<type>jar</type>
+    	<scope>compile</scope>
+    </dependency>
+  </dependencies>
+</project>
+---------------------------------
 
 === The Model ===
 

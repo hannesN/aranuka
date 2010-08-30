@@ -6,11 +6,10 @@ Instead it uses connectors which use a specific Topic Maps engine. Currently _Ar
 three conntectors:
 
 * tinyTiM Connector
-* Ontopia Database Connector
-* Ontopia Memory Connector
+* Ontopia Connector
+* MaJorToM Connector
 
 image::images/arch.svg["Architexture of _Aranuka_"]
 
 To use _Aranuka_ it is necessary to use one of the connectors.
 
-NOTE: The database connector is still experiemental.

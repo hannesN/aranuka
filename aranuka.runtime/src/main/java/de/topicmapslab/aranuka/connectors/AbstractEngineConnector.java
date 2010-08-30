@@ -92,4 +92,9 @@ public abstract class AbstractEngineConnector implements IEngineConnector {
 		
 		throw new IllegalArgumentException("Unknown DB String");
 	}
+	
+	public void clearTopicMap(org.tmapi.core.TopicMap topicMap) {
+		
+		
+	};
 }

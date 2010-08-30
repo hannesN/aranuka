@@ -5,10 +5,9 @@
 After annotating the domain model _Aranuke_ needs some configuration parameters to create a session.
 This configuration is done with an instance of *de.topicmapslab.aranuka.Configuration*.
 
-The constructor of Configuration needs one Parameter, the class of the connector to use, for instance:
 
 ----
-Configuration conf = new Configuration(TinyTiMConnector.class);
+Configuration conf = new Configuration();
 ----
 
 After instantiating the configuration it is necessary to add all annotated classes to the configuration, like:
@@ -17,11 +16,44 @@ After instantiating the configuration it is necessary to add all annotated class
 conf.addClass(Person.class);
 ---- 
 
-The next step is to set a base locator for the topic map with:
+The next step is to set some properties for the topic map. Configuration properties are:
+
+* IProperties.CONNECTOR_CLASS the qualified name of the connector class to use
+* IProperties.BASE_LOCATOR the base locator for the topic map
+* IProperties.BACKEND which backend should be used
+** _memory_ configures the connector to use a memory backend
+** _db_ configures the connector to use a memory backend
+
+Backends which support the memory backend need the property:
+
+*  IProperties.FILENAME filename for the serialization.
+
+The database backends need informations about the connection. The properties are:
+
+* IProperties.DATABASESYSTEM This property tells _Aranuka_ which database management system is used. Valid values are:
+** mysql
+** postgresql
+** h2
+* IProperties.DATABASE_HOST the host where the DBMS is running
+* IProperties.DATABASE_PORT the port the DBMS is listening
+* IProperties.DATABASE_NAME the name of the database
+* IProperties.DATABASE_LOGIN the login for the database
+* IProperties.DATABASE_PASSWORD the password of the database
+
+NOTE: Right now MaJorToM supports only posgresql.
+
+NOTE: Ontopia  is able to connect to much more DBMS. It is possible to configure the engine using the 
+its own properties. If the property "net.ontopia.topicmaps.impl.rdbms.Database" is found the
+MaJorToM properties will be ignored. For more information refer to the Ontopia docs.
 
 ----
+conf.setProperty(IProperties.CONNECTOR_CLASS, "de.topicmapslab.aranuka.tinytim.connectors.TinyTiMConnector");
 conf.setProperty(IProperties.BASE_LOCATOR, "http://docs.aranuka.de/documentation/");
+
 ---- 
+
+NOTE: It is possible to load the property files from a file and set them at once using the method: 
+*conf.setProperties(properties)*
 
 If qnames were used to specify the identifiers for the types the qname identifier, called prefix, and the URI should be
 set to the configuration. It is also possible to specify new prefixes which will be used for identifiers of the prefixes.
@@ -112,5 +144,13 @@ The session provides the following method:
 flushTopicMap()
 ---------
 
-The memory connectors serialise the file according to the filename set in the configuration.
+The memory connectors serialize the file according to the filename set in the configuration.
+
+==== Clear the Topic Map ====
+
+With version 1.0.1 _Aranuka_ provides a method to clear the topic map inside the session. This can come handy especially in unit tests.
+To clear the method call:
+-------------
+clearTopicMap()
+-------------
 

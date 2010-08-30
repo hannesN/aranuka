@@ -4,13 +4,13 @@
 	<parent>
 		<groupId>de.topicmapslab</groupId>
 		<artifactId>aranuka</artifactId>
-		<version>1.0.1-SNAPSHOT</version>
+		<version>1.0.1</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab.aranuka</groupId>
 	<artifactId>aranuka-runtime</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>${project.parent.version}</version>
 	<packaging>jar</packaging>
 
 	<name>Aranuka Runtime</name>
