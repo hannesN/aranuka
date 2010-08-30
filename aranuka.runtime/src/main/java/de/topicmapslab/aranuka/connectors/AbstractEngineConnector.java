@@ -56,7 +56,7 @@ public abstract class AbstractEngineConnector implements IEngineConnector {
 	}
 	
 	/**
-	 * {@inheritedDoc}
+	 * {@inheritDoc}
 	 */
 	public void setProperties(Properties properties) {
 		this.properties = properties;
