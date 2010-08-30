@@ -1661,7 +1661,6 @@ public class TopicMapHandler {
 	 * @param binding - The topic binding.
 	 * @throws TopicMapIOException
 	 */
-	@SuppressWarnings("unchecked")
 	private void addOccurrences(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException{
 		
 		for(AbstractFieldBinding afb:binding.getFieldBindings()){
@@ -1690,7 +1689,7 @@ public class TopicMapHandler {
 					
 				}else{
 					
-					Set values = new HashSet();
+					Set<Object> values = new HashSet<Object>();
 					
 					for(Occurrence occurrence:occurrences)
 						values.add(getOccurrenceValue(occurrence,occurrenceBinding.getParameterisedType()));
@@ -1709,7 +1708,7 @@ public class TopicMapHandler {
 							
 						}else{ // is list
 							
-							List list = new ArrayList(values);
+							List<Object> list = new ArrayList<Object>(values);
 							occurrenceBinding.setValue(list, object);
 							
 						}

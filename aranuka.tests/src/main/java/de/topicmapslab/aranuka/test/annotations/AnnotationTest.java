@@ -24,7 +24,12 @@ public class AnnotationTest extends AbstractTest {
 		// TODO set connector
 		this.config.setProperty(IProperties.BASE_LOCATOR, "http://topicmapslab.de/aranuka/test/");
 		this.config.addPrefix("test", "http://topicmapslab.de/aranuka/test/");
+
 		
+	}
+	
+	public void tearDown() throws Exception {
+		this.config.getSession(false).clearTopicMap();
 	}
 
 	@Test

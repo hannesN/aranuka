@@ -262,4 +262,11 @@ public class OntopiaConnector extends AbstractEngineConnector{
 	public TopicMapSystem getTopicMapSystem() {
 		return topicMapSystem;
 	}
+	
+	public void clearTopicMap(TopicMap topicMap) {
+		if (topicMap instanceof TopicMapImpl) {
+			((TopicMapImpl) topicMap).getWrapped().clear();
+			((TopicMapImpl) topicMap).getWrapped().getStore().commit();
+		}
+	}
 }

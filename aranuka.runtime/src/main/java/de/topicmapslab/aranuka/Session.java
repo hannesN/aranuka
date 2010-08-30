@@ -274,4 +274,12 @@ public class Session {
  		return this.topicMapHandler;
 	}
 
+ 	/**
+	 * Method which clears the topic map of this session.
+	 *  
+	 */
+	public void clearTopicMap() {
+		this.config.getConnector().clearTopicMap(this.topicMapHandler.getTopicMap());		
+	}
+
 }

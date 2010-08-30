@@ -54,4 +54,14 @@ public interface IEngineConnector {
 	 * @param conf the {@link Configuration} instance
 	 */
 	public void setConfiguration(Configuration conf);
+	
+	/**
+	 * Method which clears the topic map. It removes every construct in the topic map.
+	 * 
+	 * The result is a an empty topic map, which can be reused.
+	 * 
+	 * @param topicMap the topic map to clear
+	 * 
+	 */
+	public void clearTopicMap(TopicMap topicMap);
 }
