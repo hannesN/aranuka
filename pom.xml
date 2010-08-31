@@ -3,13 +3,13 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab</groupId>
-
+	
 	<artifactId>aranuka</artifactId>
 	<version>1.0.1</version>
 	<packaging>pom</packaging>
-
-	<name>Aranuka</name>
-
+	
+	<name>Aranuka Parent Project</name>
+	
 	<build>
 		<plugins>
 			<plugin>
@@ -19,16 +19,6 @@
 				<configuration>
 					<source>1.5</source>
 					<target>1.5</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.7</version>
-				<configuration>
-					<javadocVersion>1.6</javadocVersion>
-					<excludePackageNames>de.topicmapslab.aranuka.test.*</excludePackageNames>
-					<aggregate>true</aggregate>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -42,7 +32,7 @@
 			<id>tmapi</id>
 			<url>http://www.tmapi.org/maven-repository/</url>
 		</repository>
-
+		
 	</repositories>
 	<distributionManagement>
 		<repository>
@@ -51,7 +41,7 @@
 			<url>scp://topicmapslab.de/home/maven/webdir/maven.topicmapslab.de/public/public</url>
 		</repository>
 	</distributionManagement>
-
+	
 	<modules>
 		<module>aranuka.runtime</module>
 		<module>aranuka.tests</module>
@@ -59,5 +49,6 @@
 		<module>aranuka.connector.ontopia</module>
 		<module>aranuka.connector.tinyTiM</module>
 		<module>aranuka.connector.majortom</module>
+        <module>aranuka.example</module>
 	</modules>
 </project>
