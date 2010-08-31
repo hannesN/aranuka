@@ -201,6 +201,7 @@ public class CodeGenerator {
 			assocAnnot.param("other_role", TypeUtility
 					.getLocator(aop.getRole()).toExternalForm());
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}
@@ -219,6 +220,7 @@ public class CodeGenerator {
 			assocAnnot.param("type", aad.getAssociationType());
 			assocAnnot.param("played_role", aad.getRoleType());
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}

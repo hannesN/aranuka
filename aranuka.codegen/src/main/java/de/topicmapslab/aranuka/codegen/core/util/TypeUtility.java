@@ -81,19 +81,11 @@ public class TypeUtility {
 
 	public static final Locator getLocator(Topic topic)
 			throws POJOGenerationException {
-		if (!topic.getItemIdentifiers().isEmpty()) {
-			for (Locator locator : topic.getItemIdentifiers()) {
-				if (locator.getReference().contains("tinytim") || locator.getReference().contains("#")) {
-					continue;
-				}
-				return locator;
-			}
-
-		} 
+		
 
 		if (!topic.getSubjectIdentifiers().isEmpty()) {
 			for (Locator locator : topic.getSubjectIdentifiers()) {
-				if (locator.getReference().contains("tinytim") || locator.getReference().contains("#")) {
+				if (locator.getReference().contains("tinytim")) {
 					continue;
 				}
 				return locator;
@@ -102,13 +94,23 @@ public class TypeUtility {
 		
 		if (!topic.getSubjectLocators().isEmpty()) {
 			for (Locator locator : topic.getSubjectLocators()) {
-				if (locator.getReference().contains("tinytim") || locator.getReference().contains("#")) {
+				if (locator.getReference().contains("tinytim")) {
 					continue;
 				}
 				return locator;
 			}
 		}
-		throw new POJOGenerationException();
+		
+		if (!topic.getItemIdentifiers().isEmpty()) {
+			for (Locator locator : topic.getItemIdentifiers()) {
+				if (locator.getReference().contains("tinytim")) {
+					continue;
+				}
+				return locator;
+			}
+
+		} 
+		throw new POJOGenerationException("Topic with id "+topic.getId()+"has no identifier");
 	}
 	
 	private static String getTopicName(Topic t) {
