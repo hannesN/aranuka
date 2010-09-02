@@ -20,6 +20,7 @@ public class MaJorToMMemoryTest extends AranukaTestSuite {
 	@BeforeClass
 	public static void setUp() {
 		Properties properties = new Properties();
+		properties.setProperty(IProperties.DISABLE_HISTORY, "true");
 		properties.setProperty(IProperties.CONNECTOR_CLASS, MaJorToMEngineConnector.class.getName());
 		properties.setProperty(IProperties.BACKEND, "memory");
 		setProperties(properties);

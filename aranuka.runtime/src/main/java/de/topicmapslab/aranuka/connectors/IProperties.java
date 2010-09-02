@@ -77,4 +77,9 @@ public interface IProperties {
 	 * Field which specifies the qualified name of the connector class to use.
 	 */
 	public static final String CONNECTOR_CLASS = "connectorclass";
+
+	/**
+	 * Field to disable the history management. Currently only supported by MaJorToM
+	 */
+	public static final String DISABLE_HISTORY = "disable_history";
 }

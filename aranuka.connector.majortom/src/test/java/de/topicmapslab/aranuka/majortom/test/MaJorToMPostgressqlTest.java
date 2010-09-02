@@ -30,6 +30,7 @@ public class MaJorToMPostgressqlTest extends AranukaTestSuite {
 			throw new IOException("Missing \"db.properties\"");
 		
 		properties.load(is);
+		properties.setProperty(IProperties.DISABLE_HISTORY, "true");
 		properties.setProperty(IProperties.CONNECTOR_CLASS, MaJorToMEngineConnector.class.getName());
 		properties.setProperty(IProperties.BACKEND, "db");
 		setProperties(properties);

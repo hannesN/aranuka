@@ -142,6 +142,11 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 				
 			}
 			fac.setFeature(FeatureStrings.TOPIC_MAPS_TYPE_INSTANCE_ASSOCIATION, false);
+			
+			if (getProperty(IProperties.DISABLE_HISTORY)!=null) {
+				fac.setFeature(FeatureStrings.SUPPORT_HISTORY, false);
+			}
+			
 			return fac.newTopicMapSystem();
 		} catch (TMAPIException e) {
 			throw new RuntimeException(e);
