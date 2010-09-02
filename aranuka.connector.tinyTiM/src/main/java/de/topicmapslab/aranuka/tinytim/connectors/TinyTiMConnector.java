@@ -133,7 +133,7 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 	 * {@inheritDoc}
 	 */
 	public void clearTopicMap(TopicMap topicMap) {
-		// TODO
+		topicMap.clear();
 	}
 
 }

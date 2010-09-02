@@ -287,7 +287,7 @@ public class TopicMapHandler {
 	 * @throws BadAnnotationException
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
-	 * TODO Check behavior of the topic map engine wrt. cascading delete.
+	 * 
 	 */
 	public boolean removeTopic(Object object) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 	
@@ -331,10 +331,17 @@ public class TopicMapHandler {
 			e.printStackTrace();
 			new RuntimeException("Error while removing topic", e);
 		}
-		
-		
 				
 		return false;
+	}
+	
+	/**
+	 * Clears the cache of the topic map handler 
+	 */
+	public void clearCache() {
+		associationCache = null;
+		objectCache = null;
+		topicCache = null;
 	}
 	
 	/**
@@ -420,6 +427,7 @@ public class TopicMapHandler {
 	
 	/**
 	 * Persists a set of objects in the topic map.
+	 * 
 	 * @param topicObjects - The objects.
 	 * @throws BadAnnotationException
 	 * @throws NoSuchMethodException
@@ -432,7 +440,7 @@ public class TopicMapHandler {
 		List<Object> toInstanciateTopicObjects = topicObjects;
 		List<Object> cascadingTopicObjects = new ArrayList<Object>();
 		
-		do{
+		while(!toInstanciateTopicObjects.isEmpty()) {
 		
 			Iterator<Object> itr = toInstanciateTopicObjects.iterator();
 			
@@ -461,7 +469,7 @@ public class TopicMapHandler {
 		    toInstanciateTopicObjects = new ArrayList<Object>(cascadingTopicObjects);
 		    cascadingTopicObjects.clear();
 	    
-		}while(!toInstanciateTopicObjects.isEmpty());
+		}
  
 	}
 	

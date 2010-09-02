@@ -107,8 +107,9 @@ public class BindingHandler {
 
 	/**
 	 * Returns the binding for an specific class. If the binding not exist yet, a new binding will be created.
+	 * 
 	 * @param clazz - The class.
-	 * @return The topic or association container binding, dependend on the class. 
+	 * @return The topic or association container binding, depending on the class. 
 	 * @throws BadAnnotationException
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
