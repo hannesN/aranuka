@@ -279,6 +279,7 @@ public class Session {
 	 *  
 	 */
 	public void clearTopicMap() {
+		this.topicMapHandler.clearCache();
 		this.config.getConnector().clearTopicMap(this.topicMapHandler.getTopicMap());		
 	}
 

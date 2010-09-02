@@ -93,4 +93,19 @@ public class DeleteTest extends AbstractTest {
 			fail();
 		}
 	}
+	
+	public void testClear() {
+		try {
+			assertNotNull(session.getByItemIdentifier(t1.getId()));
+			assertNotNull(session.getByItemIdentifier(t2.getId()));
+			assertNotNull(session.getByItemIdentifier(t3.getId()));
+			session.clearTopicMap();			
+			assertNull(session.getByItemIdentifier(t1.getId()));
+			assertNull(session.getByItemIdentifier(t2.getId()));
+			assertNull(session.getByItemIdentifier(t3.getId()));
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail();
+		}
+	}
 }

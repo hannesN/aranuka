@@ -2,10 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>de.topicmapslab</groupId>
+	<groupId>de.topicmapslab.aranuka</groupId>
 	
-	<artifactId>aranuka</artifactId>
-	<version>1.0.1</version>
+	<artifactId>aranuka-parent</artifactId>
+	<version>1.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<name>Aranuka Parent Project</name>
@@ -28,11 +28,16 @@
 			<id>tmlab</id>
 			<url>http://maven.topicmapslab.de/public</url>
 		</repository>
+		<!-- currently not needed
 		<repository>
 			<id>tmapi</id>
 			<url>http://www.tmapi.org/maven-repository/</url>
 		</repository>
-		
+		-->
+		<repository>
+            <id>tmapi</id>
+            <url>http://www.tmapi.org/maven-repository/snapshots</url>
+        </repository>
 	</repositories>
 	<distributionManagement>
 		<repository>

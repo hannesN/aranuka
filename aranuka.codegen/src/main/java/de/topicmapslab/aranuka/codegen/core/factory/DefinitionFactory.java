@@ -59,7 +59,14 @@ import de.topicmapslab.tmql4j.common.model.query.IQuery;
 import de.topicmapslab.tmql4j.common.model.runtime.ITMQLRuntime;
 
 
-
+/**
+ * 
+ * The definition factory creates construct definitions based on a TMCL schema. 
+ * These definitions will be used to generate the Java code.
+ * 
+ * @author Hannes Niederhausen
+ * @since 1.0.0
+ */
 public class DefinitionFactory {
 
 	private final TopicMap topicMap;
@@ -130,6 +137,11 @@ public class DefinitionFactory {
 
 	private TypeInstanceIndex idx;
 
+	/**
+	 * Constructor for the factory
+	 * @param system the topic map system containing the schema topic map
+	 * @param topicMap the topic map containing the TMCL schema
+	 */
 	public DefinitionFactory(TopicMapSystem system, TopicMap topicMap) {
 		this.topicMap = topicMap;
 		this.system = system;
@@ -211,6 +223,13 @@ public class DefinitionFactory {
 		return topicMap.createTopicBySubjectIdentifier(l);
 	}
 
+	/**
+	 * Returns a set of {@link TopicAnnotationDefinition} which is the meta data to generate a java class 
+	 * for the topic.
+	 * 
+	 * @return set of {@link TopicAnnotationDefinition}; is never <code>null</code>
+	 * @throws InvalidOntologyException invalid ontology exception if the schema is not valid, e.g. a topic has subject identifier
+	 */
 	public Set<TopicAnnotationDefinition> getTopicAnnotationDefinitions() throws InvalidOntologyException {
 
 		Set<TopicAnnotationDefinition> defs = new HashSet<TopicAnnotationDefinition>();
@@ -401,6 +420,14 @@ public class DefinitionFactory {
 		tad.addNameAnnotationDefinitions(nadSet);
 	}
 
+	/**
+	 * Checks if the constraint should not generate an attribute for the class.
+	 * <p>This method checks if the Topic has an occurrence of type "http://onotoa.topicmapslab.de/annotation/de/topicmapslab/aranuka/generateattribute".
+	 * If it exists and its value is "false" the field is hidden.
+	 *
+	 * @param constraint the constraint
+	 * @return <code>true</code> if the field is hidden, <code>false</code> else
+	 */
 	private boolean isHidden(Topic constraint) {
 		Locator loc = topicMap.createLocator("http://onotoa.topicmapslab.de/annotation/de/topicmapslab/aranuka/generateattribute");
 		Topic annotationtype = topicMap.createTopicBySubjectIdentifier(loc);
@@ -476,6 +503,12 @@ public class DefinitionFactory {
 		tad.addOccurrenceAnnotationDefinitions(oadSet);
 	}
 
+	/**
+	 * Looks for identifier constraints associated with the given topic 
+	 * @param t the topic which is the base of the topic annotation definition
+	 * @param tad the annotation definition for the topic
+	 * @throws POJOGenerationException
+	 */
 	private void findIdentifierConstraints(Topic t,
 			TopicAnnotationDefinition tad) throws POJOGenerationException {
 		Set<IdAnnotationDefinition> iadSet = new HashSet<IdAnnotationDefinition>();
@@ -503,6 +536,14 @@ public class DefinitionFactory {
 			iadSet.add(idd);
 
 		}
+		// there are no constraints for identifier so we create one item identifier constraint
+		// every class needs an attribute for id
+		if (iadSet.isEmpty()) {
+			IdAnnotationDefinition idd = new IdAnnotationDefinition(IdType.ITEM_IDENTIFIER);
+			idd.setMany(false);
+			iadSet.add(idd);
+		}
+		
 		tad.addIdAnnotationDefinitions(iadSet);
 	}
 
@@ -701,6 +742,11 @@ public class DefinitionFactory {
 		return assocType;
 	}
 
+	/**
+	 * Checks the cardinality of the contraint.
+	 * @param constraint the constraint with cardinality occurrences
+	 * @return <code>true</code>  cardmax is greater 1, <code>false</code> else
+	 */
 	private boolean isMany(Topic constraint) {
 		
 		Set<Occurrence> occs = constraint.getOccurrences(cardMax);
