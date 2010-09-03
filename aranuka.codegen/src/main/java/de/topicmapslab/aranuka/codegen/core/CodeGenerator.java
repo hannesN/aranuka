@@ -299,7 +299,11 @@ public class CodeGenerator {
 			fieldType = def.getFieldType();
 		JClass typeClass = null;
 		if (def.isMany()) {
-			typeClass = cm.ref(Set.class).narrow(def.getFieldType());
+			if (fieldType.isPrimitive()) {
+				typeClass = cm.ref(Set.class).narrow(JCodeModel.primitiveToBox.get(fieldType));
+			} else {
+				typeClass = cm.ref(Set.class).narrow(fieldType);
+			}
 		} else {
 			typeClass = fieldType.isPrimitive() ? null : cm.ref(fieldType);
 		}

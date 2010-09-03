@@ -540,10 +540,10 @@ public class DefinitionFactory {
 				} else {
 					playerSet.add(aop);
 					aad.setContainerTypeName(getTypeName(assocType));
-					aadSet.add(aad);
+					
 				}
 			}
-			
+			aadSet.add(aad);
 		}
 		tad.addAssociationAnnotationDefinitions(aadSet);
 	}
