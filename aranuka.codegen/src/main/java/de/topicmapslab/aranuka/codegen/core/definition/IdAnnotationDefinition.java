@@ -12,20 +12,34 @@ import de.topicmapslab.aranuka.enummerations.IdType;
 public class IdAnnotationDefinition extends FieldDefinition {
 
 	private IdType annotationType;
-	private String fieldName;
+	private final String fieldName;
+	private final Class<?> fieldType;
 
 	public IdAnnotationDefinition(final IdType idtype) {
-		this.annotationType = idtype;
-		switch (annotationType) {
-		case ITEM_IDENTIFIER:
-			fieldName = "itemIdentifiers";
-			break;
-		case SUBJECT_IDENTIFIER:
-			fieldName = "subjectIdentifiers";
-			break;
-		case SUBJECT_LOCATOR:
-			fieldName = "subjectLocators";
-			break;
+		this(idtype, String.class);
+	}
+	
+	public IdAnnotationDefinition(final IdType idType, Class<?> fieldType) {
+		this(idType, null, fieldType);
+	}
+	
+	public IdAnnotationDefinition(final IdType idType, String fieldName, Class<?> fieldType) {
+		this.fieldType = fieldType;
+		this.annotationType = idType;
+		if (fieldName == null) {
+			switch (annotationType) {
+			case SUBJECT_IDENTIFIER:
+				this.fieldName = "subjectIdentifiers";
+				break;
+			case SUBJECT_LOCATOR:
+				this.fieldName = "subjectLocators";
+				break;
+			default:
+				this.fieldName = "itemIdentifiers";
+				break;
+			}
+		} else {
+			this.fieldName = fieldName;
 		}
 	}
 
@@ -38,10 +52,9 @@ public class IdAnnotationDefinition extends FieldDefinition {
 	}
 
 	public Class<?> getFieldType() {
-		return String.class;
+		return fieldType;
 	}
 
-	
 	public String getTMQLType() {
 		return "Identifiers";
 	}

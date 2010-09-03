@@ -32,10 +32,8 @@ import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TYPE_INSTANCE;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
-import org.tmapi.core.Association;
 import org.tmapi.core.Locator;
 import org.tmapi.core.Name;
 import org.tmapi.core.Occurrence;
@@ -57,12 +55,13 @@ import de.topicmapslab.aranuka.enummerations.IdType;
 import de.topicmapslab.tmql4j.common.core.runtime.TMQLRuntimeFactory;
 import de.topicmapslab.tmql4j.common.model.query.IQuery;
 import de.topicmapslab.tmql4j.common.model.runtime.ITMQLRuntime;
+import de.topicmapslab.tmql4j.resultprocessing.model.IResult;
 
 
 /**
  * 
  * The definition factory creates construct definitions based on a TMCL schema. 
- * These definitions will be used to generate the Java code.
+ * These definitions will be used to generate the Java code and its annotations.
  * 
  * @author Hannes Niederhausen
  * @since 1.0.0
@@ -136,6 +135,7 @@ public class DefinitionFactory {
 	private Topic superTypeSubTypeAssociation;
 
 	private TypeInstanceIndex idx;
+	private ITMQLRuntime runtime;
 
 	/**
 	 * Constructor for the factory
@@ -147,6 +147,49 @@ public class DefinitionFactory {
 		this.system = system;
 		init();
 	}
+
+	/**
+     * Returns a set of {@link TopicAnnotationDefinition} which is the meta data to generate a java class 
+     * for the topic.
+     * 
+     * @return set of {@link TopicAnnotationDefinition}; is never <code>null</code>
+     * @throws InvalidOntologyException invalid ontology exception if the schema is not valid, e.g. a topic has subject identifier
+     */
+    public Set<TopicAnnotationDefinition> getTopicAnnotationDefinitions() throws InvalidOntologyException {
+    
+    	Set<TopicAnnotationDefinition> defs = new HashSet<TopicAnnotationDefinition>();
+    
+    	idx = topicMap.getIndex(TypeInstanceIndex.class);
+    	if (!idx.isOpen()) {
+    		idx.open();
+    	}
+    	try {
+    		for (Topic t : idx.getTopics(topicType)) {
+    			String typeName = getTypeName(t);
+    			String si = null;
+    			if (!t.getSubjectIdentifiers().isEmpty())
+    				si = t.getSubjectIdentifiers().iterator().next().toExternalForm();
+    
+    			
+    			
+    			TopicAnnotationDefinition tad = new TopicAnnotationDefinition(
+    					typeName, getTopicName(t), si);
+    
+    			tad.setSuperType(getTypeName(getSuperType(t)));
+    			
+    			findAbstractConstraint(t, tad);
+    			findNameConstraints(t, tad);
+    			findOccurrenceConstraints(t, tad);
+    			findIdentifierConstraints(t, tad);
+    			findAssociationConstraints(t, tad);
+    
+    			defs.add(tad);
+    		}
+    	} catch (POJOGenerationException e) {
+    		e.printStackTrace();
+    	}
+    	return defs;
+    }
 
 	private void init() {
 		// removing TMDM types from cache
@@ -216,55 +259,15 @@ public class DefinitionFactory {
 //		regularExpressionConstraint = createStandardTopic(REGULAR_EXPRESSION_CONSTRAINT);
 //		overlapDeclaration = createStandardTopic(OVERLAP_DECLARATION);
 		roleCombinationConstraint = createStandardTopic(ROLE_COMBINATION_CONSTRAINT);
+		
+		
+        runtime = TMQLRuntimeFactory.newFactory().newRuntime(system, topicMap);
+        runtime.getProperties().enableLanguageExtensionTmqlUl(true);
 	}
 
 	private Topic createStandardTopic(String type) {
 		Locator l = topicMap.createLocator(type);
 		return topicMap.createTopicBySubjectIdentifier(l);
-	}
-
-	/**
-	 * Returns a set of {@link TopicAnnotationDefinition} which is the meta data to generate a java class 
-	 * for the topic.
-	 * 
-	 * @return set of {@link TopicAnnotationDefinition}; is never <code>null</code>
-	 * @throws InvalidOntologyException invalid ontology exception if the schema is not valid, e.g. a topic has subject identifier
-	 */
-	public Set<TopicAnnotationDefinition> getTopicAnnotationDefinitions() throws InvalidOntologyException {
-
-		Set<TopicAnnotationDefinition> defs = new HashSet<TopicAnnotationDefinition>();
-
-		idx = topicMap.getIndex(TypeInstanceIndex.class);
-		if (!idx.isOpen()) {
-			idx.open();
-		}
-		try {
-			for (Topic t : idx.getTopics(topicType)) {
-				String typeName = getTypeName(t);
-				String si = null;
-				if (!t.getSubjectIdentifiers().isEmpty())
-					si = t.getSubjectIdentifiers().iterator().next()
-							.toExternalForm();
-
-				
-				
-				TopicAnnotationDefinition tad = new TopicAnnotationDefinition(
-						typeName, getTopicName(t), si);
-
-				tad.setSuperType(getTypeName(getSuperType(t)));
-				
-				findAbstractConstraint(t, tad);
-				findNameConstraints(t, tad);
-				findOccurrenceConstraints(t, tad);
-				findIdentifierConstraints(t, tad);
-				findAssociationConstraints(t, tad);
-
-				defs.add(tad);
-			}
-		} catch (POJOGenerationException e) {
-			e.printStackTrace();
-		}
-		return defs;
 	}
 
 	private Topic getSuperType(Topic t) throws InvalidOntologyException {
@@ -324,9 +327,6 @@ public class DefinitionFactory {
 
 	private void findAbstractConstraint(Topic t, TopicAnnotationDefinition tad) {
 		try {
-	        ITMQLRuntime runtime = TMQLRuntimeFactory.newFactory().newRuntime(system, topicMap);
-	        runtime.getProperties().enableLanguageExtensionTmqlUl(true);
-	        
 	        String id = getIdentifierString(t);
 	        
 	        String query = "%prefix tmcl http://psi.topicmaps.org/tmcl/ \n"
@@ -539,7 +539,7 @@ public class DefinitionFactory {
 		// there are no constraints for identifier so we create one item identifier constraint
 		// every class needs an attribute for id
 		if (iadSet.isEmpty()) {
-			IdAnnotationDefinition idd = new IdAnnotationDefinition(IdType.ITEM_IDENTIFIER);
+			IdAnnotationDefinition idd = new IdAnnotationDefinition(IdType.ITEM_IDENTIFIER, "id", int.class);
 			idd.setMany(false);
 			iadSet.add(idd);
 		}
@@ -551,22 +551,23 @@ public class DefinitionFactory {
 			TopicAnnotationDefinition tad) throws POJOGenerationException {
 		Set<AssociationAnnotationDefinition> aadSet = new HashSet<AssociationAnnotationDefinition>();
 
-		for (Role constrainedTopic : t.getRolesPlayed(constrained,
-				constrainedTopicType)) {
-			Set<Role> roles = constrainedTopic.getParent().getRoles(constraint);
-			if (roles.size()==0)
-				continue;
-			Topic ttc = roles.iterator().next().getPlayer();
-			
-			if (!ttc.getTypes().contains(topicRoleConstraint))
-				continue;
-			
-			if (isHidden(ttc))
-				continue;
+		// get 
+		String queryString = "%PREFIX ara http://onotoa.topicmapslab.de/annotation/de/topicmapslab/aranuka/\n" + 
+				" FOR $c IN // tmcl:topic-role-constraint" +
+				" [  ( . / ara:generateattribute =~ \"true\" ) OR  fn:count ( . / ara:generateattribute) == 0 ]\n" +
+				" WHERE $c >> traverse tmcl:constrained-topic-type == " + getTMQLIdentifierString(t) + 
+				" RETURN $c, $c >> traverse tmcl:constrained-statement[0], " +
+				" $c >> traverse tmcl:constrained-role[0]";
+		
+		IQuery query = runtime.run(queryString);
+		
+		
+		for (IResult result : query.getResults()) {
+			Topic ttc = (Topic) result.getResults().get(0);
 	
-			Topic assocType = getAssocType(ttc);
+			Topic assocType = (Topic) result.getResults().get(1);
 			
-			Topic roleType = getRoleType(ttc);
+			Topic roleType = (Topic) result.getResults().get(2);
 			
 			
 			Set<AssociationAnnotationDefinition.AssocOtherPlayers> playerSet = new HashSet<AssociationAnnotationDefinition.AssocOtherPlayers>();
@@ -581,36 +582,36 @@ public class DefinitionFactory {
 			Topic otherRole = null;			
 			Topic otherPlayer = null;
 			boolean isMany = false;
-			for (Role assocRole : assocType.getRolesPlayed(constrained, constraintStatement)) {
-				// find topic role constraint
-				Topic constraint = assocRole.getParent().getRoles(this.constraint).iterator().next().getPlayer();
-				if (!constraint.getTypes().contains(topicRoleConstraint))
-					continue;
-				
-				Association assoc = constraint.getRolesPlayed(this.constraint, constrainedRole).iterator().next().getParent();
-				// check if we have the otherRole
-				Topic tmp = assoc.getRoles(constrained).iterator().next().getPlayer();
-				if (tmp.equals(roleType)) // ignore this role
-					continue;
-					
-				otherRole = tmp;
+			
+			queryString = "FOR $c IN // tmcl:topic-role-constraint\n" + 
+					" [ . >> traverse tmcl:constrained-statement == " + getTMQLIdentifierString(assocType) + "]" +
+					" WHERE not ($c >> traverse tmcl:constrained-role == " + getTMQLIdentifierString(roleType) + ")" +
+					" RETURN $c, $c >> traverse tmcl:constrained-role," + 
+					" $c >> traverse tmcl:constrained-topic-type";
+			
+			IQuery query2 = runtime.run(queryString);
+			
+			
+			for (IResult result2 : query2.getResults()) {
+				Topic trc = (Topic) result2.getResults().get(0);
+				otherRole = (Topic) result2.getResults().get(1);
+				otherPlayer = (Topic) result2.getResults().get(2);;
 				isMany = isManyRole(assocType, otherRole);
 				
-				assoc = constraint.getRolesPlayed(this.constraint, constrainedTopicType).iterator().next().getParent();
 				
-				// check if we have the otherRole
-				tmp = assoc.getRoles(constrained).iterator().next().getPlayer();
-				otherPlayer = tmp;
+				
 				AssociationAnnotationDefinition.AssocOtherPlayers aop = new AssociationAnnotationDefinition.AssocOtherPlayers(otherRole, otherPlayer);
 				aop.setMany(isMany);
 				
 				// check if role combination is set, if yes create a new assocdefinition (binary assoc) else add the player to the current
-				if (roleCombinationConstraintExists(assocType, t, roleType, otherPlayer, otherRole)) {
-					Set<AssociationAnnotationDefinition.AssocOtherPlayers> pSet = new HashSet<AssociationAnnotationDefinition.AssocOtherPlayers>();
-					AssociationAnnotationDefinition binAad = new AssociationAnnotationDefinition(assocType, roleType, pSet);
-					pSet.add(aop);
-					aadSet.add(binAad);
-					binAad.setContainerTypeName(getTypeName(assocType));
+				if (roleCombinationConstraintExists(assocType)) {
+					if (roleCombinationConstraintExists(assocType, t, roleType, otherPlayer, otherRole)) {
+						Set<AssociationAnnotationDefinition.AssocOtherPlayers> pSet = new HashSet<AssociationAnnotationDefinition.AssocOtherPlayers>();
+						AssociationAnnotationDefinition binAad = new AssociationAnnotationDefinition(assocType, roleType, pSet);
+						pSet.add(aop);
+						aadSet.add(binAad);
+						binAad.setContainerTypeName(getTypeName(assocType));
+					}
 				} else {
 					playerSet.add(aop);
 					aad.setContainerTypeName(getTypeName(assocType));
@@ -621,6 +622,28 @@ public class DefinitionFactory {
 		}
 		tad.addAssociationAnnotationDefinitions(aadSet);
 	}
+
+	/**
+	 * Returns a tmql query part which returns the given topic.
+	 * 
+	 * @param t the topic which identifier should be used
+	 * @return a string containing the identifier string
+	 */
+	protected String getTMQLIdentifierString(Topic t) {
+	    Set<Locator> siSet = t.getSubjectIdentifiers();
+		if (!siSet.isEmpty())
+			return "\""+siSet.iterator().next().toExternalForm()+"\" << indicators";
+		
+		Set<Locator> slSet = t.getSubjectLocators();
+		if (!slSet.isEmpty())
+			return "\""+slSet.iterator().next().toExternalForm()+"\" << locators";
+		
+		Set<Locator> iiSet = t.getItemIdentifiers();
+		if (!iiSet.isEmpty())
+			return "\""+iiSet.iterator().next().toExternalForm()+"\" << item";
+		
+		throw new IllegalArgumentException("The given topic has no identifier!");
+    }
 
 	/**
 	 * Checks if the topic map contains a role combination constraint for the players.
@@ -635,136 +658,93 @@ public class DefinitionFactory {
 	 * @return <code>true</code> if a role combination constraint for this type exists
 	 */
     private boolean roleCombinationConstraintExists(Topic assocType, Topic topicType, Topic roleType, Topic otherPlayer, Topic otherRole) {
-		TypeInstanceIndex index = topicMap.getIndex(TypeInstanceIndex.class);
+		String queryString = "FOR $c IN // tmcl:role-combination-constraint \n" + 
+				" [ . >> traverse tmcl:constrained-statement == " + getTMQLIdentifierString(assocType) + "]" + 
+				" WHERE \n" + 
+				" ($c>> traverse tmcl:constrained-role == " +  getTMQLIdentifierString(roleType) + 
+				" AND\n" + 
+				" $c >> traverse tmcl:constrained-topic-type == " + getTMQLIdentifierString(topicType) + 
+				" AND\n" + 
+				" $c >> traverse tmcl:other-constrained-role == " + getTMQLIdentifierString(otherRole) + 
+				" AND\n" + 
+				" $c >> traverse tmcl:other-constrained-topic-type == " + getTMQLIdentifierString(otherPlayer) + ")" + 
+				" OR" + 
+				" ($c>> traverse tmcl:constrained-role == " +  getTMQLIdentifierString(otherRole) + 
+				" AND\n" + 
+				" $c >> traverse tmcl:constrained-topic-type == " + getTMQLIdentifierString(otherPlayer) + 
+				" AND\n" + 
+				" $c >> traverse tmcl:other-constrained-role == " + getTMQLIdentifierString(roleType) + 
+				" AND\n" + 
+				" $c >> traverse tmcl:other-constrained-topic-type == " + getTMQLIdentifierString(topicType) + ")" + 
+				"RETURN $c";
 		
-		// iterate through constraint instances
-		Iterator<?> it = index.getTopics(roleCombinationConstraint).iterator();
 		
-		while (it.hasNext()) {
-			Topic rcc = (Topic) it.next();
-			
-			Topic op = getConstrainedPlayer(constraintStatement, rcc);
-			if (!assocType.equals(op))
-				continue;
-			
-			// check both roles/players for player/role
-			op = getConstrainedPlayer(constrainedRole, rcc);
-			if (roleType.equals(op)) {
-				op = getConstrainedPlayer(constrainedTopicType, rcc);
-				if (!topicType.equals(op))
-					continue;
-			} else if (otherRole.equals(op)) {
-				op = getConstrainedPlayer(constrainedTopicType, rcc);
-				if (!otherPlayer.equals(op))
-					continue;
-			} else {
-				continue;
-			}
-			
-			// check both roles/players for other player/ other role
-			op = getConstrainedPlayer(otherConstrainedRole, rcc);
-			if (roleType.equals(op)) {
-				op = getConstrainedPlayer(otherConstrainedTopicType, rcc);
-				if (topicType.equals(op))
-					return true;
-			} else if (otherRole.equals(op)) {
-				op = getConstrainedPlayer(otherConstrainedTopicType, rcc);
-				if (otherPlayer.equals(op))
-					return true;
-			} else {
-				continue;
-			}
-		}
-		
-	    return false;
+		IQuery q = runtime.run(queryString);
+				
+		// if we get a result we now theres is a constraint
+	    return q.getResults().iterator().hasNext();
     }
 
-	private Topic getConstrainedPlayer(Topic assocType, Topic rcc) {
-	    Set<Role> roles = rcc.getRolesPlayed(constraint, assocType);
-	    if (roles.size()!=1)
-	    	return null;
-	    
-	    // getting the constrained role from the assoctype
-	    Set<Role> otherRoles = roles.iterator().next().getParent().getRoles(constrained);
-	    if (otherRoles.size()!=1)
-	    	return null;
-	    
-	    return otherRoles.iterator().next().getPlayer();
+    /**
+     * Checks if a role combination constraint for this topic exists
+     * 
+     * @param assocType the assoc type to check
+     * 
+     * @return <code>true</code> if their is at least one role combination constraint; <code>false</code> else
+     */
+    private boolean roleCombinationConstraintExists(Topic assocType) {
+    	String queryString = "FOR $c IN // tmcl:role-combination-constraint \n" + 
+		" [ . >> traverse tmcl:constrained-statement == " + getTMQLIdentifierString(assocType) + "]" + 
+		" RETURN $c";
+    	
+    	IQuery q = runtime.run(queryString);
+    	
+    	return (q.getResults().iterator().hasNext());
     }
-
-	/*
+    
+	/**
 	 * Checks if the cardmax of the association role constraint of the given assocType
 	 * using the role typ is > 1
+	 * 
+	 * @param assocType the association type
+	 * @param otherRole the role to check
+	 * @return <code>true</code> if the card-max of the topic-role-constraint connecting the two types is grater than 0
 	 */
 	private boolean isManyRole(Topic assocType, Topic otherRole) {
-		for (Role r : assocType.getRolesPlayed(constrained, constraintStatement)) {
-			Association assoc = r.getParent();
-			//get constraint constraining the  assoctype
-			Topic constraint = assoc.getRoles(this.constraint).iterator().next().getPlayer();
-			
-			if (!constraint.getTypes().contains(associationRoleConstraint))
-				continue;
-			
-			// check if constraint is playing in an assoc with the given role
-			Set<Role> roles = constraint.getRolesPlayed(this.constraint, constrainedRole);
-			
-			Association roleAssoc = roles.iterator().next().getParent(); 
-			Topic roleType = roleAssoc.getRoles(constrained).iterator().next().getPlayer();
-			
-			if (roleType.equals(otherRole))
-				return isMany(constraint);
-			
+		
+		String queryString = "FOR $c IN // tmcl:association-role-constraint\n" + 
+				" [ . >> traverse tmcl:constrained-statement == " + getTMQLIdentifierString(assocType) + "]" +
+				" WHERE $c >> traverse tmcl:constrained-role == " + getTMQLIdentifierString(otherRole) + 
+				" RETURN $c / tmcl:card-max || \"*\"";
+		
+		IQuery query = runtime.run(queryString);
+		
+		for (IResult res : query.getResults()) {
+			String cardMax = (String) res.getResults().get(0);
+			return (!"1".equals(cardMax));
 		}
+			
+		
 		return false;
-	}
-
-	private Topic getRoleType(Topic ttc) {
-		Topic roleType = null;
-		for (Role constraintRole : ttc.getRolesPlayed(constraint, constrainedRole)) {
-			Topic tmp = constraintRole.getParent().getRoles(constrained).iterator().next().getPlayer();
-			if (tmp.getTypes().contains(this.roleType)) {
-				roleType = tmp;
-				break;
-			}
-		}
-		return roleType;
-	}
-
-	private Topic getAssocType(Topic ttc) {
-		Topic assocType = null;
-		for (Role constraintRole : ttc.getRolesPlayed(constraint, constraintStatement)) {
-			Topic tmp = constraintRole.getParent().getRoles(constrained).iterator().next().getPlayer();
-			if (tmp.getTypes().contains(associationType)) {
-				assocType = tmp;
-				break;
-			}
-		}
-		return assocType;
 	}
 
 	/**
 	 * Checks the cardinality of the contraint.
+	 * 
 	 * @param constraint the constraint with cardinality occurrences
 	 * @return <code>true</code>  cardmax is greater 1, <code>false</code> else
 	 */
 	private boolean isMany(Topic constraint) {
 		
-		Set<Occurrence> occs = constraint.getOccurrences(cardMax);
-		// no occurrences means default values which are 0..*
-		if (occs.isEmpty())
-			return true;
-		int i = 0;
-		String value = occs.iterator().next().getValue();
-		if (value.equals("*"))
-			return true;
-		try {
-			i = Integer.parseInt(value); 
-		} catch (NumberFormatException e) {
-			return false;
+		String queryString ="RETURN "+getTMQLIdentifierString(constraint)+" / tmcl:card-max || \"*\"";
+
+		IQuery query = runtime.run(queryString);
+
+		for (IResult res : query.getResults()) {
+			String cardMax = (String) res.getResults().get(0);
+			return (!"1".equals(cardMax));
 		}
-		
-		return (i>1);
-			
+		return false;
 	}
 	
 	
