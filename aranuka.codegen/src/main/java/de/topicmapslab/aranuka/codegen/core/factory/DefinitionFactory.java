@@ -1,10 +1,6 @@
 package de.topicmapslab.aranuka.codegen.core.factory;
 
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ASSOCIATION_ROLE_CONSTRAINT;
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ASSOCIATION_TYPE;
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CARD_MAX;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED;
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED_ROLE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED_STATEMENT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINED_TOPIC_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.CONSTRAINT;
@@ -14,10 +10,6 @@ import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.DATATYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.INSTANCE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.NAME_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.OCCURRENCE_DATATYPE_CONSTRAINT;
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.OTHER_CONSTRAINED_ROLE;
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.OTHER_CONSTRAINED_TOPIC_TYPE;
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ROLE_COMBINATION_CONSTRAINT;
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.ROLE_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBJECT_IDENTIFIER_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBJECT_LOCATOR_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUBTYPE;
@@ -26,7 +18,6 @@ import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.SUPERTYPE_S
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TMDM;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TOPIC_NAME_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TOPIC_OCCURRENCE_CONSTRAINT;
-import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TOPIC_ROLE_CONSTRAINT;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TOPIC_TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TYPE;
 import static de.topicmapslab.aranuka.codegen.core.factory.Vocabular.TYPE_INSTANCE;
@@ -73,30 +64,15 @@ public class DefinitionFactory {
 
 	// -- topic types
 	private Topic topicType;
-	private Topic associationType;
-	private Topic roleType;
-//	private Topic occurrenceType;
 	private Topic nameType;
-//	private Topic scopeType;
-
-//	private Topic topicMapSchema;
 
 	// -- associations
 	private Topic constraintStatement;
 	private Topic constrainedTopicType;
-	private Topic constrainedRole;
-//	private Topic allowedReifier;
-//	private Topic allowedScope;
-	private Topic otherConstrainedRole;
-	private Topic otherConstrainedTopicType;
-	// private Topic overlaps;
-//	private Topic belongsTo;
 
 	// -- roles
 	private Topic constrained;
 	private Topic constraint; 
-//	private Topic allows;
-//	private Topic allowed;
 
 	// -- constraint
 	
@@ -105,28 +81,10 @@ public class DefinitionFactory {
 	private Topic subjectLocatorConstraint;
 	private Topic topicNameConstraint;
 	private Topic topicOccurrenceConstraint;
-	private Topic topicRoleConstraint;
-//	private Topic scopeConstraint;
-//	private Topic reifierConstraint;
-//	private Topic topicReifiesConstraint;
-	private Topic associationRoleConstraint;
-//	private Topic roleCombinationConstraint;
 	private Topic occurrenceDatatypeConstraint;
-//	private Topic uniqueValueConstraint;
-//	private Topic regularExpressionConstraint;
-//	private Topic overlapDeclaration;
-	private Topic roleCombinationConstraint;
 
 	// -- occurrence types
 	private Topic datatype;
-//	private Topic cardMin;
-	private Topic cardMax;
-//	private Topic regExp;
-//	private Topic comment;
-//	private Topic seeAlso;
-//	private Topic description;
-
-//	private Topic topicName;
 
 	private Topic subject;
 	
@@ -212,54 +170,22 @@ public class DefinitionFactory {
 		// init topic types
 		topicType = createStandardTopic(TOPIC_TYPE);
 		nameType = createStandardTopic(NAME_TYPE);
-		associationType = createStandardTopic(ASSOCIATION_TYPE);
-		roleType = createStandardTopic(ROLE_TYPE);
-//		occurrenceType = createStandardTopic(OCCURRENCE_TYPE);
-//		scopeType = createStandardTopic(SCOPE_TYPE);
 
-//		cardMin = createStandardTopic(CARD_MIN);
-		cardMax = createStandardTopic(CARD_MAX);
-//		regExp = createStandardTopic(REGEXP);
 		datatype = createStandardTopic(DATATYPE);
-//		comment = createStandardTopic(COMMENT);
-//		description = createStandardTopic(DESCRIPTION);
-//		seeAlso = createStandardTopic(SEE_ALSO);
 
 		// roles
 		constraint = createStandardTopic(CONSTRAINT);
 		constrained = createStandardTopic(CONSTRAINED);
-//		allowed = createStandardTopic(ALLOWED);
-//		allows = createStandardTopic(ALLOWS);
 
 		// associations
 		constraintStatement = createStandardTopic(CONSTRAINED_STATEMENT);
 		constrainedTopicType = createStandardTopic(CONSTRAINED_TOPIC_TYPE);
-		constrainedRole = createStandardTopic(CONSTRAINED_ROLE);
-		otherConstrainedTopicType = createStandardTopic(OTHER_CONSTRAINED_TOPIC_TYPE);
-		otherConstrainedRole = createStandardTopic(OTHER_CONSTRAINED_ROLE);
-//		allowedReifier = createStandardTopic(ALLOWED_REIFIER);
-//		allowedScope = createStandardTopic(ALLOWED_SCOPE);
-		constrainedRole = createStandardTopic(CONSTRAINED_ROLE);
-//		otherConstrainedRole = createStandardTopic(OTHER_CONSTRAINED_ROLE);
-//		otherConstrainedTopicType = createStandardTopic(OTHER_CONSTRAINED_TOPIC_TYPE);
 
-//		abstractConstraint = createStandardTopic(ABSTRACT_CONSTRAINT);
 		subjectIdentifierConstraint = createStandardTopic(SUBJECT_IDENTIFIER_CONSTRAINT);
 		subjectLocatorConstraint = createStandardTopic(SUBJECT_LOCATOR_CONSTRAINT);
 		topicNameConstraint = createStandardTopic(TOPIC_NAME_CONSTRAINT);
 		topicOccurrenceConstraint = createStandardTopic(TOPIC_OCCURRENCE_CONSTRAINT);
-		topicRoleConstraint = createStandardTopic(TOPIC_ROLE_CONSTRAINT);
-//		scopeConstraint = createStandardTopic(SCOPE_CONSTRAINT);
-//		reifierConstraint = createStandardTopic(REIFIER_CONSTRAINT);
-//		topicReifiesConstraint = createStandardTopic(TOPIC_REIFIES_CONSTRAINT);
-		associationRoleConstraint = createStandardTopic(ASSOCIATION_ROLE_CONSTRAINT);
-//		roleCombinationConstraint = createStandardTopic(ROLE_COMBINATION_CONSTRAINT);
 		occurrenceDatatypeConstraint = createStandardTopic(OCCURRENCE_DATATYPE_CONSTRAINT);
-//		uniqueValueConstraint = createStandardTopic(UNIQUE_VALUE_CONSTRAINT);
-//		regularExpressionConstraint = createStandardTopic(REGULAR_EXPRESSION_CONSTRAINT);
-//		overlapDeclaration = createStandardTopic(OVERLAP_DECLARATION);
-		roleCombinationConstraint = createStandardTopic(ROLE_COMBINATION_CONSTRAINT);
-		
 		
         runtime = TMQLRuntimeFactory.newFactory().newRuntime(system, topicMap);
         runtime.getProperties().enableLanguageExtensionTmqlUl(true);
@@ -586,16 +512,15 @@ public class DefinitionFactory {
 			queryString = "FOR $c IN // tmcl:topic-role-constraint\n" + 
 					" [ . >> traverse tmcl:constrained-statement == " + getTMQLIdentifierString(assocType) + "]" +
 					" WHERE not ($c >> traverse tmcl:constrained-role == " + getTMQLIdentifierString(roleType) + ")" +
-					" RETURN $c, $c >> traverse tmcl:constrained-role," + 
+					" RETURN $c >> traverse tmcl:constrained-role," + 
 					" $c >> traverse tmcl:constrained-topic-type";
 			
 			IQuery query2 = runtime.run(queryString);
 			
 			
 			for (IResult result2 : query2.getResults()) {
-				Topic trc = (Topic) result2.getResults().get(0);
-				otherRole = (Topic) result2.getResults().get(1);
-				otherPlayer = (Topic) result2.getResults().get(2);;
+				otherRole = (Topic) result2.getResults().get(0);
+				otherPlayer = (Topic) result2.getResults().get(1);;
 				isMany = isManyRole(assocType, otherRole);
 				
 				
@@ -729,10 +654,10 @@ public class DefinitionFactory {
 	}
 
 	/**
-	 * Checks the cardinality of the contraint.
+	 * Checks the cardinality of the constraint.
 	 * 
 	 * @param constraint the constraint with cardinality occurrences
-	 * @return <code>true</code>  cardmax is greater 1, <code>false</code> else
+	 * @return <code>true</code>  card-max is greater 1, <code>false</code> else
 	 */
 	private boolean isMany(Topic constraint) {
 		
@@ -746,6 +671,4 @@ public class DefinitionFactory {
 		}
 		return false;
 	}
-	
-	
 }
