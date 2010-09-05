@@ -517,7 +517,6 @@ public class DefinitionFactory {
 			
 			IQuery query2 = runtime.run(queryString);
 			
-			
 			for (IResult result2 : query2.getResults()) {
 				otherRole = (Topic) result2.getResults().get(0);
 				otherPlayer = (Topic) result2.getResults().get(1);;
@@ -540,10 +539,13 @@ public class DefinitionFactory {
 				} else {
 					playerSet.add(aop);
 					aad.setContainerTypeName(getTypeName(assocType));
-					
+					aadSet.add(aad);					
 				}
 			}
-			aadSet.add(aad);
+			// we have an unary association and need to add the aad to the set
+			if (query2.getResults().size()==0) {
+				aadSet.add(aad);
+			}
 		}
 		tad.addAssociationAnnotationDefinitions(aadSet);
 	}
