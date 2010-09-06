@@ -34,6 +34,7 @@ import org.tmapix.io.XTMTopicMapReader;
 
 import de.topicmapslab.aranuka.codegen.core.CodeGenerator;
 import de.topicmapslab.aranuka.codegen.core.exception.InvalidOntologyException;
+import de.topicmapslab.majortom.core.TopicMapSystemFactoryImpl;
 
 /**
  * 
@@ -246,7 +247,7 @@ public class GeneratorTest extends AbstractGeneratorTester {
 	}
 
 	static private void init() throws Exception {
-		topicMapSystem = TopicMapSystemFactory.newInstance().newTopicMapSystem();
+		topicMapSystem = new TopicMapSystemFactoryImpl().newTopicMapSystem();
 		topicMap = topicMapSystem.createTopicMap("http://www.topicmapslab.de/aranuka-codegen");
 
 		File file = new File("src/test/resources/tmclschema.xtm");
