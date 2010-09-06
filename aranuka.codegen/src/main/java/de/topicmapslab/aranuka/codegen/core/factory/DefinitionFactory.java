@@ -225,10 +225,14 @@ public class DefinitionFactory {
 			if (t==null)
 				return null;
 			
-			String name = getTopicName(t);
-			if (name == null)
-				return TypeUtility.getJavaName(t);
-
+			String name = getNameByAnnotation(t);
+			
+			if (name == null) {
+				name = getTopicName(t);
+				if (name == null)
+					return TypeUtility.getJavaName(t);
+			}
+			
 			StringBuilder builder = new StringBuilder();
 			char lastChar = name.charAt(0);
 			builder.append(Character.toUpperCase(lastChar));
@@ -250,6 +254,20 @@ public class DefinitionFactory {
 			return null;
 		}
 	}
+
+	private String getNameByAnnotation(Topic t) {
+		String queryString = "%PREFIX ara http://onotoa.topicmapslab.de/annotation/de/topicmapslab/aranuka/\n" +
+						getTMQLIdentifierString(t) + " / ara:name ";
+		IQuery q = runtime.run(queryString);
+        System.out.print(q);
+		
+		for (IResult r : q.getResults()) {
+			System.out.print(":  "+r.getResults().get(0));
+			return (String) r.getResults().get(0);
+		}
+		System.out.println();
+		return null;
+    }
 
 	private void findAbstractConstraint(Topic t, TopicAnnotationDefinition tad) {
 		try {
@@ -337,6 +355,10 @@ public class DefinitionFactory {
 				member = Character.toLowerCase(typeName.charAt(0))
 						+ typeName.substring(1);
 			}
+			// check if a name annotation exists for the current constraint, if so set it to member
+			String tmp = getNameByAnnotation(ntc);
+			if (tmp!=null)
+				member = tmp;
 
 			NameAnnotationDefinition nad = new NameAnnotationDefinition(
 					typeId, member);
@@ -405,6 +427,10 @@ public class DefinitionFactory {
 				member = Character.toLowerCase(typeName.charAt(0))
 						+ typeName.substring(1);
 			}
+			// check if a name annotation exists for the current constraint, if so set it to member
+			String tmp = getNameByAnnotation(otc);
+			if (tmp!=null)
+				member = tmp;
 
 			// get datatype
 			String datatype = "xsd:string";
@@ -489,7 +515,7 @@ public class DefinitionFactory {
 		
 		
 		for (IResult result : query.getResults()) {
-			Topic ttc = (Topic) result.getResults().get(0);
+			Topic topicRoleConstraint = (Topic) result.getResults().get(0);
 	
 			Topic assocType = (Topic) result.getResults().get(1);
 			
@@ -498,10 +524,11 @@ public class DefinitionFactory {
 			
 			Set<AssociationAnnotationDefinition.AssocOtherPlayers> playerSet = new HashSet<AssociationAnnotationDefinition.AssocOtherPlayers>();
 			AssociationAnnotationDefinition aad = new AssociationAnnotationDefinition(assocType, roleType, playerSet);
+			aad.setFieldName(getNameByAnnotation(topicRoleConstraint));
 					
 			// if the play cardinality says many, we set the container to many
 			// if not let it be, because another player could be set to many
-			if (isMany(ttc))
+			if (isMany(topicRoleConstraint))
 				aad.setMany(true);
 			
 			// filling out the other players
@@ -512,20 +539,23 @@ public class DefinitionFactory {
 			queryString = "FOR $c IN // tmcl:topic-role-constraint\n" + 
 					" [ . >> traverse tmcl:constrained-statement == " + getTMQLIdentifierString(assocType) + "]" +
 					" WHERE not ($c >> traverse tmcl:constrained-role == " + getTMQLIdentifierString(roleType) + ")" +
-					" RETURN $c >> traverse tmcl:constrained-role," + 
+					" RETURN $c, $c >> traverse tmcl:constrained-role," + 
 					" $c >> traverse tmcl:constrained-topic-type";
 			
 			IQuery query2 = runtime.run(queryString);
 			
 			for (IResult result2 : query2.getResults()) {
-				otherRole = (Topic) result2.getResults().get(0);
-				otherPlayer = (Topic) result2.getResults().get(1);;
+				Topic trc = (Topic) result2.getResults().get(0);
+				otherRole = (Topic) result2.getResults().get(1);
+				otherPlayer = (Topic) result2.getResults().get(2);
 				isMany = isManyRole(assocType, otherRole);
 				
 				
 				
 				AssociationAnnotationDefinition.AssocOtherPlayers aop = new AssociationAnnotationDefinition.AssocOtherPlayers(otherRole, otherPlayer);
 				aop.setMany(isMany);
+				aop.setFieldName(getNameByAnnotation(trc));
+					
 				
 				// check if role combination is set, if yes create a new assocdefinition (binary assoc) else add the player to the current
 				if (roleCombinationConstraintExists(assocType)) {
@@ -609,7 +639,7 @@ public class DefinitionFactory {
 		IQuery q = runtime.run(queryString);
 				
 		// if we get a result we now theres is a constraint
-	    return q.getResults().iterator().hasNext();
+	    return q.getResults().size()==0;
     }
 
     /**

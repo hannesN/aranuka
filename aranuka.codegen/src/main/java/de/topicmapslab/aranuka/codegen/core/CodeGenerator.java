@@ -289,7 +289,7 @@ public class CodeGenerator {
 			}
 			return var;
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("In create Field: "+def.getFieldName(), e);
 		}
 	}
 
@@ -318,7 +318,7 @@ public class CodeGenerator {
 
 			var.annotate(nameAnnotation).param("type", nad.getTopicType());
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Exception in create name: "+nad.getFieldName(), e);
 		}
 	}
 

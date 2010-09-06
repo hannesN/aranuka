@@ -24,6 +24,7 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	private final Set<AssocOtherPlayers> otherPlayers;
 
 	private String containerTypeName;
+	private String fieldName;
 
 	public AssociationAnnotationDefinition(Topic assocType, Topic roleType, Set<AssocOtherPlayers> otherplayers) throws POJOGenerationException {
 		this.roleType = roleType;
@@ -48,7 +49,8 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	}
 
 	public String getFieldName() {
-		
+		if (fieldName!=null)
+			return fieldName;
 		try {
 			switch (otherPlayers.size()) {
 			case 0:
@@ -63,6 +65,10 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	public void setFieldName(String fieldName) {
+	    this.fieldName = fieldName;
+    }
 
 	public String getRoleType() {
 		return role;
@@ -124,7 +130,8 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 	static public class AssocOtherPlayers extends FieldDefinition {
 		private Topic otherRole = null;			
 		private Topic otherPlayer = null;
-
+		private String fieldName;
+		
 		public AssocOtherPlayers(Topic otherRole, Topic otherPlayer) {
 			super();
 			this.otherRole = otherRole;
@@ -148,12 +155,19 @@ public class AssociationAnnotationDefinition extends FieldDefinition {
 		}
 
 		public String getFieldName() {
-			try {
-				return TypeUtility.getJavaName(otherPlayer);
-			} catch (POJOGenerationException e) {
-				throw new RuntimeException(e);
+			if (fieldName == null) {
+				try {
+					return TypeUtility.getJavaName(otherPlayer);
+				} catch (POJOGenerationException e) {
+					throw new RuntimeException(e);
+				}
 			}
+			return fieldName;
 		}
+		
+		public void setFieldName(String fieldName) {
+	        this.fieldName = fieldName;
+        }
 
 		public Class<?> getFieldType() {
 			throw new UnsupportedOperationException();
