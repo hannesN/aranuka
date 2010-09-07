@@ -20,6 +20,7 @@ import org.tmapix.io.XTMVersion;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
 import de.topicmapslab.aranuka.connectors.IProperties;
+import de.topicmapslab.aranuka.constants.IAranukaIRIs;
 import de.topicmapslab.ctm.writer.core.CTMTopicMapWriter;
 import de.topicmapslab.majortom.core.TopicMapSystemFactoryImpl;
 import de.topicmapslab.majortom.database.store.JdbcTopicMapStoreProperty;
@@ -66,16 +67,13 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 			TopicMapWriter writer = null;
 
 			if (f.getName().endsWith(".xtm")) {
-				writer = new XTM2TopicMapWriter(fo, baseLocator, XTMVersion.XTM_2_0);
+				writer = new XTM2TopicMapWriter(fo, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX, XTMVersion.XTM_2_1);
 				((XTM2TopicMapWriter) writer).setPrettify(true);
 			} else {
 				writer = new CTMTopicMapWriter(fo, baseLocator);
 
 				for (Entry<String, String> e : getPrefixMap().entrySet()) {
-					if (e.getKey().equals(IProperties.BASE_LOCATOR))
-						continue;
-					((CTMTopicMapWriter) writer).setPrefix(e.getKey(),
-							e.getValue());
+					((CTMTopicMapWriter) writer).setPrefix(e.getKey(), e.getValue());
 				}
 			}
 			writer.write(this.topicMap);
@@ -104,7 +102,6 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 						}
 					}
 				}
-				
 				return topicMap;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -113,12 +110,12 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 
 	private void readTopicMap(File f) throws IOException {
 		if (f.getName().endsWith("ctm")) {
-			CTMTopicMapReader reader = new CTMTopicMapReader(topicMap, f, getProperty(IProperties.BASE_LOCATOR));
+			CTMTopicMapReader reader = new CTMTopicMapReader(topicMap, f, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
 			reader.read();
 			return;
 		}
 		if (f.getName().endsWith("xtm")) {
-			XTMTopicMapReader reader = new XTMTopicMapReader(topicMap, f, getProperty(IProperties.BASE_LOCATOR));
+			XTMTopicMapReader reader = new XTMTopicMapReader(topicMap, f, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
 			reader.read();
 			return;
 		}		
