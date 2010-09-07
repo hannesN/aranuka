@@ -636,7 +636,7 @@ public class DefinitionFactory {
 		IQuery q = runtime.run(queryString);
 				
 		// if we get a result we now theres is a constraint
-	    return q.getResults().size()!=0;
+	    return !q.getResults().isEmpty();
     }
 
     /**
@@ -653,7 +653,7 @@ public class DefinitionFactory {
     	
     	IQuery q = runtime.run(queryString);
     	
-    	return (q.getResults().iterator().hasNext());
+    	return !q.getResults().isEmpty();
     }
     
 	/**
