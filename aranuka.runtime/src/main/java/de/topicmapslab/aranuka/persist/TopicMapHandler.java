@@ -46,6 +46,7 @@ import de.topicmapslab.aranuka.binding.NameBinding;
 import de.topicmapslab.aranuka.binding.OccurrenceBinding;
 import de.topicmapslab.aranuka.binding.RoleBinding;
 import de.topicmapslab.aranuka.binding.TopicBinding;
+import de.topicmapslab.aranuka.constants.IAranukaIRIs;
 import de.topicmapslab.aranuka.enummerations.AssociationKind;
 import de.topicmapslab.aranuka.enummerations.IdType;
 import de.topicmapslab.aranuka.enummerations.Match;
@@ -58,6 +59,7 @@ import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 import de.topicmapslab.tmql4j.common.core.exception.TMQLRuntimeException;
 import de.topicmapslab.tmql4j.common.core.runtime.TMQLRuntimeFactory;
 import de.topicmapslab.tmql4j.common.model.runtime.ITMQLRuntime;
+import de.topicmapslab.tmql4j.common.utility.HashUtil;
 
 
 /**
@@ -1455,7 +1457,12 @@ public class TopicMapHandler {
 				
 				if(idBinding.getIdtype() == IdType.ITEM_IDENTIFIER){
 					
-					Set<Locator> identifier = topic.getItemIdentifiers();
+					Set<Locator> identifier = HashUtil.getHashSet();					
+					// filter out the item identifier created from the xtm2.0 reader
+					for (Locator l : topic.getItemIdentifiers()) {
+						if (!l.toExternalForm().startsWith(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX))
+							identifier.add(l);
+					}
 					addIdentifier(topic, object, idBinding, identifier);
 					
 				}else if(idBinding.getIdtype() == IdType.SUBJECT_IDENTIFIER){

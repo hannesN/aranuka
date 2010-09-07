@@ -3,8 +3,8 @@ package de.topicmapslab.aranuka.tinytim.connectors;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.tmapi.core.Locator;
 import org.tmapi.core.Topic;
@@ -20,6 +20,7 @@ import org.tmapix.io.XTMVersion;
 
 import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
 import de.topicmapslab.aranuka.connectors.IProperties;
+import de.topicmapslab.aranuka.constants.IAranukaIRIs;
 import de.topicmapslab.ctm.writer.core.CTMTopicMapWriter;
 
 public class TinyTiMConnector extends AbstractEngineConnector {
@@ -53,11 +54,11 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 			TopicMapWriter writer = null;
 
 			if (f.getName().endsWith(".xtm")) {
-				writer = new XTM2TopicMapWriter(fo, baseLocator,
+				writer = new XTM2TopicMapWriter(fo, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX,
 						XTMVersion.XTM_2_1);
 				((XTM2TopicMapWriter) writer).setPrettify(true);
 			} else {
-				writer = new CTMTopicMapWriter(fo, baseLocator);
+				writer = new CTMTopicMapWriter(fo, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
 
 				for (Entry<String, String> e : getPrefixMap().entrySet()) {
 					if (e.getKey().equals(IProperties.BASE_LOCATOR))
@@ -111,9 +112,9 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 					// read
 					TopicMapReader reader = null;
 					if (f.getName().endsWith(".xtm")) {
-						reader = new XTMTopicMapReader(this.topicMap, f);
+						reader = new XTMTopicMapReader(this.topicMap, f, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
 					} else {
-						reader = new CTMTopicMapReader(this.topicMap, f);
+						reader = new CTMTopicMapReader(this.topicMap, f, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
 					}
 					reader.read();
 				}

@@ -149,7 +149,7 @@ public class DefinitionFactory {
     	return defs;
     }
 
-	private void init() {
+	private void init()  {
 		// removing TMDM types from cache
 		createStandardTopic(TYPE);
 		createStandardTopic(INSTANCE);
@@ -259,13 +259,10 @@ public class DefinitionFactory {
 		String queryString = "%PREFIX ara http://onotoa.topicmapslab.de/annotation/de/topicmapslab/aranuka/\n" +
 						getTMQLIdentifierString(t) + " / ara:name ";
 		IQuery q = runtime.run(queryString);
-        System.out.print(q);
 		
 		for (IResult r : q.getResults()) {
-			System.out.print(":  "+r.getResults().get(0));
 			return (String) r.getResults().get(0);
 		}
-		System.out.println();
 		return null;
     }
 

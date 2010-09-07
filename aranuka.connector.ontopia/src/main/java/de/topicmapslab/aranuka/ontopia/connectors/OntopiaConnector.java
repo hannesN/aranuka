@@ -1,12 +1,14 @@
 package de.topicmapslab.aranuka.ontopia.connectors;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import net.ontopia.infoset.impl.basic.URILocator;
 import net.ontopia.topicmaps.core.TopicMapIF;
 import net.ontopia.topicmaps.core.TopicMapStoreIF;
 import net.ontopia.topicmaps.entry.TopicMapReferenceIF;
@@ -26,6 +28,7 @@ import org.tmapi.core.TopicMapSystemFactory;
 
 import de.topicmapslab.aranuka.connectors.AbstractEngineConnector;
 import de.topicmapslab.aranuka.connectors.IProperties;
+import de.topicmapslab.aranuka.constants.IAranukaIRIs;
 
 public class OntopiaConnector extends AbstractEngineConnector{
 	private TopicMap topicMap;
@@ -68,12 +71,12 @@ public class OntopiaConnector extends AbstractEngineConnector{
 					
 					// load
 					if (filename.endsWith(".xtm")) {
-						XTMTopicMapReader  reader = new XTMTopicMapReader(f);
+						XTMTopicMapReader  reader = new XTMTopicMapReader(new FileInputStream(f), URILocator.create(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX));
 						reader.setValidation(false);
 						TopicMapIF tm = reader.read();
 						this.topicMap = new TopicMapImpl((TopicMapSystemIF) topicMapSystem, tm.getStore());
 					} else if (filename.endsWith(".ctm")) {
-						CTMTopicMapReader reader = new CTMTopicMapReader(f);
+						CTMTopicMapReader reader = new CTMTopicMapReader(new FileInputStream(f), URILocator.create(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX));
 						TopicMapIF tm = reader.read();
 						this.topicMap = new TopicMapImpl((TopicMapSystemIF) topicMapSystem, tm.getStore());
 					}
@@ -95,7 +98,7 @@ public class OntopiaConnector extends AbstractEngineConnector{
 		for (Topic t : topicMap.getTopics()) {
 			Set<Locator> iiSet = new HashSet<Locator>(t.getItemIdentifiers());
 			for (Locator l : iiSet) {
-				if (l.toExternalForm().startsWith("file:"))
+				if (l.toExternalForm().startsWith(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX))
 					t.removeItemIdentifier(l);
 			}
 		}
