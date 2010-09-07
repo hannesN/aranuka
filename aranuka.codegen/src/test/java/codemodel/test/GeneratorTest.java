@@ -29,7 +29,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
-import org.tmapi.core.TopicMapSystemFactory;
 import org.tmapix.io.XTMTopicMapReader;
 
 import de.topicmapslab.aranuka.codegen.core.CodeGenerator;
