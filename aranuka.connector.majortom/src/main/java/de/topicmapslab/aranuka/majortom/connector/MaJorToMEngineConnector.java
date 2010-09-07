@@ -154,7 +154,7 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 		String dbms = getProperty(IProperties.DATABASESYSTEM);
 		
 		if ("postgresql".equals(dbms))
-			return "POSTGRESQL99";
+			return "POSTGRESQL";
 		
 		return null;
 	}
