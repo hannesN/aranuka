@@ -32,3 +32,5 @@ aranuka.documentation/bin
 
 **/db.properties
 **/*.versionsBackup
+
+.project
