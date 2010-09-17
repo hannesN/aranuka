@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2368,7 +2369,8 @@ public class TopicMapHandler {
 				
 		if(binding.getParent() != null)
 			identifier = getIdentifier(topicObject, binding.getParent(), type);
-		else identifier = new HashSet<String>();
+		else 
+			identifier = new HashSet<String>();
 
 		String typeLocator = binding.getIdentifier().iterator().next(); // get first
 		
@@ -2407,12 +2409,16 @@ public class TopicMapHandler {
 		
 					}else{
 						if (((IdBinding)afb).getValue(topicObject) instanceof String){
+							
 							identifier.add(((IdBinding)afb).getValue(topicObject).toString());
 						}else{
 							
 							identifier.add(typeLocator + "/" + ((IdBinding)afb).getValue(topicObject).toString());
 						}
 					}
+				} else if (((IdBinding) afb).isAutogenerate()) {
+					String id = "http://aranuka.topicmapslab.de/"+UUID.randomUUID();
+					identifier.add(id);
 				}
 			}
 		}

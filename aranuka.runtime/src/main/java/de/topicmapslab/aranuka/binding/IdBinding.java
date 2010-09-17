@@ -21,6 +21,8 @@ public class IdBinding extends AbstractFieldBinding {
 	 */
 	private IdType idtype;
 	
+	private boolean autogenerate;
+	
 	/**
 	 * Constructor.
 	 * @param prefixMap - The prefix map.
@@ -28,6 +30,7 @@ public class IdBinding extends AbstractFieldBinding {
 	 */
 	public IdBinding(Map<String,String> prefixMap, TopicBinding parent) {
 		super(prefixMap, parent);
+		autogenerate = false; // default
 	}
 
 	/**
@@ -47,4 +50,22 @@ public class IdBinding extends AbstractFieldBinding {
 		return idtype;
 	}
 
+	/**
+	 * Sets the autogenerate flag
+	 * 
+	 * @param autogenerate the new flag value
+	 */
+	public void setAutogenerate(boolean autogenerate) {
+	
+		this.autogenerate = autogenerate;
+	}
+	
+	/**
+	 * Returns the state of the autogenerate flag
+	 * @return 
+	 */
+	public boolean isAutogenerate() {
+		return autogenerate;
+	}
+	
 }

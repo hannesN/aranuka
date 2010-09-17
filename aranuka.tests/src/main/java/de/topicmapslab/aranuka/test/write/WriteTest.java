@@ -2,6 +2,7 @@ package de.topicmapslab.aranuka.test.write;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -48,6 +49,7 @@ public class WriteTest extends AbstractTest {
 		
 		this.config.addClass(TestTopicType.class);
 		this.config.addClass(TestCounterPlayer.class);
+		this.config.addClass(Person.class);
 		
 		this.config.addName("test:named_occurrence", "Named Occurrence");
 		this.config.addName("http://topicmapslab.de/aranuka/test/resolved_named_occurrence", "Resolved Named Occurrence");
@@ -544,4 +546,28 @@ public class WriteTest extends AbstractTest {
 		assertEquals("Resolved Named Occurrence",occType.getNames().iterator().next().getValue());
 	}
 	
+	
+	@Test
+	public void generatorTest() throws Exception {
+		Person p = new Person();
+		p.setName("TestPerson");
+		
+		assertEquals("TestPerson", p.getName());
+		assertNull(p.getSi());
+		assertNull(p.getSl());
+		assertNull(p.getIi());
+		
+		this.session.persist(p);
+		
+		Set<Object> persons = this.session.getAll(Person.class);
+		assertEquals(1, persons.size());
+		
+		Person p2 = (Person) persons.iterator().next();
+		
+		assertEquals(p.getName(), p2.getName());
+		assertNotNull(p2.getSi());
+		assertNotNull(p2.getSl());
+		assertNotNull(p2.getIi());
+		
+	}
 }

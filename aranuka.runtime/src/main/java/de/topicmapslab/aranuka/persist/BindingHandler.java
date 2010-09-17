@@ -496,6 +496,7 @@ public class BindingHandler {
 		IdBinding ib = new IdBinding(config.getPrefixMap(), topicBinding);
 		
 		ib.setIdtype(type);
+		ib.setAutogenerate(idAnnotation.autogenerate());
 		
 		ib.setArray(field.getType().isArray());
 		ib.setCollection(ReflectionUtil.isCollection(field));
