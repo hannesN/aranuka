@@ -2418,6 +2418,10 @@ public class TopicMapHandler {
 					}
 				} else if (((IdBinding) afb).isAutogenerate()) {
 					String id = "http://aranuka.topicmapslab.de/"+UUID.randomUUID();
+					
+					if ((!afb.isArray()) ||  (!afb.isCollection()))
+						afb.setValue(id, topicObject);
+					
 					identifier.add(id);
 				}
 			}

@@ -548,7 +548,7 @@ public class WriteTest extends AbstractTest {
 	
 	
 	@Test
-	public void generatorTest() throws Exception {
+	public void generatorTest1() throws Exception {
 		Person p = new Person();
 		p.setName("TestPerson");
 		
@@ -558,6 +558,10 @@ public class WriteTest extends AbstractTest {
 		assertNull(p.getIi());
 		
 		this.session.persist(p);
+		
+		assertNotNull(p.getSi());
+		assertNotNull(p.getSl());
+		assertNotNull(p.getIi());
 		
 		Set<Object> persons = this.session.getAll(Person.class);
 		assertEquals(1, persons.size());
