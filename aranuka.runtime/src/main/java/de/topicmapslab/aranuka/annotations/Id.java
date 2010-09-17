@@ -25,4 +25,6 @@ public @interface Id {
 	 * Type of the identifier, default is item identifier. 
 	 */
 	IdType type() default IdType.ITEM_IDENTIFIER;
+	
+	boolean autogenerate() default false;
 }
