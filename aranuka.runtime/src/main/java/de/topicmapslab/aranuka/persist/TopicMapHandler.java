@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.tmapi.core.Association;
 import org.tmapi.core.Construct;
 import org.tmapi.core.Locator;
+import org.tmapi.core.MalformedIRIException;
 import org.tmapi.core.Name;
 import org.tmapi.core.Occurrence;
 import org.tmapi.core.Role;
@@ -47,6 +48,7 @@ import de.topicmapslab.aranuka.binding.NameBinding;
 import de.topicmapslab.aranuka.binding.OccurrenceBinding;
 import de.topicmapslab.aranuka.binding.RoleBinding;
 import de.topicmapslab.aranuka.binding.TopicBinding;
+import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.aranuka.constants.IAranukaIRIs;
 import de.topicmapslab.aranuka.enummerations.AssociationKind;
 import de.topicmapslab.aranuka.enummerations.IdType;
@@ -224,15 +226,15 @@ public class TopicMapHandler {
 	 * @throws ClassNotSpecifiedException
 	 */
 	public Object getObjectBySubjectIdentifier(String si) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
-		
-		Topic topic = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(si));
+		Locator siLoc = getIdentifierLocator(si);
+		Topic topic = getTopicMap().getTopicBySubjectIdentifier(siLoc);
 		
 		if(topic == null)
 			return null;
 		
 		return getObject(topic);
 	}
-	
+
 	/**
 	 * Returns an object for an specific topic identified by an subject locator.
 	 * @param sl - The subject locator as string.
@@ -245,7 +247,7 @@ public class TopicMapHandler {
 	 */
 	public Object getObjectBySubjectLocator(String sl) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 	
-		Topic topic = getTopicMap().getTopicBySubjectLocator(getTopicMap().createLocator(sl));
+		Topic topic = getTopicMap().getTopicBySubjectLocator(getIdentifierLocator(sl));
 		
 		if(topic == null)
 			return null;
@@ -265,7 +267,7 @@ public class TopicMapHandler {
 	 */
 	public Object getObjectByItemIdentifier(String ii) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
-		Construct construct = getTopicMap().getConstructByItemIdentifier(getTopicMap().createLocator(ii));
+		Construct construct = getTopicMap().getConstructByItemIdentifier(getIdentifierLocator(ii));
 		
 		if(construct == null)
 			return null;
@@ -347,6 +349,23 @@ public class TopicMapHandler {
 		topicCache = null;
 	}
 	
+	/**
+	 * Returns the Locator for the identififer. If id is a relative uri the baselocator will be used to resolve the uri.
+	 * @param id
+	 * @return
+	 */
+	protected Locator getIdentifierLocator(String id) {
+		Locator locator = null;
+		try {
+			locator = getTopicMap().createLocator(id);
+		} catch (MalformedIRIException e) {
+			String bl = config.getProperty(IProperties.BASE_LOCATOR);
+			Locator baseLoc = getTopicMap().createLocator(bl);
+			locator = baseLoc.resolve(id);
+		}
+		return locator;
+	}
+
 	/**
 	 * Returns the topic specified by an specific object.
 	 * @param object - The object.
@@ -594,7 +613,7 @@ public class TopicMapHandler {
 			
 			// resolving identifier if possible
 			String resolvedSi = resolveIdentifier(si);
-			Locator resolvedSiLoc = topicMap.createLocator(resolvedSi);
+			Locator resolvedSiLoc = getIdentifierLocator(resolvedSi);
 			for(Map.Entry<Locator, Match> entry:actualSubjectIdentifier.entrySet()){
 	
 				Locator resolvedLocator = resolveIdentifier(entry.getKey());
@@ -609,7 +628,7 @@ public class TopicMapHandler {
 			if(!found){
 				logger.info("Add new subject identifier " + resolvedSi + "based on "+ si);
 				// add new identifier
-				topic.addSubjectIdentifier(getTopicMap().createLocator(resolvedSi));
+				topic.addSubjectIdentifier(getIdentifierLocator(resolvedSi));
 			}
 			
 		}
@@ -2296,7 +2315,7 @@ public class TopicMapHandler {
 		
 		for(String si:subjectIdentifier){
 			
-			topic = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(si));
+			topic = getTopicMap().getTopicBySubjectIdentifier(getIdentifierLocator(si));
 			
 			if(topic != null)
 				return topic;
@@ -2317,7 +2336,7 @@ public class TopicMapHandler {
 		
 		for(String sl:subjectLocator){
 			
-			topic = getTopicMap().getTopicBySubjectLocator(getTopicMap().createLocator(sl));
+			topic = getTopicMap().getTopicBySubjectLocator(getIdentifierLocator(sl));
 			
 			if(topic != null)
 				return topic;
@@ -2339,7 +2358,7 @@ public class TopicMapHandler {
 		for(String ii:itemIdentifier){
 			
 						
-			construct = getTopicMap().getConstructByItemIdentifier(getTopicMap().createLocator(ii));
+			construct = getTopicMap().getConstructByItemIdentifier(getIdentifierLocator(ii));
 
 			if(construct != null){
 				
@@ -2643,13 +2662,13 @@ public class TopicMapHandler {
 		Topic topic = null;
 		
 		if(!subjectIdentifier.isEmpty()){
-			topic = getTopicMap().createTopicBySubjectIdentifier(getTopicMap().createLocator(subjectIdentifier.iterator().next()));
+			topic = getTopicMap().createTopicBySubjectIdentifier(getIdentifierLocator(subjectIdentifier.iterator().next()));
 			
 		}else if(!subjectLocator.isEmpty()){
-			topic = getTopicMap().createTopicBySubjectLocator(getTopicMap().createLocator(subjectLocator.iterator().next()));
+			topic = getTopicMap().createTopicBySubjectLocator(getIdentifierLocator(subjectLocator.iterator().next()));
 			
 		}else if(!itemIdentifier.isEmpty()){
-			topic = getTopicMap().createTopicByItemIdentifier(getTopicMap().createLocator(itemIdentifier.iterator().next()));
+			topic = getTopicMap().createTopicByItemIdentifier(getIdentifierLocator(itemIdentifier.iterator().next()));
 			
 		}else{
 			throw new TopicMapIOException("Cannot create an new topic without an identifier.");
