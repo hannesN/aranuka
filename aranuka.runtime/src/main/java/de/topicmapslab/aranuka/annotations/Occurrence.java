@@ -11,6 +11,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Date;
 
 /**
  * Annotation for an attribute which should be mapped to an occurrence
@@ -23,4 +24,13 @@ public @interface Occurrence {
 	 * The occurrence type. 
 	 */
 	String type() default ""; 
+	
+	/**
+	 * The data type of the occurrence. By default it is based on the
+	 * type of the annotated field. With this attribute the data type 
+	 * can be overridden like, the choice of the {@link Date} mapping
+	 * or the mapping of string containing world coordinates.  
+	 */
+	String datatype() default "";
+	
 }
