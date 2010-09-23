@@ -8,6 +8,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 import de.topicmapslab.aranuka.test.annotations.AnnotationTest;
 import de.topicmapslab.aranuka.test.delete.DeleteTest;
+import de.topicmapslab.aranuka.test.occurrencedatatype.OccDatatypeTest;
 import de.topicmapslab.aranuka.test.read.PrefixReadTest;
 import de.topicmapslab.aranuka.test.read.ReadTest;
 import de.topicmapslab.aranuka.test.update.UpdateTest;
@@ -22,7 +23,7 @@ import de.topicmapslab.aranuka.test.write.WriteTest;
  *
  */
 @RunWith(Suite.class)
-@SuiteClasses({AnnotationTest.class, DeleteTest.class, ReadTest.class, PrefixReadTest.class, UpdateTest.class, WriteTest.class})
+@SuiteClasses({AnnotationTest.class, DeleteTest.class, OccDatatypeTest.class, ReadTest.class, PrefixReadTest.class, UpdateTest.class, WriteTest.class})
 public class AranukaTestSuite {
 
 	/**

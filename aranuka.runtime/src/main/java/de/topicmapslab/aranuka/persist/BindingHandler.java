@@ -695,8 +695,15 @@ public class BindingHandler {
 		ob.setCollection(ReflectionUtil.isCollection(field));
 		ob.setParameterisedType(ReflectionUtil.getGenericType(field));
 
-		ob.setDataType(getXSDDatatype(ReflectionUtil.getGenericType(field)));
-
+		String dt = occurrenceAnnotation.datatype();
+		if (dt.length() == 0)
+			dt = getXSDDatatype(ReflectionUtil.getGenericType(field));
+		else {
+			if (dt.startsWith("xsd:"))
+				dt = "http://www.w3.org/2001/XMLSchema#" + dt.substring(4);
+		}
+		ob.setDataType(dt);
+		
 		// add occurrence to topic binding
 		topicBinding.addFieldBinding(ob);
 
