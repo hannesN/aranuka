@@ -21,5 +21,5 @@ Import-Package: org.apache.commons.beanutils,
  org.tmapi.index;version="2.0.2"
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: de.topicmapslab.aranuka.osgi.RuntimeActivator
-Require-Bundle: de.topicmapslab.tmql4j;bundle-version="2.6.4",
- de.topicmapslab.tmql4j.tmml.extension;bundle-version="1.0.2"
+Require-Bundle: de.topicmapslab.tmql4j;bundle-version="2.6.5",
+ de.topicmapslab.tmql4j.tmml.extension;bundle-version="2.6.5"
