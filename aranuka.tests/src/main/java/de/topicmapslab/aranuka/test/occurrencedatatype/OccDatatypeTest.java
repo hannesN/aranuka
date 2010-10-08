@@ -1,6 +1,9 @@
 package de.topicmapslab.aranuka.test.occurrencedatatype;
 
-import java.text.SimpleDateFormat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
@@ -11,11 +14,8 @@ import org.junit.Test;
 import org.tmapi.core.Occurrence;
 import org.tmapi.core.TopicMap;
 
-import static org.junit.Assert.*;
-
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
-import de.topicmapslab.aranuka.annotations.Topic;
 import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
@@ -43,7 +43,7 @@ public class OccDatatypeTest extends AbstractTest {
 		session = conf.getSession(false);
 
 		city = new City();
-		city.setSi("http://city.de");
+		city.setSi("http://city.de/");
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.DAY_OF_MONTH, 10);
 		cal.set(Calendar.MONTH, 1);
