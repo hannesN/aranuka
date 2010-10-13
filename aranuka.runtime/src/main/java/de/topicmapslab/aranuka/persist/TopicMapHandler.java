@@ -4,6 +4,7 @@
  *  
  * @author Christian Haß
  * @author Hannes Niederhausen
+ * @author Sven Windisch
  ******************************************************************************/
 package de.topicmapslab.aranuka.persist;
 
@@ -37,7 +38,6 @@ import org.tmapi.core.Role;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
-import org.tmapi.index.TypeInstanceIndex;
 
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.binding.AbstractFieldBinding;
@@ -59,10 +59,13 @@ import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
+import de.topicmapslab.tmql4j.common.context.TMQLRuntimeProperties;
 import de.topicmapslab.tmql4j.common.core.exception.TMQLRuntimeException;
 import de.topicmapslab.tmql4j.common.core.runtime.TMQLRuntimeFactory;
 import de.topicmapslab.tmql4j.common.model.runtime.ITMQLRuntime;
 import de.topicmapslab.tmql4j.common.utility.HashUtil;
+import de.topicmapslab.tmql4j.resultprocessing.core.simple.SimpleResultSet;
+import de.topicmapslab.tmql4j.resultprocessing.core.simple.SimpleTupleResult;
 
 
 /**
@@ -76,19 +79,27 @@ public class TopicMapHandler {
 	 * The configuration.
 	 */
 	private Configuration config;
+	
 	/**
 	 * Instance of the binding handler.
 	 */
 	private BindingHandler bindingHandler;
+	
 	/**
 	 * The topic map.
 	 */
 	private TopicMap topicMap;
 	
 	/**
+	 * The TMQL runtime.
+	 */
+	private ITMQLRuntime TMQLRuntime;
+	
+	/**
 	 * Cache for already created topic objects.
 	 */
 	private Map<Object, Topic> topicCache;
+	
 	/**
 	 * Temporary cache for objects created for existing topics.
 	 */
@@ -192,23 +203,25 @@ public class TopicMapHandler {
 			return Collections.emptySet();
 		}
 
-		Topic type = null;
+		Set<Topic> topicInstances = null;
 		
 		for(String id:binding.getIdentifier()){
 			id = resolveIdentifier(id);
-			type = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(id));
-			if(type != null)
+			SimpleResultSet results = runTMQL("// " + id);
+			if (!results.isEmpty()) {
+				// type exists, get instances
+				if (results.get(0, 0) instanceof Topic) {
+					topicInstances = new HashSet<Topic>();
+					topicInstances.add((Topic) results.get(0, 0));
+				} else {
+					topicInstances = results.get(0, 0);
+				}
 				break;
+			}
 		}
 		
-		if(type == null)
+		if(topicInstances == null)
 			return Collections.emptySet();
-		
-		// type exist, get instances
-		TypeInstanceIndex index = getTopicMap().getIndex(TypeInstanceIndex.class);
-		if (!index.isOpen())
-			index.open();
-		Set<Topic> topicInstances = new HashSet<Topic>(index.getTopics(type));
 		
 		Set<Object> instances = getInstancesFromTopics(topicInstances, binding, clazz);
 		
@@ -318,12 +331,8 @@ public class TopicMapHandler {
 			
 			String id = resolveIdentifier(ids.iterator().next());
 			
-			ITMQLRuntime runtime = TMQLRuntimeFactory.newFactory().newRuntime(topicMapSystem, getTopicMap());
-			runtime.getProperties().enableLanguageExtensionTmqlUl(true);
-			
-			
 			String query = "DELETE CASCADE \""+id+"\" << "+axis;
-			runtime.run(query);
+			runTMQL(query);
 			
 			Topic t = getTopicFromCache(object);
 			if (t!=null) {
@@ -366,6 +375,37 @@ public class TopicMapHandler {
 		return locator;
 	}
 
+	/**
+	 * Returns the internal TMQL runtime object with the following properties:
+	 * <ul>
+	 * <li>The language extension <i>Update Language</i> is enabled.</li>
+	 * <li>The class of the result sets is fixed to {@link SimpleResultSet}.</li>
+	 * <li>The class of the result tuples is fixed to {@link SimpleTupleResult}.</li>
+	 * </ul>
+	 * @return The internal TMQL runtime object.
+	 */
+	private ITMQLRuntime getTMQLRuntime() {
+		if (this.TMQLRuntime == null) {
+			this.TMQLRuntime = TMQLRuntimeFactory.newFactory().newRuntime(topicMapSystem, getTopicMap());
+			this.TMQLRuntime.getProperties().enableLanguageExtensionTmqlUl(true);
+			this.TMQLRuntime.getProperties().setProperty(TMQLRuntimeProperties.RESULT_SET_IMPLEMENTATION_CLASS, SimpleResultSet.class.getName());
+			this.TMQLRuntime.getProperties().setProperty(TMQLRuntimeProperties.RESULT_TUPLE_IMPLEMENTATION_CLASS, SimpleTupleResult.class.getName());
+
+		} else {
+			return this.TMQLRuntime;
+		}
+		return this.TMQLRuntime;
+	}
+	
+	/**
+	 * Executes the given query with the internal used TMQL runtime.
+	 * @param query - The TMQL query
+	 * @return The {@link SimpleResultSet} that contains the results of the TMQL run.
+	 */
+	private SimpleResultSet runTMQL (String query) {
+		return (SimpleResultSet) getTMQLRuntime().run(query).getResults();
+	}
+	
 	/**
 	 * Returns the topic specified by an specific object.
 	 * @param object - The object.
