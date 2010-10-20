@@ -66,6 +66,7 @@ import de.topicmapslab.tmql4j.common.model.runtime.ITMQLRuntime;
 import de.topicmapslab.tmql4j.common.utility.HashUtil;
 import de.topicmapslab.tmql4j.resultprocessing.core.simple.SimpleResultSet;
 import de.topicmapslab.tmql4j.resultprocessing.core.simple.SimpleTupleResult;
+import de.topicmapslab.tmql4j.resultprocessing.model.IResult;
 
 
 /**
@@ -193,37 +194,51 @@ public class TopicMapHandler {
 	 */
 	public Set<Object> getTopicsByType(Class<?> clazz) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
+		Set<TopicBinding> bindings = new HashSet<TopicBinding>();
 		TopicBinding binding = null;
 		
+		// get all bindings
 		try{
 			// return empty set if anything goes wrong, i.e. clazz is bad annotated or cast goes wrong... etc....
 			binding = (TopicBinding)getBindingHandler().getBinding(clazz);
+			bindings.add(binding);
+			
+			addChildren(binding, bindings);
+			
 		}
 		catch (Exception e) {
 			return Collections.emptySet();
 		}
 
-		Set<Topic> topicInstances = null;
 		
-		for(String id:binding.getIdentifier()){
-			id = resolveIdentifier(id);
-			SimpleResultSet results = runTMQL("// " + id);
-			if (!results.isEmpty()) {
-				// type exists, get instances
-				if (results.get(0, 0) instanceof Topic) {
-					topicInstances = new HashSet<Topic>();
-					topicInstances.add((Topic) results.get(0, 0));
-				} else {
-					topicInstances = results.get(0, 0);
+		Map<TopicBinding, Set<Topic>> results = new HashMap<TopicBinding, Set<Topic>>();
+		for (TopicBinding tb : bindings) {
+			Set<Topic> topicInstances = new HashSet<Topic>();
+			for(String id:tb.getIdentifier()){
+				id = resolveIdentifier(id);
+				SimpleResultSet rs = runTMQL("// " + id);
+				if (!rs.isEmpty()) {
+					// type exists, get instances
+					for (IResult r : rs) {
+						topicInstances.add((Topic) r.get(0));
+					}
+					
+					break;
 				}
-				break;
 			}
+			if (!topicInstances.isEmpty())
+				results.put(tb, topicInstances);
 		}
 		
-		if(topicInstances == null)
+		if(results.isEmpty())
 			return Collections.emptySet();
 		
-		Set<Object> instances = getInstancesFromTopics(topicInstances, binding, clazz);
+		// get instances
+		Set<Object> instances = new HashSet<Object>();
+		for (Map.Entry<TopicBinding, Set<Topic>> e : results.entrySet()) {
+			
+			instances.addAll(getInstancesFromTopics(e.getValue(), e.getKey()));
+		}
 		
 		return instances;
 	}
@@ -373,6 +388,20 @@ public class TopicMapHandler {
 			locator = baseLoc.resolve(id);
 		}
 		return locator;
+	}
+
+	/**
+	 * Adds the children bindings.
+	 * @param binding the parent binding
+	 * @param bindings a bindings set
+	 */
+	private void addChildren(TopicBinding binding, Set<TopicBinding> bindings) {
+		for (TopicBinding c : binding.getChildren()) {
+			if (!bindings.contains(c)) {
+				bindings.add(c);
+				addChildren(c, bindings);
+			}
+		}
 	}
 
 	/**
@@ -1430,13 +1459,14 @@ public class TopicMapHandler {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
 	 */
-	private Set<Object> getInstancesFromTopics(Set<Topic> topics, TopicBinding binding, Class<?> clazz) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
+	private Set<Object> getInstancesFromTopics(Set<Topic> topics, TopicBinding binding) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException{
 		
 		if(topics.isEmpty())
 			return Collections.emptySet();
 				
 		Set<Object> objects = new HashSet<Object>();
 		
+		Class<?> clazz = getBindingHandler().getClassForBinding(binding);
 		for(Topic topic:topics){
 			
 			objects.add(getInstanceFromTopic(topic, binding, clazz));
