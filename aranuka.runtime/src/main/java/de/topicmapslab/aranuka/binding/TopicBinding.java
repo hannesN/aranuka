@@ -30,6 +30,11 @@ public class TopicBinding extends AbstractClassBinding{
 	 * Binding of the parent class.
 	 */
 	private TopicBinding parent;
+	
+	/**
+	 * Bindings of children.
+	 */
+	private List<TopicBinding> children;
 
 	/**
 	 * List of field bindings which belong to this type class.
@@ -80,7 +85,13 @@ public class TopicBinding extends AbstractClassBinding{
 	 * @param parent - The binding.
 	 */
 	public void setParent(TopicBinding parent) {
+		if (this.parent!=null)
+			this.parent.removeChild(this);
+		
 		this.parent = parent;
+		
+		if (this.parent!=null)
+			this.parent.addChild(this);
 	}
 	
 	/**
@@ -89,6 +100,36 @@ public class TopicBinding extends AbstractClassBinding{
 	 */
 	public TopicBinding getParent(){
 		return this.parent;
+	}
+	
+	/**
+	 * Returns the children bindigns, which means subclasses/subtypes.
+	 * @return
+	 */
+	public List<TopicBinding> getChildren() {
+		if (children==null)
+			return Collections.emptyList();
+		return children;
+	}
+	
+	/**
+	 * Adds a child to the binding.
+	 * @param binding
+	 */
+	public void addChild(TopicBinding binding) {
+		if(children==null)
+			children=new ArrayList<TopicBinding>();
+		children.add(binding);
+	}
+	
+	/**
+	 * Removes a child of the binding.
+	 * 
+	 * @param binding
+	 */
+	public void removeChild(TopicBinding binding) {
+		if(children!=null)
+			children.remove(binding);
 	}
 	
 	/**
