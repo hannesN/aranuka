@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmapi.core.TopicMap;
 
+import de.topicmapslab.aranuka.exception.AranukaException;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
@@ -47,7 +48,7 @@ public class Session {
 	 * @param config - The configuration which creates the session.
 	 * @param lazyBinding - Flag triggering lazyBinding.
 	 */
-	public Session(Configuration config, boolean lazyBinding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{
+	public Session(Configuration config, boolean lazyBinding) throws AranukaException {
 		
 		if(config == null)
 			throw new RuntimeException("Config must not be null."); /// TODO change exception type
@@ -71,7 +72,7 @@ public class Session {
 	 * @throws TopicMapInconsistentException
 	 * @throws TopicMapException
 	 */
-	public void persist(Object topicObject) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException, TopicMapException {
+	public void persist(Object topicObject) throws AranukaException {
 		
 		boolean fireNotification = true; 
 		getTopicMapHandler().persist(topicObject);
@@ -116,8 +117,8 @@ public class Session {
 	 * @throws ClassNotSpecifiedException
 	 * @throws TopicMapException
 	 */
-	public Object getBySubjectIdentifier(String si) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{ //	returns instance of topic with si as subject identifier
-	
+	public Object getBySubjectIdentifier(String si) throws AranukaException { 
+		//	returns instance of topic with si as subject identifier
 		return getTopicMapHandler().getObjectBySubjectIdentifier(si);
 		
 	}
@@ -133,8 +134,8 @@ public class Session {
 	 * @throws ClassNotSpecifiedException
 	 * @throws TopicMapException
 	 */
-	public Object getBySubjectLocator(String sl) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{ //	returns instance of topic with si as subject locator
-	
+	public Object getBySubjectLocator(String sl) throws AranukaException {
+		//	returns instance of topic with si as subject locator
 		return getTopicMapHandler().getObjectBySubjectLocator(sl);
 	}
 	
@@ -150,7 +151,8 @@ public class Session {
 	 * @throws ClassNotSpecifiedException
 	 * @throws TopicMapException
 	 */
-	public Object getByItemIdentifier(String ii) throws TopicMapIOException, TopicMapInconsistentException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{ //	returns instance of topic with si as item identifier
+	public Object getByItemIdentifier(String ii) throws AranukaException {
+		//	returns instance of topic with si as item identifier
 		
 		return getTopicMapHandler().getObjectByItemIdentifier(ii);
 	}
@@ -167,7 +169,7 @@ public class Session {
 	 * @throws NoSuchMethodException 
 	 * @throws BadAnnotationException 
 	 */
-	public boolean remove(Object object) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{
+	public boolean remove(Object object) throws AranukaException{
 		
 		boolean result = getTopicMapHandler().removeTopic(object);
 		
@@ -187,12 +189,13 @@ public class Session {
 	
 	/**
 	 * Returns the topic map.
+	 * @throws AranukaException 
 	 */
-	public TopicMap getTopicMap(){
+	public TopicMap getTopicMap() {
 		
 		try {
 			return getTopicMapHandler().getTopicMap();
-		} catch (TopicMapException e) {
+		} catch (AranukaException e) {
 			return null;
 		}
 		
@@ -264,7 +267,7 @@ public class Session {
 	 * Creates a new on of not existing.
 	 * @return The topic maps handler.
 	 */
- 	private TopicMapHandler getTopicMapHandler() throws TopicMapException{
+ 	private TopicMapHandler getTopicMapHandler() throws AranukaException {
 
  		if(this.topicMapHandler == null) {
  			this.topicMapHandler = new TopicMapHandler(this.config, this.config.getConnector().createTopicMap());

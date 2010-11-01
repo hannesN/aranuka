@@ -12,11 +12,6 @@ import org.junit.Before;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
-import de.topicmapslab.aranuka.exception.BadAnnotationException;
-import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
-import de.topicmapslab.aranuka.exception.TopicMapException;
-import de.topicmapslab.aranuka.exception.TopicMapIOException;
-import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.test.AbstractTest;
 
 /**
@@ -31,7 +26,7 @@ public class DeleteTest extends AbstractTest {
 	private Session session;
 
 	@Before
-	public void setUp() throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException, TopicMapIOException, TopicMapInconsistentException {
+	public void setUp() throws Exception {
 		Configuration conf = new Configuration();
 		conf.setProperties(getProperties());
 		

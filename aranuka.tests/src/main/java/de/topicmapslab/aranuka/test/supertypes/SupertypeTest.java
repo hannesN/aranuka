@@ -3,8 +3,6 @@ package de.topicmapslab.aranuka.test.supertypes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.Set;
 
 import org.junit.After;
@@ -16,17 +14,11 @@ import org.tmapi.core.Name;
 import org.tmapi.core.Role;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
-import org.tmapix.io.XTM2TopicMapWriter;
-import org.tmapix.io.XTMVersion;
 
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
-import de.topicmapslab.aranuka.exception.BadAnnotationException;
-import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
-import de.topicmapslab.aranuka.exception.TopicMapException;
-import de.topicmapslab.aranuka.exception.TopicMapIOException;
-import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
+import de.topicmapslab.aranuka.exception.AranukaException;
 import de.topicmapslab.aranuka.test.AbstractTest;
 
 public class SupertypeTest extends AbstractTest {
@@ -41,9 +33,7 @@ public class SupertypeTest extends AbstractTest {
 	private Lamp lamp;
 
 	@Before
-	public void setup() throws BadAnnotationException, NoSuchMethodException,
-			ClassNotSpecifiedException, TopicMapException, TopicMapIOException,
-			TopicMapInconsistentException, InterruptedException {
+	public void setup() throws AranukaException {
 		Configuration conf = new Configuration();
 		conf.setProperties(getProperties());
 
