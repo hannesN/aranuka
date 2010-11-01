@@ -324,42 +324,48 @@ public class BindingHandler {
 		Map<String, Integer> occCounter = new HashMap<String, Integer>();
 		Map<String, Integer> nameCounter = new HashMap<String, Integer>();
 
+		TopicBinding currBinding = binding;
+		
 		// count construct occurrences
-		for (AbstractFieldBinding fb : binding.getFieldBindings()) {
-			if (fb instanceof IdBinding) {
 
-				int count = 0;
-				if (idCounter.get(((IdBinding) fb).getIdtype()) != null)
-					count = idCounter.get(((IdBinding) fb).getIdtype());
-				count++;
-				idCounter.put(((IdBinding) fb).getIdtype(), count);
-
-			} else if (fb instanceof OccurrenceBinding) {
-
-				String resolvedType = TopicMapsUtils.resolveURI(
-						((OccurrenceBinding) fb).getOccurrenceType(),
-						config.getPrefixMap());
-
-				int count = 0;
-				if (occCounter.get(resolvedType) != null)
-					count = occCounter.get(resolvedType);
-				count++;
-				occCounter.put(resolvedType, count);
-
-			} else if (fb instanceof NameBinding) {
-
-				String resolvedType = TopicMapsUtils
-						.resolveURI(((NameBinding) fb).getNameType(),
-								config.getPrefixMap());
-
-				int count = 0;
-				if (nameCounter.get(resolvedType) != null)
-					count = nameCounter.get(resolvedType);
-				count++;
-				nameCounter.put(resolvedType, count);
+		while (currBinding!=null) {
+			for (AbstractFieldBinding fb : currBinding.getFieldBindings()) {
+				if (fb instanceof IdBinding) {
+	
+					int count = 0;
+					if (idCounter.get(((IdBinding) fb).getIdtype()) != null)
+						count = idCounter.get(((IdBinding) fb).getIdtype());
+					count++;
+					idCounter.put(((IdBinding) fb).getIdtype(), count);
+	
+				} else if (fb instanceof OccurrenceBinding) {
+	
+					String resolvedType = TopicMapsUtils.resolveURI(
+							((OccurrenceBinding) fb).getOccurrenceType(),
+							config.getPrefixMap());
+	
+					int count = 0;
+					if (occCounter.get(resolvedType) != null)
+						count = occCounter.get(resolvedType);
+					count++;
+					occCounter.put(resolvedType, count);
+	
+				} else if (fb instanceof NameBinding) {
+	
+					String resolvedType = TopicMapsUtils
+							.resolveURI(((NameBinding) fb).getNameType(),
+									config.getPrefixMap());
+	
+					int count = 0;
+					if (nameCounter.get(resolvedType) != null)
+						count = nameCounter.get(resolvedType);
+					count++;
+					nameCounter.put(resolvedType, count);
+				}
 			}
+			currBinding = currBinding.getParent();
 		}
-
+		
 		// check of not identifier
 		if (idCounter.isEmpty())
 			throw new BadAnnotationException("Topic class " + clazz.getName()
