@@ -11,7 +11,8 @@ import de.topicmapslab.aranuka.test.delete.DeleteTest;
 import de.topicmapslab.aranuka.test.occurrencedatatype.OccDatatypeTest;
 import de.topicmapslab.aranuka.test.read.PrefixReadTest;
 import de.topicmapslab.aranuka.test.read.ReadTest;
-import de.topicmapslab.aranuka.test.transitive.TransenTest;
+import de.topicmapslab.aranuka.test.supertypes.SupertypeTest;
+import de.topicmapslab.aranuka.test.transitive.TransientTest;
 import de.topicmapslab.aranuka.test.update.UpdateTest;
 import de.topicmapslab.aranuka.test.write.WriteTest;
 
@@ -24,7 +25,7 @@ import de.topicmapslab.aranuka.test.write.WriteTest;
  *
  */
 @RunWith(Suite.class)
-@SuiteClasses({AnnotationTest.class, DeleteTest.class, OccDatatypeTest.class, ReadTest.class, PrefixReadTest.class, UpdateTest.class, WriteTest.class, TransenTest.class})
+@SuiteClasses({AnnotationTest.class, DeleteTest.class, OccDatatypeTest.class, ReadTest.class, PrefixReadTest.class, UpdateTest.class, WriteTest.class, SupertypeTest.class, TransientTest.class})
 public class AranukaTestSuite {
 
 	/**

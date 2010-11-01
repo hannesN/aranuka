@@ -631,6 +631,24 @@ public class TopicMapHandler {
 		if(binding.getName() != null)
 			type.createName(binding.getName());
 		
+		if (binding.getParent()!=null) {
+			Topic superType = getTopicType(binding.getParent());
+			
+			// create the supertype association topics
+			Locator l = getTopicMap().createLocator("http://psi.topicmaps.org/iso13250/model/supertype-subtype");
+			Topic assocType = getTopicMap().createTopicBySubjectIdentifier(l);
+			
+			l = getTopicMap().createLocator("http://psi.topicmaps.org/iso13250/model/subtype");
+			Topic subTypeRole = getTopicMap().createTopicBySubjectIdentifier(l);
+			
+			l = getTopicMap().createLocator("http://psi.topicmaps.org/iso13250/model/supertype");
+			Topic superTypeRole = getTopicMap().createTopicBySubjectIdentifier(l);
+			
+			Association assoc = getTopicMap().createAssociation(assocType);
+			assoc.createRole(superTypeRole, superType);
+			assoc.createRole(subTypeRole, type);
+		}
+		
 		return type;
 	}
 	

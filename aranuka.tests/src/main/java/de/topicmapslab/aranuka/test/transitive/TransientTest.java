@@ -18,7 +18,7 @@ import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.test.AbstractTest;
 
-public class TransenTest extends AbstractTest{
+public class TransientTest extends AbstractTest{
 
 	private Session session;
 
