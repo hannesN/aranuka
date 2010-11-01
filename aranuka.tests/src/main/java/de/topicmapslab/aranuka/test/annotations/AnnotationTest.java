@@ -8,7 +8,7 @@ import org.junit.Test;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
-import de.topicmapslab.aranuka.exception.BadAnnotationException;
+import de.topicmapslab.aranuka.exception.AranukaException;
 import de.topicmapslab.aranuka.test.AbstractTest;
 
 public class AnnotationTest extends AbstractTest {
@@ -47,7 +47,7 @@ public class AnnotationTest extends AbstractTest {
 
 	}
 
-	@Test(expected = BadAnnotationException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase02() throws Exception {
 
 		// TopicType02 has no identifier fields
@@ -58,7 +58,7 @@ public class AnnotationTest extends AbstractTest {
 
 	}
 
-	@Test(expected = BadAnnotationException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase03() throws Exception {
 
 		// class is not @Topic annotated
@@ -67,7 +67,7 @@ public class AnnotationTest extends AbstractTest {
 		Session session = this.config.getSession(false);
 	}
 
-	@Test(expected = BadAnnotationException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase04() throws Exception {
 
 		// has too many subject identifier
@@ -76,7 +76,7 @@ public class AnnotationTest extends AbstractTest {
 		Session session = this.config.getSession(false);
 	}
 
-	@Test(expected = BadAnnotationException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase05() throws Exception {
 
 		// has too many subject locator
@@ -85,7 +85,7 @@ public class AnnotationTest extends AbstractTest {
 		Session session = this.config.getSession(false);
 	}
 
-	@Test(expected = BadAnnotationException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase06() throws Exception {
 
 		// has too many item identifier
@@ -94,7 +94,7 @@ public class AnnotationTest extends AbstractTest {
 		Session session = this.config.getSession(false);
 	}
 
-	@Test(expected = BadAnnotationException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase07() throws Exception {
 
 		// name is not of type string
@@ -103,7 +103,7 @@ public class AnnotationTest extends AbstractTest {
 		Session session = this.config.getSession(false);
 	}
 
-	@Test(expected = NoSuchMethodException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase08() throws Exception {
 
 		// field has no setter
@@ -112,7 +112,7 @@ public class AnnotationTest extends AbstractTest {
 		Session session = this.config.getSession(false);
 	}
 
-	@Test(expected = NoSuchMethodException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase09() throws Exception {
 
 		// field has no getter
@@ -121,7 +121,7 @@ public class AnnotationTest extends AbstractTest {
 		Session session = this.config.getSession(false);
 	}
 
-	@Test(expected = BadAnnotationException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase10() throws Exception {
 
 		// two name fields have the same type
@@ -130,7 +130,7 @@ public class AnnotationTest extends AbstractTest {
 		Session session = this.config.getSession(false);
 	}
 	
-	@Test(expected = BadAnnotationException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase11() throws Exception {
 
 		// two occurrence fields have the same type
@@ -139,7 +139,7 @@ public class AnnotationTest extends AbstractTest {
 		Session session = this.config.getSession(false);
 	}
 	
-	@Test(expected = BadAnnotationException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase12() throws Exception {
 
 		// field type of an unary association is not boolean
@@ -149,7 +149,7 @@ public class AnnotationTest extends AbstractTest {
 		
 	}
 
-	@Test(expected = BadAnnotationException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase13() throws Exception {
 
 		// counter player of an non unary association is not @Topic or @AssociationContainer annotated
@@ -158,7 +158,7 @@ public class AnnotationTest extends AbstractTest {
 		Session session = this.config.getSession(false);
 	}
 	
-	@Test(expected = BadAnnotationException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase14() throws Exception {
 
 		// association container has no roles
@@ -167,7 +167,7 @@ public class AnnotationTest extends AbstractTest {
 		Session session = this.config.getSession(false);
 	}
 	
-	@Test(expected = BadAnnotationException.class)
+	@Test(expected = AranukaException.class)
 	public void testCase15() throws Exception {
 
 		// association container has a not @Role annotated field
