@@ -70,23 +70,13 @@ public class OntopiaDBTest extends AranukaTestSuite {
 	@AfterClass
 	public static void dropDB() {
 		try {
+			// Initializing the database for the h2 test
+			String db = getProperties().getProperty(IProperties.DATABASE_HOST);
 			
-			DeleteDbFiles.execute("/tmp", "aranukatest", true);
+			String dbDir = db.substring(0, db.lastIndexOf('/'));
+			String dbname = db.substring(db.lastIndexOf('/')+1);
 			
-//			Class.forName("org.h2.Driver");
-//			Connection conn = DriverManager.getConnection("jdbc:h2:/tmp/h2/test",
-//					"sa", "");
-//
-//			InputStream is = conn.getClass().getClassLoader().getResourceAsStream("h2.drop.sql");
-//			
-//			ScriptReader reader = new ScriptReader(new InputStreamReader(is));
-//			Statement stm = conn.createStatement();
-//			String sql = reader.readStatement();
-//			while (sql!=null) {
-//				stm.execute(sql);
-//				sql = reader.readStatement();
-//			}
-//			conn.close();
+			DeleteDbFiles.execute(dbDir, dbname, true);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

@@ -2,6 +2,7 @@ package de.topicmapslab.aranuka.test.supertypes;
 
 import de.topicmapslab.aranuka.annotations.Association;
 import de.topicmapslab.aranuka.annotations.Id;
+import de.topicmapslab.aranuka.annotations.Name;
 import de.topicmapslab.aranuka.annotations.Topic;
 import de.topicmapslab.aranuka.enummerations.IdType;
 
@@ -13,6 +14,9 @@ public class Person {
 	
 	@Association(type="http://test.de/owns", played_role="http://test.de/owner", other_role="http://test.de/owned")
 	private Thing thing;
+	
+	@Name
+	private String name;
 
 	public String getId() {
 		return id;
@@ -30,7 +34,12 @@ public class Person {
 		this.thing = thing;
 	}
 	
+	public void setName(String name) {
+		this.name = name;
+	}
 	
-	
+	public String getName() {
+		return name;
+	}
 
 }

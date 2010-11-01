@@ -23,7 +23,7 @@ import org.tmapi.core.TopicMap;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
-import de.topicmapslab.aranuka.exception.TopicMapIOException;
+import de.topicmapslab.aranuka.exception.AranukaException;
 import de.topicmapslab.aranuka.test.AbstractTest;
 
 public class WriteTest extends AbstractTest {
@@ -83,7 +83,7 @@ public class WriteTest extends AbstractTest {
 
 	}
 
-	@Test(expected=TopicMapIOException.class)
+	@Test(expected=AranukaException.class)
 	public void testCase02() throws Exception {
 
 		// persist a simple topic without identifier

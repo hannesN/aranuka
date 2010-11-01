@@ -1305,9 +1305,8 @@ public class TopicMapHandler {
 				// get binding for counter player
 				TopicBinding tb = (TopicBinding) bindingHandler.getBinding(associationObject.getClass());
 
-				if (checkBinding(tb, binding.getOtherPlayerBinding())) {
-					throw new AranukaException(
-							"Binding of player is neither binding of association player nor a subtype of it");
+				if (!checkBinding(tb, binding.getOtherPlayerBinding())) {
+					throw new AranukaException("Binding of player is neither binding of association player nor a subtype of it");
 				}
 
 				counterPlayer = createTopicByIdentifier(associationObject, tb);
@@ -1401,8 +1400,7 @@ public class TopicMapHandler {
 	 * @throws TopicMapIOException
 	 */
 	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects,
-			Map<Role, Match> playedRoles, List<Object> topicObjects) throws BadAnnotationException,
-			NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException {
+			Map<Role, Match> playedRoles, List<Object> topicObjects) throws Exception {
 
 		Topic associationType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getAssociationType(),
 				this.config.getPrefixMap()));
@@ -1411,9 +1409,7 @@ public class TopicMapHandler {
 
 		Set<Topic> scope = binding.getScope(getTopicMap());
 
-		for (Object associationObject : associationObjects) { // check each
-																// nnary
-																// association
+		for (Object associationObject : associationObjects) { // check each nnary association
 
 			if (associationObject == null)
 				continue; // skip when the association object is null
@@ -1613,8 +1609,7 @@ public class TopicMapHandler {
 	 *             TODO add recursive call to get roles from superclasses as well.
 	 */
 	@SuppressWarnings("unchecked")
-	private Map<Topic, Set<Topic>> getRolesFromContainer(Object associationContainerInstance)
-			throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException {
+	private Map<Topic, Set<Topic>> getRolesFromContainer(Object associationContainerInstance) throws Exception {
 
 		Map<Topic, Set<Topic>> result = new HashMap<Topic, Set<Topic>>();
 
@@ -1637,26 +1632,20 @@ public class TopicMapHandler {
 
 					for (Object obj : (Object[]) roleBinding.getValue(associationContainerInstance)) {
 
-						Topic topic = createTopicByIdentifier(obj, roleBinding.getPlayerBinding());
-						topic.addType(getTopicType(roleBinding.getPlayerBinding()));
-						player.add(topic);
+						createPlayer(roleBinding, player, obj);
 					}
 
 				} else if (roleBinding.isCollection()) {
 
 					for (Object obj : (Collection<Object>) roleBinding.getValue(associationContainerInstance)) {
 
-						Topic topic = createTopicByIdentifier(obj, roleBinding.getPlayerBinding());
-						topic.addType(getTopicType(roleBinding.getPlayerBinding()));
-						player.add(topic);
+						createPlayer(roleBinding, player, obj);
 					}
 
 				} else {
 
-					Topic topic = createTopicByIdentifier(roleBinding.getValue(associationContainerInstance),
-							roleBinding.getPlayerBinding());
-					topic.addType(getTopicType(roleBinding.getPlayerBinding()));
-					player.add(topic);
+					Object obj = roleBinding.getValue(associationContainerInstance);
+					createPlayer(roleBinding, player, obj);
 				}
 			}
 
@@ -1664,6 +1653,28 @@ public class TopicMapHandler {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Creates a player according to a role binding and sets the type.
+	 * It takes to account that the type of the given object may be a subtype of the type of the rolebinding.
+	 * @param roleBinding
+	 * @param player
+	 * @param obj
+	 * @throws Exception
+	 */
+	private void createPlayer(RoleBinding roleBinding, Set<Topic> player, Object obj) throws Exception {
+		// get binding for Object
+		TopicBinding tb = (TopicBinding) bindingHandler.getBinding(obj.getClass());
+		
+		if (!checkBinding(tb, roleBinding.getPlayerBinding())) {
+			throw new AranukaException("Binding of player is neither binding of association player nor a subtype of it");
+		}
+		
+		
+		Topic topic = createTopicByIdentifier(obj, tb);
+		topic.addType(getTopicType(tb));
+		player.add(topic);
 	}
 
 	/**
@@ -2348,11 +2359,6 @@ public class TopicMapHandler {
 	 *            - The object.
 	 * @param associationBinding
 	 *            - The association binding.
-	 * @throws TopicMapIOException
-	 * @throws TopicMapInconsistentException
-	 * @throws BadAnnotationException
-	 * @throws NoSuchMethodException
-	 * @throws ClassNotSpecifiedException
 	 */
 	private void addNnaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws Exception {
 
@@ -2361,8 +2367,7 @@ public class TopicMapHandler {
 
 		// get role type
 		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(
-				getTopicMap().createLocator(
-						TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(), this.config.getPrefixMap())));
+				getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(), this.config.getPrefixMap())));
 
 		if (roleType == null)
 			return;
@@ -2373,11 +2378,8 @@ public class TopicMapHandler {
 			return;
 
 		// get association type
-		Topic associationType = getTopicMap()
-				.getTopicBySubjectIdentifier(
-						getTopicMap().createLocator(
-								TopicMapsUtils.resolveURI(associationBinding.getAssociationType(),
-										this.config.getPrefixMap())));
+		Topic associationType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(
+								TopicMapsUtils.resolveURI(associationBinding.getAssociationType(), this.config.getPrefixMap())));
 
 		if (associationType == null)
 			return;
@@ -2614,8 +2616,7 @@ public class TopicMapHandler {
 
 		for (RoleBinding roleBinding : containerBinding.getRoleBindings()) {
 
-			Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(roleBinding.getRoleType(),
-					this.config.getPrefixMap()));
+			Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(roleBinding.getRoleType(), this.config.getPrefixMap()));
 			types.add(roleType);
 		}
 

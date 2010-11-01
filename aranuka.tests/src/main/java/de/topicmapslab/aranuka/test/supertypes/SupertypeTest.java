@@ -3,6 +3,8 @@ package de.topicmapslab.aranuka.test.supertypes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Set;
 
 import org.junit.After;
@@ -14,12 +16,15 @@ import org.tmapi.core.Name;
 import org.tmapi.core.Role;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
+import org.tmapix.io.XTM2TopicMapWriter;
+import org.tmapix.io.XTMVersion;
 
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.aranuka.exception.AranukaException;
 import de.topicmapslab.aranuka.test.AbstractTest;
+import de.topicmapslab.aranuka.test.supertypes.Place.AssocContainer;
 
 public class SupertypeTest extends AbstractTest {
 
@@ -39,6 +44,7 @@ public class SupertypeTest extends AbstractTest {
 
 		conf.addClass(Thing.class);
 		conf.addClass(Person.class);
+		conf.addClass(Place.class);
 		conf.addClass(Lamp.class);
 		conf.setProperty(IProperties.BASE_LOCATOR,
 				"http://test.aranuka.de/testcase_delete");
@@ -156,16 +162,42 @@ public class SupertypeTest extends AbstractTest {
 	
 	@Test
 	public void testAssociation() throws Exception {
-		Person p = new Person();
-		p.setThing(lamp);
+		Person p = getPerson();
 		
 		session.persist(p);
-		
 		
 		instance();
 		
 	}
 
+	@Test
+	public void nNaray() throws Exception {
+		Person p = getPerson();
+		
+		Place place = new Place();
+		place.setName("Place");
+		
+		AssocContainer assocContainer = new AssocContainer();
+		place.setOwners(assocContainer);
+		assocContainer.setOwner(p);
+		assocContainer.setThing(lamp);
+		
+		session.persist(place);
+		
+		XTM2TopicMapWriter w = new XTM2TopicMapWriter(new FileOutputStream(
+				new File("/tmp/test.xtm")), baseLocator.toExternalForm(),
+				XTMVersion.XTM_2_1);
+		w.write(topicMap);
+		
+		instance();
+	}
+
+	private Person getPerson() {
+		Person p = new Person();
+		p.setThing(lamp);
+		p.setName("Heinz");
+		return p;
+	}
 	
 	
 }
