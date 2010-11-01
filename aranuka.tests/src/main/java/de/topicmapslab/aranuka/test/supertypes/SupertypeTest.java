@@ -174,8 +174,6 @@ public class SupertypeTest extends AbstractTest {
 		
 		instance();
 		
-		XTM2TopicMapWriter w = new XTM2TopicMapWriter(new FileOutputStream(new File("/tmp/test.xtm")), baseLocator.toExternalForm(), XTMVersion.XTM_2_1);
-		w.write(topicMap);
 	}
 
 	
