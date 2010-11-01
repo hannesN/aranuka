@@ -17,11 +17,7 @@ import org.tmapi.core.TopicMap;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
-import de.topicmapslab.aranuka.exception.BadAnnotationException;
-import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
-import de.topicmapslab.aranuka.exception.TopicMapIOException;
-import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.test.AbstractTest;
 
 public class OccDatatypeTest extends AbstractTest {
@@ -30,8 +26,7 @@ public class OccDatatypeTest extends AbstractTest {
 	private City city;
 
 	@Before
-	public void setUp() throws BadAnnotationException, NoSuchMethodException,
-			ClassNotSpecifiedException, TopicMapException {
+	public void setUp() throws Exception {
 		Configuration conf = new Configuration();
 		conf.setProperties(getProperties());
 
@@ -66,9 +61,7 @@ public class OccDatatypeTest extends AbstractTest {
 	}
 
 	@Test
-	public void testCityOccurrences() throws BadAnnotationException,
-			NoSuchMethodException, ClassNotSpecifiedException,
-			TopicMapIOException, TopicMapInconsistentException,
+	public void testCityOccurrences() throws Exception,
 			TopicMapException {
 		Set<Object> cities = session.getAll(City.class);
 		assertEquals(0, cities.size());

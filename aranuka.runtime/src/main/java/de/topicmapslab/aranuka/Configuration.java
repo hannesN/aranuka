@@ -16,6 +16,7 @@ import java.util.Set;
 
 import de.topicmapslab.aranuka.connectors.IEngineConnector;
 import de.topicmapslab.aranuka.connectors.IProperties;
+import de.topicmapslab.aranuka.exception.AranukaException;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapException;
@@ -163,7 +164,7 @@ public class Configuration {
 	 * @throws ClassNotSpecifiedException
 	 * @throws TopicMapException
 	 */
-	public Session getSession(boolean lasyBinding) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException{
+	public Session getSession(boolean lasyBinding) throws AranukaException {
 		
 		if(this.session == null)
 			this.session = new Session(this, lasyBinding);

@@ -11,11 +11,6 @@ import org.junit.Test;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
-import de.topicmapslab.aranuka.exception.BadAnnotationException;
-import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
-import de.topicmapslab.aranuka.exception.TopicMapException;
-import de.topicmapslab.aranuka.exception.TopicMapIOException;
-import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.test.AbstractTest;
 
 public class TransientTest extends AbstractTest{
@@ -23,7 +18,7 @@ public class TransientTest extends AbstractTest{
 	private Session session;
 
 	@Before
-	public void setup() throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException, TopicMapIOException, TopicMapInconsistentException, InterruptedException {
+	public void setup() throws Exception {
 		Configuration conf = new Configuration();
 		conf.setProperties(getProperties());
 		
@@ -49,7 +44,7 @@ public class TransientTest extends AbstractTest{
 	
 
 	@Test
-	public void testNumberOfSubClasses() throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException, TopicMapException {
+	public void testNumberOfSubClasses() throws Exception {
 		Set<Object> tmp = session.getAll(SubKlasse.class);
 		assertEquals(5, tmp.size());
 		
@@ -66,7 +61,7 @@ public class TransientTest extends AbstractTest{
 	}
 	
 	@Test
-	public void testNumberOfMiniClasses() throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapIOException, TopicMapInconsistentException, TopicMapException {
+	public void testNumberOfMiniClasses() throws Exception {
 		Set<Object> tmp = session.getAll(SubKlasse.class);
 		assertEquals(5, tmp.size());
 		
