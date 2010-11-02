@@ -160,9 +160,17 @@ public class SupertypeTest extends AbstractTest {
 	public void testAssociation() throws Exception {
 		Person p = getPerson();
 		
+		session.persist(lamp);
 		session.persist(p);
-		
 		instance();
+		
+		Person p2 = (Person) session.getByItemIdentifier(p.getId());
+		
+		assertEquals(p.getId(), p2.getId());
+		assertEquals(p.getName(), p2.getName());
+		assertEquals(p.getThing(), p2.getThing());
+		
+		
 		
 	}
 
@@ -179,8 +187,13 @@ public class SupertypeTest extends AbstractTest {
 		assocContainer.setThing(lamp);
 		
 		session.persist(place);
-		
 		instance();
+		
+		Place pl2 = (Place) session.getBySubjectIdentifier(place.getSi());
+		
+		assertEquals(assocContainer, pl2.getOwners());
+		
+		assertEquals(place, pl2);
 	}
 
 	private Person getPerson() {

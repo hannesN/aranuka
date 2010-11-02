@@ -5,11 +5,7 @@ import model.Person;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
-import de.topicmapslab.aranuka.exception.BadAnnotationException;
-import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
-import de.topicmapslab.aranuka.exception.TopicMapException;
-import de.topicmapslab.aranuka.exception.TopicMapIOException;
-import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
+import de.topicmapslab.aranuka.exception.AranukaException;
 import de.topicmapslab.aranuka.tinytim.connectors.TinyTiMConnector;
 
 
@@ -21,7 +17,7 @@ import de.topicmapslab.aranuka.tinytim.connectors.TinyTiMConnector;
  */
 public class Test {
 
-	public static void main(String[] args) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException, TopicMapException, TopicMapIOException, TopicMapInconsistentException {
+	public static void main(String[] args) throws AranukaException {
 		// create configuration with tinyTiM connector
 		Configuration conf = new Configuration();
 		

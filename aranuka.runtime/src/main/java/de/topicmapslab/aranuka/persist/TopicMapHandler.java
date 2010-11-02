@@ -11,6 +11,7 @@ package de.topicmapslab.aranuka.persist;
 import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -2275,6 +2276,8 @@ public class TopicMapHandler {
 
 		if (counterPlayerType == null)
 			return;
+		
+		String counterPlayerSI = associationBinding.getOtherPlayerBinding().getIdentifier().iterator().next();
 
 		// get matching roles
 		Set<Role> matchingRoles = new HashSet<Role>();
@@ -2284,8 +2287,8 @@ public class TopicMapHandler {
 			if (role.getParent().getType().equals(associationType)
 					&& role.getParent().getRoles().size() == 2
 					&& TopicMapsUtils.getCounterRole(role.getParent(), role).getType().equals(counterPlayerRoleType)
-					&& TopicMapsUtils.getCounterRole(role.getParent(), role).getPlayer().getTypes()
-							.contains(counterPlayerType)) {
+					&& isTypeOf(TopicMapsUtils.getCounterRole(role.getParent(), role).getPlayer(), counterPlayerSI)) 
+			{
 
 				matchingRoles.add(role);
 			}
@@ -2293,9 +2296,16 @@ public class TopicMapHandler {
 
 		if (matchingRoles.isEmpty())
 			return;
-
+		
+		// get real binding of counterplayer
+		Role matchingRole = matchingRoles.iterator().next();
+		counterPlayerType = TopicMapsUtils.getCounterRole(matchingRole.getParent(), 
+						matchingRole).getPlayer().getTypes().iterator().next();
+		
+		TopicBinding counterlayerBinding = getBindingForType(counterPlayerType);
+		
 		// get class type of counter player
-		Class<?> counterClass = getBindingHandler().getClassForBinding(associationBinding.getOtherPlayerBinding());
+		Class<?> counterClass = getBindingHandler().getClassForBinding(counterlayerBinding);
 
 		if (counterClass == null)
 			throw new TopicMapIOException("Unable to resolve counter player type ");
@@ -2307,7 +2317,7 @@ public class TopicMapHandler {
 
 			Object counterPlayer = getInstanceFromTopic(
 					TopicMapsUtils.getCounterRole(matchingRoles.iterator().next().getParent(),
-							matchingRoles.iterator().next()).getPlayer(), associationBinding.getOtherPlayerBinding(),
+							matchingRoles.iterator().next()).getPlayer(), counterlayerBinding,
 					counterClass);
 
 			associationBinding.setValue(counterPlayer, object);
@@ -2547,8 +2557,8 @@ public class TopicMapHandler {
 
 			for (Topic topic : counterTopics) {
 
-				Object obj = getInstanceFromTopic(topic, (TopicBinding) getBindingHandler().getBinding(playerClass),
-						playerClass);
+				TopicBinding typeBinding = getBindingForType(topic.getTypes().iterator().next());
+				Object obj = getInstanceFromTopic(topic, (TopicBinding) typeBinding, bindingHandler.getClassForBinding(typeBinding));
 				counterObjects.add(obj);
 			}
 
@@ -3283,5 +3293,36 @@ public class TopicMapHandler {
 			result.createName(name);
 
 		return result;
+	}
+	
+	
+	private boolean isTypeOf(Topic instance, String checkedTypeSI) {
+		String query = "%pragma taxonometry tm:transitive"
+				+ " fn:count(" 
+				+ TopicMapsUtils.getTMQLIdentifierString(instance)
+				+ " >> types ==  \""+ checkedTypeSI +"\" << indicators) ";
+		
+		SimpleResultSet rs = runTMQL(query);
+		BigInteger count = rs.get(0,0);
+		
+		return (count.intValue()==1);
+	}
+	
+	
+	/**
+	 * Returns the topic binding which contains a si of the given topic
+	 * @param counterPlayerType
+	 * @return
+	 */
+	public TopicBinding getBindingForType(org.tmapi.core.Topic counterPlayerType) {
+		
+		for (TopicBinding tb : bindingHandler.getAllTopicBindings()) {
+			String si = counterPlayerType.getSubjectIdentifiers().iterator().next().toExternalForm();
+			for (String s : tb.getIdentifier()) {
+				if (resolveIdentifier(s).equals(si))
+					return tb;
+			}
+		}
+		return null;
 	}
 }

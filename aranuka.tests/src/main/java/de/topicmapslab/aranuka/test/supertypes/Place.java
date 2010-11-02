@@ -11,13 +11,13 @@ import de.topicmapslab.aranuka.enummerations.IdType;
 @Topic(subject_identifier = "http://test.de/place")
 public class Place {
 
-	@Id(type = IdType.SUBJECT_IDENTIFIER, autogenerate=true)
+	@Id(type = IdType.SUBJECT_IDENTIFIER, autogenerate = true)
 	private String si;
 
 	@Name
 	private String name;
 
-	@Association(type = "http://test.de/owners", played_role = "http://test.de/owner_place", persistOnCascade=true)
+	@Association(type = "http://test.de/owners", played_role = "http://test.de/owner_place", persistOnCascade = true)
 	private AssocContainer owners;
 
 	public String getSi() {
@@ -44,6 +44,47 @@ public class Place {
 		this.owners = owners;
 	}
 
+	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((owners == null) ? 0 : owners.hashCode());
+		result = prime * result + ((si == null) ? 0 : si.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Place other = (Place) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (owners == null) {
+			if (other.owners != null)
+				return false;
+		} else if (!owners.equals(other.owners))
+			return false;
+		if (si == null) {
+			if (other.si != null)
+				return false;
+		} else if (!si.equals(other.si))
+			return false;
+		return true;
+	}
+
+
+
 	@AssociationContainer
 	public static class AssocContainer {
 
@@ -67,6 +108,37 @@ public class Place {
 
 		public void setOwner(Person owner) {
 			this.owner = owner;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((owner == null) ? 0 : owner.hashCode());
+			result = prime * result + ((thing == null) ? 0 : thing.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			AssocContainer other = (AssocContainer) obj;
+			if (owner == null) {
+				if (other.owner != null)
+					return false;
+			} else if (!owner.equals(other.owner))
+				return false;
+			if (thing == null) {
+				if (other.thing != null)
+					return false;
+			} else if (!thing.equals(other.thing))
+				return false;
+			return true;
 		}
 
 	}
