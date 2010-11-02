@@ -13,7 +13,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.tmapi.core.Association;
+import org.tmapi.core.Locator;
 import org.tmapi.core.Role;
+import org.tmapi.core.Topic;
 
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 
@@ -115,6 +117,29 @@ public class TopicMapsUtils {
 				result.add(role);
 
 		return result;
+	}
+	
+	/**
+	 * Returns a tmql query part which returns the given topic.
+	 * 
+	 * @param t
+	 *            the topic which identifier should be used
+	 * @return a string containing the identifier string
+	 */
+	public static String getTMQLIdentifierString(Topic t) {
+		Set<Locator> siSet = t.getSubjectIdentifiers();
+		if (!siSet.isEmpty())
+			return "\"" + siSet.iterator().next().toExternalForm() + "\" << indicators";
+
+		Set<Locator> slSet = t.getSubjectLocators();
+		if (!slSet.isEmpty())
+			return "\"" + slSet.iterator().next().toExternalForm() + "\" << locators";
+
+		Set<Locator> iiSet = t.getItemIdentifiers();
+		if (!iiSet.isEmpty())
+			return "\"" + iiSet.iterator().next().toExternalForm() + "\" << item";
+
+		throw new IllegalArgumentException("The given topic has no identifier!");
 	}
 	
 }

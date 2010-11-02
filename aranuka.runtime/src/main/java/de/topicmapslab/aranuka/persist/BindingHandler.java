@@ -1119,5 +1119,4 @@ public class BindingHandler {
 		return bindingMap.get(clazz);
 
 	}
-
 }
