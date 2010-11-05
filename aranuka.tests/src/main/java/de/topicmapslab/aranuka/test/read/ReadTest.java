@@ -69,7 +69,7 @@ public class ReadTest extends  AbstractTest{
 	
 	private void readTest(){
 		
-		Set<Object> instances = this.session.getAll(TestTopicType.class);
+		Set<TestTopicType> instances = this.session.getAll(TestTopicType.class);
 		assertEquals(1,instances.size());
 		
 		TestTopicType test = (TestTopicType)instances.iterator().next();

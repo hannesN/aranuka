@@ -563,7 +563,7 @@ public class WriteTest extends AbstractTest {
 		assertNotNull(p.getSl());
 		assertNotNull(p.getIi());
 		
-		Set<Object> persons = this.session.getAll(Person.class);
+		Set<Person> persons = this.session.getAll(Person.class);
 		assertEquals(1, persons.size());
 		
 		Person p2 = (Person) persons.iterator().next();

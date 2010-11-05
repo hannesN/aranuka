@@ -45,27 +45,27 @@ public class TransientTest extends AbstractTest{
 
 	@Test
 	public void testNumberOfSubClasses() throws Exception {
-		Set<Object> tmp = session.getAll(SubKlasse.class);
+		Set<SubKlasse> tmp = session.getAll(SubKlasse.class);
 		assertEquals(5, tmp.size());
 		
-		tmp = session.getAll(SuperKlasse.class);
-		assertEquals(5, tmp.size());
+		Set<SuperKlasse> tmp2 = session.getAll(SuperKlasse.class);
+		assertEquals(5, tmp2.size());
 		
 		session.persist(new SuperKlasse());
 		
 		tmp = session.getAll(SubKlasse.class);
 		assertEquals(5, tmp.size());
 		
-		tmp = session.getAll(SuperKlasse.class);
-		assertEquals(6, tmp.size());
+		tmp2 = session.getAll(SuperKlasse.class);
+		assertEquals(6, tmp2.size());
 	}
 	
 	@Test
 	public void testNumberOfMiniClasses() throws Exception {
-		Set<Object> tmp = session.getAll(SubKlasse.class);
+		Set<SubKlasse> tmp = session.getAll(SubKlasse.class);
 		assertEquals(5, tmp.size());
 		
-		tmp = session.getAll(SuperKlasse.class);
+		Set<SuperKlasse> tmp2 = session.getAll(SuperKlasse.class);
 		assertEquals(5, tmp.size());
 		
 		session.persist(new SuperKlasse());
@@ -73,19 +73,19 @@ public class TransientTest extends AbstractTest{
 		tmp = session.getAll(SubKlasse.class);
 		assertEquals(5, tmp.size());
 		
-		tmp = session.getAll(SuperKlasse.class);
-		assertEquals(6, tmp.size());
+		tmp2 = session.getAll(SuperKlasse.class);
+		assertEquals(6, tmp2.size());
 		
 		session.persist(new MiniKlasse());
 		
 		tmp = session.getAll(SubKlasse.class);
 		assertEquals(6, tmp.size());
 		
-		tmp = session.getAll(SuperKlasse.class);
-		assertEquals(7, tmp.size());
+		tmp2 = session.getAll(SuperKlasse.class);
+		assertEquals(7, tmp2.size());
 		
-		tmp = session.getAll(MiniKlasse.class);
-		assertEquals(1, tmp.size());
+		Set<MiniKlasse> tmp3 = session.getAll(MiniKlasse.class);
+		assertEquals(1, tmp3.size());
 	}
 	
 }
