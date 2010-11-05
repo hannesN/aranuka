@@ -63,7 +63,7 @@ public class OccDatatypeTest extends AbstractTest {
 	@Test
 	public void testCityOccurrences() throws Exception,
 			TopicMapException {
-		Set<Object> cities = session.getAll(City.class);
+		Set<City> cities = session.getAll(City.class);
 		assertEquals(0, cities.size());
 
 		session.persist(city);

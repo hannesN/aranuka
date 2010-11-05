@@ -52,7 +52,7 @@ public class PrefixReadTest extends  AbstractTest{
 	
 	private void readTest(){
 		
-		Set<Object> instances = this.session.getAll(TestTopicType3.class);
+		Set<TestTopicType3> instances = this.session.getAll(TestTopicType3.class);
 		assertEquals(1,instances.size());
 		
 		TestTopicType3 test = (TestTopicType3)instances.iterator().next();
