@@ -94,7 +94,7 @@ public class Session {
 	 * @param clazz - The class.
 	 * @return Set of objects.
 	 */
-	public Set<Object> getAll(Class<?> clazz){
+	public <E> Set<E> getAll(Class<E> clazz){
 		
 		try{
 			

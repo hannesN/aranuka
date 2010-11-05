@@ -207,7 +207,8 @@ public class TopicMapHandler {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
 	 */
-	public Set<Object> getTopicsByType(Class<?> clazz) throws Exception {
+	@SuppressWarnings("unchecked")
+	public <E> Set<E> getTopicsByType(Class<E> clazz) throws Exception {
 
 		Set<TopicBinding> bindings = new HashSet<TopicBinding>();
 		TopicBinding binding = null;
@@ -248,10 +249,10 @@ public class TopicMapHandler {
 			return Collections.emptySet();
 
 		// get instances
-		Set<Object> instances = new HashSet<Object>();
+		Set<E> instances = new HashSet<E>();
 		for (Map.Entry<TopicBinding, Set<Topic>> e : results.entrySet()) {
 
-			instances.addAll(getInstancesFromTopics(e.getValue(), e.getKey()));
+			instances.addAll((Collection<? extends E>) getInstancesFromTopics(e.getValue(), e.getKey()));
 		}
 
 		return instances;
@@ -1694,17 +1695,20 @@ public class TopicMapHandler {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
 	 */
-	private Set<Object> getInstancesFromTopics(Set<Topic> topics, TopicBinding binding) throws Exception {
+	
+	@SuppressWarnings("unchecked")
+	private <E> Set<E> getInstancesFromTopics(Set<Topic> topics, TopicBinding binding) throws Exception {
 
 		if (topics.isEmpty())
 			return Collections.emptySet();
 
-		Set<Object> objects = new HashSet<Object>();
+		Set<E> objects = new HashSet<E>();
 
 		Class<?> clazz = getBindingHandler().getClassForBinding(binding);
 		for (Topic topic : topics) {
 
-			objects.add(getInstanceFromTopic(topic, binding, clazz));
+			
+			objects.add((E) getInstanceFromTopic(topic, binding, clazz));
 
 		}
 
@@ -1724,9 +1728,10 @@ public class TopicMapHandler {
 	 *            - The class type of the new object.
 	 * @return The object.
 	 */
-	private Object getInstanceFromTopic(Topic topic, TopicBinding binding, Class<?> clazz) throws Exception {
+	private <E> E getInstanceFromTopic(Topic topic, TopicBinding binding, Class<E> clazz) throws Exception {
 
-		Object object = getObjectFromCache(topic);
+		@SuppressWarnings("unchecked")
+		E object = (E) getObjectFromCache(topic);
 
 		if (object != null)
 			return object;
