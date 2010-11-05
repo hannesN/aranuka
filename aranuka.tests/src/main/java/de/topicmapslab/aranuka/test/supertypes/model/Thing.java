@@ -1,7 +1,7 @@
 /**
  * 
  */
-package de.topicmapslab.aranuka.test.supertypes;
+package de.topicmapslab.aranuka.test.supertypes.model;
 
 import de.topicmapslab.aranuka.annotations.Id;
 import de.topicmapslab.aranuka.annotations.Topic;

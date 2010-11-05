@@ -1,4 +1,4 @@
-package de.topicmapslab.aranuka.test.supertypes;
+package de.topicmapslab.aranuka.test.supertypes.model;
 
 import de.topicmapslab.aranuka.annotations.Association;
 import de.topicmapslab.aranuka.annotations.Id;

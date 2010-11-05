@@ -7,6 +7,8 @@
  ******************************************************************************/
 package de.topicmapslab.aranuka;
 
+import java.io.File;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -114,6 +116,50 @@ public class Configuration {
 			classes = new HashSet<Class<?>>();
 		}
 		classes.add(clazz);
+	}
+	
+	/**
+	 * Adds every class inside a package into the class set.
+	 * It is the same like calling {@link #addClass(Class)} for every 
+	 * class inside the package
+	 * 
+	 * @param packageName the package name
+	 * @throws AranukaException if the package could not be found
+	 */
+	public void addPackage(String packageName) throws AranukaException {
+		// Get a File object for the package
+		File directory = null;
+		try {
+			ClassLoader cld = Thread.currentThread().getContextClassLoader();
+			if (cld == null) {
+				throw new AranukaException("Can't get class loader.");
+			}
+			String path = packageName.replace('.', '/');
+			URL resource = cld.getResource(path);
+			if (resource == null) {
+				throw new AranukaException("No resource for " + path);
+			}
+			directory = new File(resource.getFile());
+		} catch (NullPointerException x) {
+			throw new AranukaException(packageName + " (" + directory + ") does not appear to be a valid package");
+		}
+		if (directory.exists()) {
+			// Get the list of the files contained in the package
+			String[] files = directory.list();
+			for (int i = 0; i < files.length; i++) {
+				// we are only interested in .class files
+				if (files[i].endsWith(".class")) {
+					// removes the .class extension
+					try {
+						addClass(Class.forName(packageName + '.' + files[i].substring(0, files[i].length() - 6)));
+					} catch (ClassNotFoundException e) {
+						throw new AranukaException(e);
+					}
+				}
+			}
+		} else {
+			throw new AranukaException(packageName + " does not appear to be a valid package");
+		}
 	}
 	
 	/**
