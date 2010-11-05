@@ -20,7 +20,10 @@ import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.aranuka.exception.AranukaException;
 import de.topicmapslab.aranuka.test.AbstractTest;
-import de.topicmapslab.aranuka.test.supertypes.Place.AssocContainer;
+import de.topicmapslab.aranuka.test.supertypes.model.Lamp;
+import de.topicmapslab.aranuka.test.supertypes.model.Person;
+import de.topicmapslab.aranuka.test.supertypes.model.Place;
+import de.topicmapslab.aranuka.test.supertypes.model.Place.AssocContainer;
 
 public class SupertypeTest extends AbstractTest {
 
@@ -38,10 +41,7 @@ public class SupertypeTest extends AbstractTest {
 		Configuration conf = new Configuration();
 		conf.setProperties(getProperties());
 
-		conf.addClass(Thing.class);
-		conf.addClass(Person.class);
-		conf.addClass(Place.class);
-		conf.addClass(Lamp.class);
+		conf.addPackage("de.topicmapslab.aranuka.test.supertypes.model");
 		conf.setProperty(IProperties.BASE_LOCATOR,
 				"http://test.aranuka.de/testcase_delete");
 		conf.addPrefix("tp", "http://test.de/");
