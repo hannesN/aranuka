@@ -47,6 +47,9 @@ public class SupertypeTest extends AbstractTest {
 		conf.addPrefix("tp", "http://test.de/");
 
 		session = conf.getSession(false);
+		
+		assertNotNull(session);
+		
 		lamp = new Lamp();
 		lamp.setName("Luxor");
 		lamp.setId("http://test.de/lamp/luxor");
@@ -57,21 +60,6 @@ public class SupertypeTest extends AbstractTest {
 		baseLocator = topicMap.createLocator("http://test.de/");
 		
 		
-	}
-
-	private Topic getSuperTypeSubTypeTopic() {
-		return topicMap.getTopicBySubjectIdentifier(
-				topicMap.createLocator(SUPERTYPE_SUBTYPE));
-	}
-
-	private Topic getSubTypeTopic() {
-		return topicMap.getTopicBySubjectIdentifier(
-				topicMap.createLocator(SUBTYPE));
-	}
-
-	private Topic getSuperTypeTopic() {
-		return topicMap.getTopicBySubjectIdentifier(
-				topicMap.createLocator(SUPERTYPE));
 	}
 
 	@After
@@ -194,6 +182,21 @@ public class SupertypeTest extends AbstractTest {
 		assertEquals(assocContainer, pl2.getOwners());
 		
 		assertEquals(place, pl2);
+	}
+
+	private Topic getSuperTypeSubTypeTopic() {
+		return topicMap.getTopicBySubjectIdentifier(
+				topicMap.createLocator(SUPERTYPE_SUBTYPE));
+	}
+
+	private Topic getSubTypeTopic() {
+		return topicMap.getTopicBySubjectIdentifier(
+				topicMap.createLocator(SUBTYPE));
+	}
+
+	private Topic getSuperTypeTopic() {
+		return topicMap.getTopicBySubjectIdentifier(
+				topicMap.createLocator(SUPERTYPE));
 	}
 
 	private Person getPerson() {
