@@ -367,7 +367,7 @@ public class BindingHandler {
 		}
 		
 		// check of not identifier
-		if (idCounter.isEmpty())
+		if (idCounter.isEmpty()&&((clazz.getModifiers()|Modifier.ABSTRACT)==0))
 			throw new BadAnnotationException("Topic class " + clazz.getName()
 					+ " has no identifier at all.");
 
