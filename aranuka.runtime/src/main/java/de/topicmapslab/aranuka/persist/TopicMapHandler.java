@@ -503,7 +503,7 @@ public class TopicMapHandler {
 		TopicBinding binding = getTopicBinding(topic);
 
 		if (binding == null)
-			return null;
+			throw new AranukaException("No binding for the Topic");
 
 		Class<?> clazz = getBindingHandler().getClassForBinding(binding);
 
@@ -3329,5 +3329,45 @@ public class TopicMapHandler {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * 
+	 * @param tmqlQuery a query which results in a list of topics
+	 * @return the list of objects representing the resulting topics
+	 * @throws AranukaException 
+	 */
+	public List<Object> getObjectsByQuery(String tmqlQuery) throws AranukaException {
+		
+		List<Object> result;
+		
+		SimpleResultSet results = runTMQL(tmqlQuery);
+		
+		if (results.isEmpty())
+			return Collections.emptyList();
+		
+		result = new ArrayList<Object>();
+		
+		for (IResult r : results.getResults()) {
+			if (r.size()!=1)
+				throw new AranukaException("Illegal TMQL Query: "+tmqlQuery);
+			
+			Object resObj = r.get(0);
+			if (resObj instanceof Topic) {
+				result.add(getObject((Topic) resObj));
+			} else if (resObj instanceof Collection) {
+				Iterator<?> it = ((Collection<?>) resObj).iterator();
+				while (it.hasNext()) {
+					Object o = it.next();
+					if (o instanceof Topic)
+						result.add(getObject((Topic) o));
+					else
+						throw new AranukaException("Illegal result in TMQL Query: " + tmqlQuery);
+				}
+			} else
+				throw new AranukaException("Illegal result in TMQL Query: " + tmqlQuery);
+		}
+		
+		return result;
 	}
 }

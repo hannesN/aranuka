@@ -60,5 +60,6 @@
 		<module>aranuka.connector.ontopia</module>
 		<module>aranuka.connector.tinyTiM</module>
 		<module>aranuka.connector.majortom</module>
+		<module>aranuka.example</module>
 	</modules>
 </project>

@@ -53,8 +53,7 @@ public class AnnotationTest extends AbstractTest {
 		// TopicType02 has no identifier fields
 
 		this.config.addClass(TopicType02.class);
-		@SuppressWarnings("unused")
-		Session session = this.config.getSession(false);
+		this.config.getSession(false);
 
 	}
 
@@ -187,6 +186,16 @@ public class AnnotationTest extends AbstractTest {
 		Session session = this.config.getSession(false);
 
 		assertNotNull(session);
+
+	}
+	
+	@Test
+	public void testCase17() throws Exception {
+
+		// TopicType02 has no identifier fields
+		// should work - no excpetion because class is abstract
+		this.config.addClass(TopicType17.class);
+		this.config.getSession(false);
 
 	}
 	
