@@ -286,4 +286,8 @@ public class Session {
 		this.config.getConnector().clearTopicMap(this.topicMapHandler.getTopicMap());		
 	}
 
+	
+	public List<Object> getObjectsByQuery(String tmqlQuery) throws AranukaException {
+		return getTopicMapHandler().getObjectsByQuery(tmqlQuery);
+	}
 }
