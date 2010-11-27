@@ -1,5 +1,8 @@
 package de.topicmapslab.aranuka.test;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -15,6 +18,8 @@ import org.tmapi.core.Role;
 import org.tmapi.core.Scoped;
 import org.tmapi.core.Topic;
 import org.tmapi.core.TopicMap;
+
+import de.topicmapslab.ctm.writer.core.CTMTopicMapWriter;
 
 public abstract class AbstractTest {
 
@@ -542,4 +547,18 @@ public abstract class AbstractTest {
 		return result;
 	}
 	
+	
+	/**
+	 * Serializes the topic map as ctm file
+	 * @param file the absolute filename
+	 * @param topicMap the topic map
+	 * @throws IOException 
+	 */
+	public static void serializeTopicMap(String file, TopicMap topicMap) throws IOException  {
+		
+		CTMTopicMapWriter writer = new CTMTopicMapWriter(new FileOutputStream(
+				new File(file)), "http://aranukatests.de/");
+		writer.write(topicMap);
+		
+	}
 }
