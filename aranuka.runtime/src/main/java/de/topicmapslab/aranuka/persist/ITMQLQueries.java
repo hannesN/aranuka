@@ -61,7 +61,7 @@ public interface ITMQLQueries {
 
 	/** String using params for {@link MessageFormat}.
 	 * 
-	 * number of params: 3
+	 * number of params: 6
 	 * <ol>
 	 * <li>identifier of the association type without brackets</li>
 	 * <li>identifier of the role type without brackets</li>
@@ -75,7 +75,7 @@ public interface ITMQLQueries {
 
 	
 	/**
-	 * /** String using params for {@link MessageFormat}.
+	 * String using params for {@link MessageFormat}.
 	 * 
 	 * number of params: 2
 	 * <ol>
@@ -85,4 +85,17 @@ public interface ITMQLQueries {
 	 * 
 	 */
 	public final String DELETE_BINARY_ASSOCIATION = "DELETE {0} >> typed MINUS {1}";
+	
+	/** String using params for {@link MessageFormat}.
+	 * 
+	 * number of params: 5
+	 * <ol>
+	 * <li>identifier of the association type without brackets</li>
+	 * <li>identifier of the role type without brackets</li>
+	 * <li>identifier of player topic, which should have the CTM form &lt;iri&gt; </li>
+	 * <li>identifier of the other role type without brackets</li>
+	 * <li>filter for scope or empty string. Should have the form: @&lt;http://scope.de/1&gt; , &lt;http://scope.de/2&gt; </li>
+	 * </ol>
+	 */
+	public final String GET_ALL_BINARY_ASSOCIATIONS = "SELECT $t WHERE {0} ( {1} : {2} , {3} : $t ) {4}";
 }

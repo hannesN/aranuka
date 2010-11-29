@@ -20,6 +20,12 @@ public class Person {
     @Association(type = "http://test.de/lives", persistOnCascade = true, played_role = "http://test.de/person")
     private de.topicmapslab.aranuka.test.associations.model.Person.Lives lives;
 
+    @Association(type = "http://test.de/is_spy", played_role="http://test.de/spy")
+    private boolean spy;
+    
+    @Association(type = "http://test.de/has_gun", played_role="http://test.de/spy", other_role="http://test.de/weapon")
+    private Gun gun;
+    
     public String getSubjectIdentifier() {
         return this.subjectIdentifier;
     }
@@ -44,6 +50,22 @@ public class Person {
         this.lives = lives;
     }
 
+    public boolean isSpy() {
+		return spy;
+	}
+    
+    public void setSpy(boolean spy) {
+		this.spy = spy;
+	}
+    
+    public void setGun(Gun gun) {
+		this.gun = gun;
+	}
+    
+    public Gun getGun() {
+		return gun;
+	}
+    
     public int hashCode() {
         final int prime = 31;
         int result = 1;
