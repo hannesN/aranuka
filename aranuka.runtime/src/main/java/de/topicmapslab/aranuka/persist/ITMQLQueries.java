@@ -61,7 +61,7 @@ public interface ITMQLQueries {
 
 	/** String using params for {@link MessageFormat}.
 	 * 
-	 * number of params: 6
+	 * number of params: 7
 	 * <ol>
 	 * <li>identifier of the association type without brackets</li>
 	 * <li>identifier of the role type without brackets</li>
@@ -69,9 +69,10 @@ public interface ITMQLQueries {
 	 * <li>identifier of the other role type without brackets</li>
 	 * <li>identifier of other player topic, which should have the CTM form &lt;iri&gt; </li>
 	 * <li>filter for scope or empty string. Should have the form: @&lt;http://scope.de/1&gt; , &lt;http://scope.de/2&gt; </li>
+	 * <li>the type of the other player topic </li>
 	 * </ol>
 	 */
-	public final String INSERT_BINARY_ASSOCIATION = "INSERT '''''' <{0}> ( <{1}> : {2} , <{3}> : {4} ) {5} '''''' ";
+	public final String INSERT_BINARY_ASSOCIATION = "INSERT '''''' <{0}> ( <{1}> : {2} , <{3}> : {4} ) {5} \n {4} isa <{6}> . '''''' ";
 
 	
 	/**
