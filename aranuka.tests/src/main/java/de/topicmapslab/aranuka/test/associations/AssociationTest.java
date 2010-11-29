@@ -4,7 +4,9 @@
 package de.topicmapslab.aranuka.test.associations;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
@@ -19,6 +21,7 @@ import de.topicmapslab.aranuka.exception.AranukaException;
 import de.topicmapslab.aranuka.test.AbstractTest;
 import de.topicmapslab.aranuka.test.associations.model.Address;
 import de.topicmapslab.aranuka.test.associations.model.Date;
+import de.topicmapslab.aranuka.test.associations.model.Gun;
 import de.topicmapslab.aranuka.test.associations.model.Person;
 import de.topicmapslab.aranuka.test.associations.model.Person.Lives;
 
@@ -58,6 +61,91 @@ public class AssociationTest extends AbstractTest {
 	@After
 	public void tearDown() {
 		session.clearTopicMap();
+	}
+	
+	/**
+	 * Checking if deletion of associtaion only effects the wanted objects
+	 * @throws AranukaException 
+	 */
+	@Test
+	public void spyTest() throws AranukaException {
+		Person spy1 = new Person();
+		spy1.setName("James Bond");
+		spy1.setSubjectIdentifier("http://test.de/spy/james_bond");
+		spy1.setSpy(true);
+		session.persist(spy1);
+
+		// checking mr bond
+		Person p = (Person) session.getBySubjectIdentifier(spy1.getSubjectIdentifier());
+		assertEquals("James Bond", p.getName());
+		assertTrue(p.isSpy());
+		
+		Person spy2 = new Person();
+		spy2.setName("Maxwell Smart");
+		spy2.setSubjectIdentifier("http://test.de/spy/maxwell_smart");
+		spy2.setSpy(true);
+		session.persist(spy2);
+		
+		p = (Person) session.getBySubjectIdentifier(spy2.getSubjectIdentifier());
+		assertEquals(spy2.getName(), p.getName());
+		assertTrue(p.isSpy());
+		
+		p.setSpy(false);
+		session.persist(p);
+		
+		p = (Person) session.getBySubjectIdentifier(spy2.getSubjectIdentifier());
+		assertEquals(spy2.getName(), p.getName());
+		assertFalse(p.isSpy());
+
+		
+		p = (Person) session.getBySubjectIdentifier(spy1.getSubjectIdentifier());
+		assertEquals("James Bond", p.getName());
+		assertTrue(p.isSpy());
+	}
+	
+	@Test
+	public void weaponTest() throws Exception {
+		Gun walther = new Gun();
+		walther.setName("Walther PPK");
+		walther.setSubjectIdentifier("http://en.wikipedia.org/wiki/Walther_ppk");
+		
+		Gun desertEagle = new Gun();
+		desertEagle.setName("Desert Eagle");
+		desertEagle.setSubjectIdentifier("http://en.wikipedia.org/wiki/IMI_Desert_Eagle");
+		
+		Person bond = new Person();
+		bond.setName("James Bond");
+		bond.setSpy(true);
+		bond.setSubjectIdentifier("http://en.wikipedia.org/wiki/James_Bond");
+		bond.setGun(walther);
+		session.persist(bond);
+		
+		serializeTopicMap("/tmp/bond.ctm", session.getTopicMap());
+		
+		// checking bond
+		Person p = (Person) session.getBySubjectIdentifier(bond.getSubjectIdentifier());
+		assertEquals(bond.getName(), p.getName());
+		assertEquals(bond.getGun(), p.getGun());
+		assertEquals(bond.isSpy(), p.isSpy());
+		
+		Person tony = new Person();
+		tony.setName("Bullet Tooth Tony");
+		tony.setSubjectIdentifier("http://en.wikipedia.org/wiki/Bullet_tooth_tony");
+		tony.setGun(desertEagle);
+		tony.setSpy(false);
+		session.persist(tony);
+			
+		// checking tony
+		p = (Person) session.getBySubjectIdentifier(tony.getSubjectIdentifier());
+		assertEquals(tony.getName(), p.getName());
+		assertEquals(tony.getGun(), p.getGun());
+		assertEquals(tony.isSpy(), p.isSpy());
+		
+		// rechecking bond
+		p = (Person) session.getBySubjectIdentifier(bond.getSubjectIdentifier());
+		assertEquals(bond.getName(), p.getName());
+		assertEquals(bond.getGun(), p.getGun());
+		assertEquals(bond.isSpy(), p.isSpy());
 	}
 	
 	@Test
