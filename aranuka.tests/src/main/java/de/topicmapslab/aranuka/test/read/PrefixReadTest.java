@@ -15,6 +15,7 @@ import org.junit.Test;
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
+import de.topicmapslab.aranuka.exception.AranukaException;
 import de.topicmapslab.aranuka.test.AbstractTest;
 
 
@@ -50,7 +51,7 @@ public class PrefixReadTest extends  AbstractTest{
 //	}
 	
 	
-	private void readTest(){
+	private void readTest() throws AranukaException{
 		
 		Set<TestTopicType3> instances = this.session.getAll(TestTopicType3.class);
 		assertEquals(1,instances.size());

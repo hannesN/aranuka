@@ -43,6 +43,7 @@ import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 
 import de.topicmapslab.aranuka.Configuration;
+import de.topicmapslab.aranuka.binding.AbstractClassBinding;
 import de.topicmapslab.aranuka.binding.AbstractFieldBinding;
 import de.topicmapslab.aranuka.binding.AssociationBinding;
 import de.topicmapslab.aranuka.binding.AssociationContainerBinding;
@@ -63,7 +64,6 @@ import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
-import de.topicmapslab.tmql4j.common.context.TMQLRuntimeProperties;
 import de.topicmapslab.tmql4j.common.core.runtime.TMQLRuntimeFactory;
 import de.topicmapslab.tmql4j.common.model.query.IQuery;
 import de.topicmapslab.tmql4j.common.model.runtime.ITMQLRuntime;
@@ -559,16 +559,11 @@ public class TopicMapHandler {
 		TopicBinding binding = getTopicBinding(topic);
 
 		if (binding == null)
-			throw new AranukaException("No binding for the Topic");
-
-		Class<?> clazz = getBindingHandler().getClassForBinding(binding);
-
-		if (clazz == null)
-			return null;
+			throw new AranukaException("No binding for the Topic with "+topic);
 
 		Object obj;
 		try {
-			obj = getInstanceFromTopic(topic, binding, clazz);
+			obj = getInstanceFromTopic(topic, binding);
 		} catch (Exception e) {
 			throw new AranukaException(e);
 		}
@@ -1379,6 +1374,7 @@ public class TopicMapHandler {
 			IQuery q = getTMQLRuntime().run(queryString);
 			
 			if (q.getResults().isEmpty()) {
+				TopicBinding otherBinding = (TopicBinding) getBindingHandler().getBinding(otherPlayer.getClass());
 				// insert the association
 				String insertQuery = MessageFormat.format(ITMQLQueries.INSERT_BINARY_ASSOCIATION, 
 						asscoTypeSi, 
@@ -1386,7 +1382,8 @@ public class TopicMapHandler {
 						getIDCTMPart(instance), 
 						otherRoleTypeSI, 
 						getIDCTMPart(otherPlayer),
-						getCTMScopeString(binding));
+						getCTMScopeString(binding),
+						otherBinding.getIdentifier().iterator().next());
 				getTMQLRuntime().run(insertQuery);
 			
 				q = getTMQLRuntime().run(queryString);
@@ -1758,12 +1755,8 @@ public class TopicMapHandler {
 			return Collections.emptySet();
 
 		Set<E> objects = new HashSet<E>();
-
-		Class<?> clazz = getBindingHandler().getClassForBinding(binding);
 		for (Topic topic : topics) {
-
-			objects.add((E) getInstanceFromTopic(topic, binding, clazz));
-
+			objects.add((E) getInstanceFromTopic(topic, binding));
 		}
 
 		clearObjectCache(); // free object cache at end of session
@@ -1782,26 +1775,28 @@ public class TopicMapHandler {
 	 *            - The class type of the new object.
 	 * @return The object.
 	 */
-	private <E> E getInstanceFromTopic(Topic topic, TopicBinding binding, Class<E> clazz) throws Exception {
+	@SuppressWarnings("unchecked")
+	private <E> E getInstanceFromTopic(Topic topic, TopicBinding binding) throws Exception {
 
-		@SuppressWarnings("unchecked")
+		Class<E> clazz = (Class<E>) getBindingHandler().getClassForBinding(binding);
+		
 		E object = (E) getObjectFromCache(topic);
 
 		if (object != null)
 			return object;
 
-		if (binding.getParent() != null) {
+//		if (binding.getParent() != null) {
 
-			object = getInstanceFromTopic(topic, binding.getParent(), clazz);
+//			object = getInstanceFromTopic(topic, binding.getParent());
 
-		} else {
+//		} else {
 
 			try {
 				object = clazz.getConstructor().newInstance();
 			} catch (Exception e) {
 				throw new TopicMapIOException("Cannot instanciate new object: " + e.getMessage());
 			}
-		}
+//		}
 
 		addObjectToCache(object, topic);
 
@@ -1834,39 +1829,43 @@ public class TopicMapHandler {
 	 */
 	private void addIdentifier(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException {
 
-		for (AbstractFieldBinding afb : binding.getFieldBindings()) {
+		TopicBinding currBinding = binding;
+		
+		while (currBinding != null) {
+			for (AbstractFieldBinding afb : currBinding.getFieldBindings()) {
 
-			if (afb instanceof IdBinding) {
+				if (afb instanceof IdBinding) {
 
-				IdBinding idBinding = (IdBinding) afb;
+					IdBinding idBinding = (IdBinding) afb;
 
-				if (idBinding.getIdtype() == IdType.ITEM_IDENTIFIER) {
+					if (idBinding.getIdtype() == IdType.ITEM_IDENTIFIER) {
 
-					Set<Locator> identifier = HashUtil.getHashSet();
-					// filter out the item identifier created from the xtm2.0
-					// reader
-					for (Locator l : topic.getItemIdentifiers()) {
-						if (!l.toExternalForm().startsWith(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX))
-							identifier.add(l);
+						Set<Locator> identifier = HashUtil.getHashSet();
+						// filter out the item identifier created from the xtm2.0
+						// reader
+						for (Locator l : topic.getItemIdentifiers()) {
+							if (!l.toExternalForm().startsWith(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX))
+								identifier.add(l);
+						}
+						addIdentifier(topic, object, idBinding, identifier);
+
+					} else if (idBinding.getIdtype() == IdType.SUBJECT_IDENTIFIER) {
+
+						Set<Locator> identifier = topic.getSubjectIdentifiers();
+						addIdentifier(topic, object, idBinding, identifier);
+
+					} else if (idBinding.getIdtype() == IdType.SUBJECT_LOCATOR) {
+
+						Set<Locator> identifier = topic.getSubjectLocators();
+						addIdentifier(topic, object, idBinding, identifier);
+
+					} else {
+
+						// / TODO handle unknown id-type
 					}
-					addIdentifier(topic, object, idBinding, identifier);
-
-				} else if (idBinding.getIdtype() == IdType.SUBJECT_IDENTIFIER) {
-
-					Set<Locator> identifier = topic.getSubjectIdentifiers();
-					addIdentifier(topic, object, idBinding, identifier);
-
-				} else if (idBinding.getIdtype() == IdType.SUBJECT_LOCATOR) {
-
-					Set<Locator> identifier = topic.getSubjectLocators();
-					addIdentifier(topic, object, idBinding, identifier);
-
-				} else {
-
-					// / TODO handle unknown id-type
 				}
-
 			}
+			currBinding = currBinding.getParent();
 		}
 	}
 
@@ -2006,64 +2005,70 @@ public class TopicMapHandler {
 	 */
 	private void addNames(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException {
 
-		for (AbstractFieldBinding afb : binding.getFieldBindings()) {
+		TopicBinding currBinding = binding;
 
-			if (afb instanceof NameBinding) {
+		while (currBinding != null) {
+			for (AbstractFieldBinding afb : currBinding.getFieldBindings()) {
 
-				NameBinding nameBinding = (NameBinding) afb;
-				// get name type
-				Topic nameType = getTopicMap().getTopicBySubjectIdentifier(
-						getTopicMap().createLocator(
-								TopicMapsUtils.resolveURI(nameBinding.getNameType(), this.config.getPrefixMap())));
+				if (afb instanceof NameBinding) {
 
-				if (nameType == null)
-					continue; // get to next binding if type don't exist
+					NameBinding nameBinding = (NameBinding) afb;
+					// get name type
+					Topic nameType = getTopicMap().getTopicBySubjectIdentifier(
+							getTopicMap().createLocator(
+									TopicMapsUtils.resolveURI(nameBinding.getNameType(), this.config.getPrefixMap())));
 
-				Set<Name> names = topic.getNames(nameType);
+					if (nameType == null)
+						continue; // get to next binding if type don't exist
 
-				if (names.isEmpty())
-					continue; // get to next binding if no names of this type
-								// are found
+					Set<Name> names = topic.getNames(nameType);
 
-				Set<String> existingNames = new HashSet<String>();
+					if (names.isEmpty())
+						continue; // get to next binding if no names of this type
+									// are found
 
-				for (Name name : names)
-					existingNames.add(name.getValue());
+					Set<String> existingNames = new HashSet<String>();
 
-				if (!nameBinding.isArray() && !nameBinding.isCollection()) {
+					for (Name name : names)
+						existingNames.add(name.getValue());
 
-					if (existingNames.size() > 1)
-						throw new TopicMapIOException("Cannot add multiple names to an non container field.");
+					if (!nameBinding.isArray() && !nameBinding.isCollection()) {
 
-					nameBinding.setValue(existingNames.iterator().next(), object);
+						if (existingNames.size() > 1)
+							throw new TopicMapIOException("Cannot add multiple names to an non container field.");
 
-				} else {
-
-					if (nameBinding.isArray()) {
-
-						nameBinding.setValue(existingNames.toArray(new String[existingNames.size()]), object);
+						nameBinding.setValue(existingNames.iterator().next(), object);
 
 					} else {
 
-						Collection<String> collection;
+						if (nameBinding.isArray()) {
 
-						if (((ParameterizedType) nameBinding.getFieldType()).getRawType().equals(Set.class)) { // is set
+							nameBinding.setValue(existingNames.toArray(new String[existingNames.size()]), object);
 
-							collection = new HashSet<String>();
+						} else {
 
-						} else { // is list
+							Collection<String> collection;
 
-							collection = new ArrayList<String>();
+							if (((ParameterizedType) nameBinding.getFieldType()).getRawType().equals(Set.class)) { // is
+																													// set
+
+								collection = new HashSet<String>();
+
+							} else { // is list
+
+								collection = new ArrayList<String>();
+							}
+
+							for (String name : existingNames)
+								collection.add(name);
+
+							nameBinding.setValue(collection, object);
+
 						}
-
-						for (String name : existingNames)
-							collection.add(name);
-
-						nameBinding.setValue(collection, object);
-
 					}
 				}
 			}
+			currBinding = currBinding.getParent();
 		}
 	}
 
@@ -2080,67 +2085,71 @@ public class TopicMapHandler {
 	 */
 	private void addOccurrences(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException {
 
-		for (AbstractFieldBinding afb : binding.getFieldBindings()) {
+		TopicBinding currBinding = binding;
 
-			if (afb instanceof OccurrenceBinding) {
+		while (currBinding != null) {
+			for (AbstractFieldBinding afb : currBinding.getFieldBindings()) {
 
-				OccurrenceBinding occurrenceBinding = (OccurrenceBinding) afb;
+				if (afb instanceof OccurrenceBinding) {
 
-				// get occurrence type
-				Topic occurrenceType = getTopicMap().getTopicBySubjectIdentifier(
-						getTopicMap().createLocator(
-								TopicMapsUtils.resolveURI(occurrenceBinding.getOccurrenceType(),
-										this.config.getPrefixMap())));
+					OccurrenceBinding occurrenceBinding = (OccurrenceBinding) afb;
 
-				if (occurrenceType == null)
-					continue; // get to next binding if type don't exist
+					// get occurrence type
+					Topic occurrenceType = getTopicMap().getTopicBySubjectIdentifier(
+							getTopicMap().createLocator(
+									TopicMapsUtils.resolveURI(occurrenceBinding.getOccurrenceType(),
+											this.config.getPrefixMap())));
 
-				Set<Occurrence> occurrences = topic.getOccurrences(occurrenceType);
+					if (occurrenceType == null)
+						continue; // get to next binding if type don't exist
 
-				if (occurrences.isEmpty())
-					continue; // get to next binding if no occurrence of this
-								// type are found
+					Set<Occurrence> occurrences = topic.getOccurrences(occurrenceType);
 
-				if (!occurrenceBinding.isArray() && !occurrenceBinding.isCollection()) {
+					if (occurrences.isEmpty())
+						continue; // get to next binding if no occurrence of this
+									// type are found
 
-					if (occurrences.size() > 1)
-						throw new TopicMapIOException("Cannot add multiple occurrences to an non container field.");
+					if (!occurrenceBinding.isArray() && !occurrenceBinding.isCollection()) {
 
-					occurrenceBinding
-							.setValue(
-									getOccurrenceValue(occurrences.iterator().next(),
-											occurrenceBinding.getParameterisedType()), object);
+						if (occurrences.size() > 1)
+							throw new TopicMapIOException("Cannot add multiple occurrences to an non container field.");
 
-				} else {
-
-					Set<Object> values = new HashSet<Object>();
-
-					for (Occurrence occurrence : occurrences)
-						values.add(getOccurrenceValue(occurrence, occurrenceBinding.getParameterisedType()));
-
-					if (occurrenceBinding.isArray()) {
-
-						Object[] tmp = (Object[]) Array.newInstance(
-								(Class<?>) occurrenceBinding.getParameterisedType(), values.size());
-						values.toArray(tmp);
-						occurrenceBinding.setValue(tmp, object);
+						occurrenceBinding.setValue(
+								getOccurrenceValue(occurrences.iterator().next(),
+										occurrenceBinding.getParameterisedType()), object);
 
 					} else {
 
-						if (((ParameterizedType) occurrenceBinding.getFieldType()).getRawType().equals(Set.class)) { // is
-																														// set
+						Set<Object> values = new HashSet<Object>();
 
-							occurrenceBinding.setValue(values, object);
+						for (Occurrence occurrence : occurrences)
+							values.add(getOccurrenceValue(occurrence, occurrenceBinding.getParameterisedType()));
 
-						} else { // is list
+						if (occurrenceBinding.isArray()) {
 
-							List<Object> list = new ArrayList<Object>(values);
-							occurrenceBinding.setValue(list, object);
+							Object[] tmp = (Object[]) Array.newInstance(
+									(Class<?>) occurrenceBinding.getParameterisedType(), values.size());
+							values.toArray(tmp);
+							occurrenceBinding.setValue(tmp, object);
 
+						} else {
+
+							if (((ParameterizedType) occurrenceBinding.getFieldType()).getRawType().equals(Set.class)) { // is
+																															// set
+
+								occurrenceBinding.setValue(values, object);
+
+							} else { // is list
+
+								List<Object> list = new ArrayList<Object>(values);
+								occurrenceBinding.setValue(list, object);
+
+							}
 						}
 					}
 				}
 			}
+			currBinding = currBinding.getParent();
 		}
 
 	}
@@ -2197,26 +2206,31 @@ public class TopicMapHandler {
 	 */
 	private void addAssociations(Topic topic, Object object, TopicBinding binding) throws Exception {
 
-		for (AbstractFieldBinding afb : binding.getFieldBindings()) {
+		TopicBinding currBinding = binding;
 
-			if (afb instanceof AssociationBinding) {
+		while (currBinding != null) {
+			for (AbstractFieldBinding afb : currBinding.getFieldBindings()) {
 
-				AssociationBinding associationBinding = (AssociationBinding) afb;
+				if (afb instanceof AssociationBinding) {
 
-				if (associationBinding.getKind() == AssociationKind.UNARY) {
+					AssociationBinding associationBinding = (AssociationBinding) afb;
 
-					addUnaryAssociation(object, associationBinding);
+					if (associationBinding.getKind() == AssociationKind.UNARY) {
 
-				} else if (associationBinding.getKind() == AssociationKind.BINARY) {
+						addUnaryAssociation(object, associationBinding);
 
-					addBinaryAssociation(object, associationBinding);
+					} else if (associationBinding.getKind() == AssociationKind.BINARY) {
 
-				} else {
+						addBinaryAssociation(object, associationBinding);
 
-					addNnaryAssociation(topic, object, associationBinding);
+					} else {
 
+						addNnaryAssociation(topic, object, associationBinding);
+
+					}
 				}
 			}
+			currBinding = currBinding.getParent();
 		}
 	}
 
@@ -2277,14 +2291,32 @@ public class TopicMapHandler {
 				otherRoleTypeSI, getTMQLScopeString(associationBinding));
 		
 		IQuery query = getTMQLRuntime().run(queryString);
-////		if (query.getResults().isEmpty())
-////			return; // no assocs, value stays null
-////		
-//		System.out.println(query);
+		if (query.getResults().isEmpty())
+			return; // no assocs, value stays null
 		
+		List<Object> results = new ArrayList<Object>(query.getResults().size()); 
+		for (IResult r : query.getResults()) {
+			Topic t = r.get(0);
+			Object o = getInstanceFromTopic(t, getBindingForType(t.getTypes().iterator().next()));
+			results.add(o);
+		}
 		
+		// add the values according to the binding information
+		if (associationBinding.isCollection()) {
+			// TODO what if now set?
+			associationBinding.setValue(new HashSet<Object>(results), object);
+		} else if (associationBinding.isArray()) {
+			
+			Class<?> type = (Class<?>) associationBinding.getParameterisedType();
+			Object[] array = (Object[]) Array.newInstance(type, results.size());
+			associationBinding.setValue(results.toArray(array), object);
+		} else if (results.size()>1) {
+			throw new AranukaException("Illegal number of instances of associations of type :" + associationTypeSI
+					+ " for topic with " + getIDCTMPart(object));
+		} else {
+			associationBinding.setValue(results.get(0), object);
+		}
 		
-		// TODO run, parse and set to value
 
 	}
 
@@ -2491,8 +2523,7 @@ public class TopicMapHandler {
 			for (Topic topic : counterTopics) {
 
 				TopicBinding typeBinding = getBindingForType(topic.getTypes().iterator().next());
-				Object obj = getInstanceFromTopic(topic, (TopicBinding) typeBinding,
-						bindingHandler.getClassForBinding(typeBinding));
+				Object obj = getInstanceFromTopic(topic, (TopicBinding) typeBinding);
 				counterObjects.add(obj);
 			}
 
