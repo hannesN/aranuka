@@ -29,7 +29,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
-import org.junit.experimental.theories.internal.Assignments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmapi.core.Association;
@@ -1400,98 +1399,23 @@ public class TopicMapHandler {
 		
 		// removing the non valid association
 		
-		StringBuilder b = new StringBuilder();
-		Iterator<String> it = validIds.iterator();
-		while (it.hasNext()) {
-			b.append("\"");
-			b.append(it.next());
-			b.append("\" << id");
-			if (it.hasNext())
-				b.append(" UNION ");
+		if (validIds.isEmpty()) {
+			getTMQLRuntime().run("DELETE " + asscoTypeSi + " >> typed");
+		} else {
+			StringBuilder b = new StringBuilder();
+			Iterator<String> it = validIds.iterator();
+			while (it.hasNext()) {
+				b.append("\"");
+				b.append(it.next());
+				b.append("\" << id");
+				if (it.hasNext())
+					b.append(" UNION ");
+			}
+			String idUnion = b.toString();
+
+			String deleteQuery = MessageFormat.format(ITMQLQueries.DELETE_BINARY_ASSOCIATION, asscoTypeSi, idUnion);
+			getTMQLRuntime().run(deleteQuery);
 		}
-		String idUnion = b.toString(); 
-		
-		String deleteQuery = MessageFormat.format(ITMQLQueries.DELETE_BINARY_ASSOCIATION, 
-				asscoTypeSi, idUnion);
-		getTMQLRuntime().run(deleteQuery);
-		
-		/*
-		Set<Topic> scope = binding.getScope(getTopicMap());
-
-		for (Object associationObject : associationObjects) { // check each
-																// binary
-																// association
-
-			Topic counterPlayer = null;
-
-			if (associationObject != null) {
-				// get binding for counter player
-				TopicBinding tb = (TopicBinding) bindingHandler.getBinding(associationObject.getClass());
-
-				if (!checkBinding(tb, binding.getOtherPlayerBinding())) {
-					throw new AranukaException(
-							"Binding of player is neither binding of association player nor a subtype of it");
-				}
-
-				counterPlayer = createTopicByIdentifier(associationObject, tb);
-				counterPlayer.addType(getTopicType(tb));
-			}
-
-			boolean found = false;
-
-			for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
-
-				if (playedRole.getValue() != Match.INSTANCE // ignore roles
-															// which are already
-															// flagged true
-						&& playedRole.getKey().getParent().getRoles().size() == 2 // check
-																					// if
-																					// the
-																					// association
-																					// is
-																					// binary
-						&& playedRole.getKey().getType().equals(roleType) // check
-																			// role
-																			// type
-						&& playedRole.getKey().getParent().getType().equals(associationType) // check association
-																								// type
-						&& playedRole.getKey().getParent().getScope().equals(scope) // check scope
-						&& TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey())
-								.getType().equals(otherRoleType)) { // check counter
-																	// player role
-
-					// binding found
-					playedRole.setValue(Match.BINDING);
-
-					if (counterPlayer != null)
-						if (TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey())
-								.getPlayer().equals(counterPlayer)) { // check counter
-																		// player
-
-							found = true;
-							playedRole.setValue(Match.INSTANCE);
-							break;
-						}
-				}
-			}
-
-			if (!found && counterPlayer != null) {
-
-				logger.info("Create new binary association " + associationType);
-
-				Association ass = getTopicMap().createAssociation(associationType, scope);
-
-				ass.createRole(roleType, topic);
-				ass.createRole(otherRoleType, counterPlayer);
-
-				if (binding.isPersistOnCascade()) {
-
-					topicObjects.add(associationObject);
-					logger.info("Persist/Update " + associationObject + " on cascade.");
-				}
-			}
-		}
-		*/
 	}
 
 	private boolean checkBinding(TopicBinding tb, TopicBinding otherPlayerBinding) {
