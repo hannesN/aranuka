@@ -12,9 +12,11 @@ import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -27,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
+import org.junit.experimental.theories.internal.Assignments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmapi.core.Association;
@@ -368,7 +371,7 @@ public class TopicMapHandler {
 
 			String id = resolveIdentifier(ids.iterator().next());
 
-			String query = "DELETE CASCADE \"" + id + "\" << " + axis;
+			String query = MessageFormat.format(ITMQLQueries.DELETE_TOPIC, "\"" + id + "\" << " + axis);
 			runTMQL(query);
 
 			Topic t = getTopicFromCache(object);
@@ -383,26 +386,33 @@ public class TopicMapHandler {
 		}
 	}
 
-	private String getIDQueryPart(Object instance) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
-		TopicBinding binding = (TopicBinding) bindingHandler.getBinding(instance.getClass());
-		Set<String> ids = getIdentifier(instance, binding, IdType.SUBJECT_IDENTIFIER);
-		String axis = "indicators";
+	private String getIDQueryPart(Object instance) throws AranukaException {
+		try {
+			TopicBinding binding = (TopicBinding) bindingHandler.getBinding(instance.getClass());
+			Set<String> ids = getIdentifier(instance, binding, IdType.SUBJECT_IDENTIFIER);
+			String axis = "indicators";
 
-		if (ids.size() == 0) {
-			ids = getIdentifier(instance, binding, IdType.ITEM_IDENTIFIER);
-			axis = "item";
+			if (ids.size() == 0) {
+				ids = getIdentifier(instance, binding, IdType.ITEM_IDENTIFIER);
+				axis = "item";
+			}
+
+			if (ids.size() == 0) {
+				ids = getIdentifier(instance, binding, IdType.SUBJECT_LOCATOR);
+				axis = "locators";
+			}
+
+			if (ids.size() == 0)
+				throw new AranukaException("No identifier found");
+
+			String id = resolveIdentifier(ids.iterator().next());
+			return "\""+id+"\" << "+ axis;
+		} catch (Throwable e) {
+			if (e instanceof AranukaException)
+				throw (AranukaException) e;
+			
+			throw new AranukaException(e);
 		}
-
-		if (ids.size() == 0) {
-			ids = getIdentifier(instance, binding, IdType.SUBJECT_LOCATOR);
-			axis = "locators";
-		}
-
-		if (ids.size() == 0)
-			throw new RuntimeException("No identifier found");
-
-		String id = resolveIdentifier(ids.iterator().next());
-		return "\""+id+"\" "+ axis;
 	}
 	
 	private String getIDCTMPart(Object instance) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
@@ -1190,11 +1200,11 @@ public class TopicMapHandler {
 
 			if (newAssociation.getKey().getKind() == AssociationKind.UNARY) {
 				
-				updateUnaryAssociation(topicObject, newAssociation.getKey(), newAssociation.getValue(), playedRoles);
+				updateUnaryAssociation(topicObject, newAssociation.getKey());
 
 			} else if (newAssociation.getKey().getKind() == AssociationKind.BINARY) {
 
-				updateBinaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles,
+				updateBinaryAssociations(topicObject, newAssociation.getKey(), newAssociation.getValue(), playedRoles,
 						topicObjects);
 
 			} else if (newAssociation.getKey().getKind() == AssociationKind.NNARY) {
@@ -1239,115 +1249,83 @@ public class TopicMapHandler {
 	}
 
 	/**
-	 * Updates a number of specific unary associations.
+	 * Updates a number of specific unary associations. If the instances value is <code>false</code>
+	 * an existing association will be deleted. If the value is <code>true</code> the association will be
+	 * created if it does not exists.
 	 * 
 	 * @param topic
 	 *            - The topic which plays a role in the associations.
 	 * @param binding
 	 *            - The association binding.
-	 * @param associationObjects
-	 *            - The association objects, i.e. the boolean values.
-	 * @param playedRoles
-	 *            - The roles played by the topic.
+	 *            
 	 * @throws AranukaException
 	 * @throws ClassNotSpecifiedException 
 	 * @throws NoSuchMethodException 
 	 * @throws BadAnnotationException 
 	 */
-	private void updateUnaryAssociation(Object instance, AssociationBinding binding, Set<Object> associationObjects,
-			Map<Role, Match> playedRoles) throws AranukaException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
-
-		if (associationObjects.size() != 1)
-			throw new AranukaException("Unary association has more the one type.");
-
-		
+	private void updateUnaryAssociation(Object instance, AssociationBinding binding) throws AranukaException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
 		String asscoTypeSi = TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap());
 		String roleTypeSi = TopicMapsUtils.resolveURI(binding.getPlayedRole(), this.config.getPrefixMap());
 		
-		/**
-		Topic associationType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getAssociationType(),
-				this.config.getPrefixMap()));
-
-		Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getPlayedRole(),
-				this.config.getPrefixMap()));
-*/
-		Set<Topic> scope = binding.getScope(getTopicMap());
-
-		boolean value = (Boolean) associationObjects.iterator().next();
-
+		boolean value = (Boolean) binding.getValue(instance);
 		
 		// check if an assoc exists
-		String queryString = "select $t\n" 
-							 + "where\n" 
-							 + "$t in " + getIDQueryPart(instance) 
-							 + " >> roles [ . == " 
-							 + asscoTypeSi + " ]";
-		
+			// building scope part
+		String scope = getTMQLScopeString(binding);
+
+		String queryString = MessageFormat.format(ITMQLQueries.GET_UNARY_ASSOCIATION, getIDQueryPart(instance),
+				asscoTypeSi, roleTypeSi, scope);
 		IQuery q = getTMQLRuntime().run(queryString);
 		
-		boolean oldVal = !q.getResults().isEmpty();
+		boolean oldVal = false;
+		if (!q.getResults().isEmpty()) {
+			if (q.getResults().size()>1)
+				throw new AranukaException("Unary association has more the one type.");
+			
+			oldVal = true;
+		}
+		
 		
 		
 		if (value && !oldVal) {
-			StringBuilder b = new StringBuilder();
-			b.append(asscoTypeSi);
-			b.append("(");
-			b.append(roleTypeSi);
-			b.append(" : ");
-			b.append(getIDCTMPart(instance));
-			b.append(")");
-			getTMQLRuntime().run("INSERT ''' "+b.toString()+" ''' ");
+			scope = getCTMScopeString(binding);
+			queryString = MessageFormat.format(ITMQLQueries.INSERT_UNARY_ASSOCIATION, asscoTypeSi, roleTypeSi,
+					getIDCTMPart(instance), scope);
+			getTMQLRuntime().run(queryString);
 		} else if (!value && oldVal) {
-			// TODO delete statement
-			
+			getTMQLRuntime().run("DELETE " + queryString);			
 		}
-		
-		// try to find the association
-//		Role role = null;
+	}
 
-//		for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
-//
-//			if (playedRole.getValue() != Match.INSTANCE // ignore roles which
-//														// are already flagged
-//														// true
-//					&& playedRole.getKey().getParent().getRoles().size() == 1 // is
-//																				// unary
-//																				// association
-//					&& playedRole.getKey().getType().equals(roleType) // check
-//																		// role
-//																		// type
-//					&& playedRole.getKey().getParent().getType().equals(associationType)) { // check association
-//																							// type
-//
-//				// binding found
-//				logger.info("Unary association matches binding.");
-//
-//				if (playedRole.getKey().getParent().getScope().equals(scope)) { // check
-//																				// scope
-//
-//					role = playedRole.getKey();
-//					playedRole.setValue(Match.INSTANCE);
-//					break;
-//
-//				}
-//			}
-//		}
+	private String getCTMScopeString(AssociationBinding binding) {
+		StringBuilder scopeBuilder = new StringBuilder();
+		if (binding.getThemes().size()>0) {
+			scopeBuilder.append("@");
+			Iterator<String> it = binding.getThemes().iterator();
+			while (it.hasNext()) {
+				scopeBuilder.append("<"+it.next()+">");
+				if (it.hasNext())
+					scopeBuilder.append(", ");
+			}
+		}
+		return scopeBuilder.toString();
+	}
 
-//		if (role != null) {
-//
-//			if (value == false) {
-//				logger.info("Remove unary association " + role.getParent());
-//				role.getParent().remove();
-//			}
-//
-//		} else {
-//
-//			if (value == true) {
-//				logger.info("Creare new unary association " + associationType);
-//				Association ass = getTopicMap().createAssociation(associationType, scope);
-//				ass.createRole(roleType, topic);
-//			}
-//		}
+	private String getTMQLScopeString(AssociationBinding binding) {
+		StringBuilder b = new StringBuilder();
+		if (binding.getThemes().size()>0) {
+			b.append(" [ ");
+			
+			Iterator<String> it = binding.getThemes().iterator();
+			while (it.hasNext()) {
+				b.append("@");
+				b.append(it.next());
+				if (it.hasNext())
+					b.append(" AND ");
+			}
+			b.append(" ] ");
+		}
+		return b.toString();
 	}
 
 	/**
@@ -1368,16 +1346,76 @@ public class TopicMapHandler {
 	 * @throws TopicMapIOException
 	 * @throws BadAnnotationException
 	 */
-	private void updateBinaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects,
+
+	private void updateBinaryAssociations(Object instance, AssociationBinding binding, Set<Object> associationObjects,
 			Map<Role, Match> playedRoles, List<Object> topicObjects) throws Exception {
 
-		Topic associationType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getAssociationType(),
-				this.config.getPrefixMap()));
-		Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getPlayedRole(),
-				this.config.getPrefixMap()));
-		Topic otherRoleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getOtherRole(),
-				this.config.getPrefixMap()));
+		String asscoTypeSi = TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap());
+		String roleTypeSI = TopicMapsUtils.resolveURI(binding.getPlayedRole(), this.config.getPrefixMap());
+		String otherRoleTypeSI = TopicMapsUtils.resolveURI(binding.getOtherRole(), this.config.getPrefixMap());
 
+		
+		// cache all identifier of the other players
+		Collection<Object> otherPlayers = null;
+		Object value = binding.getValue(instance);
+		if (value != null) {
+			if (binding.isArray())
+				otherPlayers = Arrays.asList((Object[]) value);
+			else if (binding.isCollection()) {
+				otherPlayers = (Collection<Object>) value;
+			} else {
+				otherPlayers = new ArrayList<Object>();
+				otherPlayers.add(value);
+			}
+		}
+		
+		Set<String> validIds = new HashSet<String>();
+		
+		if (otherPlayers==null)
+			otherPlayers = Collections.emptyList();
+		for (Object otherPlayer : otherPlayers) {
+			String queryString = MessageFormat.format(ITMQLQueries.GET_ID_OF_BINARY_ASSOCIATION, getIDQueryPart(instance), getIDQueryPart(otherPlayer),
+					asscoTypeSi, roleTypeSI, otherRoleTypeSI, getTMQLScopeString(binding));
+			
+			IQuery q = getTMQLRuntime().run(queryString);
+			
+			if (q.getResults().isEmpty()) {
+				// insert the association
+				String insertQuery = MessageFormat.format(ITMQLQueries.INSERT_BINARY_ASSOCIATION, 
+						asscoTypeSi, 
+						roleTypeSI, 
+						getIDCTMPart(instance), 
+						otherRoleTypeSI, 
+						getIDCTMPart(otherPlayer),
+						getCTMScopeString(binding));
+				getTMQLRuntime().run(insertQuery);
+			
+				q = getTMQLRuntime().run(queryString);
+			}
+			
+			// adding id to valid ids list
+			validIds.add((String) q.getResults().get(0, 0));
+		}
+		
+		
+		// removing the non valid association
+		
+		StringBuilder b = new StringBuilder();
+		Iterator<String> it = validIds.iterator();
+		while (it.hasNext()) {
+			b.append("\"");
+			b.append(it.next());
+			b.append("\" << id");
+			if (it.hasNext())
+				b.append(" UNION ");
+		}
+		String idUnion = b.toString(); 
+		
+		String deleteQuery = MessageFormat.format(ITMQLQueries.DELETE_BINARY_ASSOCIATION, 
+				asscoTypeSi, idUnion);
+		getTMQLRuntime().run(deleteQuery);
+		
+		/*
 		Set<Topic> scope = binding.getScope(getTopicMap());
 
 		for (Object associationObject : associationObjects) { // check each
@@ -1453,6 +1491,7 @@ public class TopicMapHandler {
 				}
 			}
 		}
+		*/
 	}
 
 	private boolean checkBinding(TopicBinding tb, TopicBinding otherPlayerBinding) {
