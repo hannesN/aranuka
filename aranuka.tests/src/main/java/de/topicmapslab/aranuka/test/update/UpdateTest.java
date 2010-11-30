@@ -736,6 +736,8 @@ public class UpdateTest extends  AbstractTest {
 		assertTrue(associationExist(this.session.getTopicMap(), si, "http://topicmapslab.de/aranuka/test/unnary_association", 
 				"http://topicmapslab.de/aranuka/test/topic_type_01_role", new HashMap<String,Set<String>>()));
 		
+		serializeTopicMap("/tmp/unnary.ctm", session.getTopicMap());
+		
 		// remove association
 		test.setUnaryAssociation(false);
 		this.session.persist(test);
