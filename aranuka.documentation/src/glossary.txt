@@ -1,0 +1,14 @@
+Glossary
+========
+[glossary]
+
+Connector::
+	A connector is the bridge between _Aranuka_ and an existing topic map. A connector create a topic map and persists it.
+
+Field Container::
+	A field is a property of a class. This class is called the field container.
+
+QName::
+	A QName provides a way to shorten a URI. A QName has the structure id:localpart. For every used id a URI must be specified. 
+	If a QName is used the id will be resolved with the specified URI and adds the local part.	
+	

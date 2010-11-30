@@ -1,0 +1,65 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>de.topicmapslab.aranuka</groupId>
+	
+	<artifactId>aranuka-parent</artifactId>
+	<version>1.0.2-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	
+	<name>Aranuka Parent Project</name>
+	
+	<build> 
+	<extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+         <artifactId>wagon-ssh</artifactId>
+         <version>1.0-beta-2</version>
+      </extension>
+    </extensions>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.0.2</version>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<repositories>
+		<repository>
+			<id>tmlab</id>
+			<url>http://maven.topicmapslab.de/public</url>
+		</repository>
+		<!-- currently not needed
+		<repository>
+			<id>tmapi</id>
+			<url>http://www.tmapi.org/maven-repository/</url>
+		</repository>
+		-->
+		<repository>
+            <id>tmapi</id>
+            <url>http://www.tmapi.org/maven-repository/snapshots</url>
+        </repository>
+	</repositories>
+	<distributionManagement>
+		<repository>
+			<id>topicmapslab-public</id>
+			<name>Topic Maps Lab Repositiory</name>
+			<url>scp://topicmapslab.de/home/maven/webdir/maven.topicmapslab.de/public/public</url>
+		</repository>
+	</distributionManagement>
+	
+	<modules>
+		<module>aranuka.runtime</module>
+		<module>aranuka.tests</module>
+		<module>aranuka.connector.ontopia</module>
+		<module>aranuka.connector.tinyTiM</module>
+		<module>aranuka.connector.majortom</module>
+		<module>aranuka.example</module>
+	</modules>
+</project>

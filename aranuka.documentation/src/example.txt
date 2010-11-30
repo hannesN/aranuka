@@ -1,0 +1,391 @@
+== Example ==
+
+In the following sections an _Aranuka_ application will be developed. The task of the application is to store 
+Persons and their addresses into a Topic Map.
+
+NOTE: This tutorial presumes a project which provides the aranuka-runtime library, an aranuka connector with its dependencies and 
+an implementation of the slf4j-api library (version 1.6.1). You can find an example in the aranuka code repository.
+
+=== Maven ===
+
+To manage the dependencies of _Aranuka_ it is advised to use maven, or an maven repository using dependency mangement tool (like ivy).
+In this example Maven2 is used. To add the _Aranuka_ dependency to the example project it is necessary to add the topic maps lab maven repository
+to the *pom.xml*. 
+
+
+
+The dependency entry for _Aranuka_ depends on the connector to use. In this tutorial the tinyTiM connector is used. 
+
+The pom for the example looks like:
+
+---------------------------------
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<parent>
+		<artifactId>aranuka</artifactId>
+		<groupId>de.topicmapslab</groupId>
+		<version>1.0.1-SNAPSHOT</version>
+	</parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>de.topicmapslab.aranuka</groupId>
+  <artifactId>aranuka-example</artifactId>
+  <version>${parent.project.version}</version>
+  <build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.0.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+  <dependencies>
+    <dependency>
+      <groupId>de.topicmapslab.aranuka</groupId>
+      <artifactId>aranuka-connector-tinytim</artifactId>
+      <version>1.0.1</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>de.topicmapslab.aranuka</groupId>
+      <artifactId>aranuka-runtime</artifactId>
+      <version>1.0.1</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.slf4j</groupId>
+    	<artifactId>slf4j-log4j12</artifactId>
+    	<version>1.6.1</version>
+    	<type>jar</type>
+    	<scope>compile</scope>
+    </dependency>
+  </dependencies>
+</project>
+---------------------------------
+
+=== The Model ===
+
+The first thing to do is the specification and annotation of the model. Every person has an identifier, first name, last name
+and an address. 
+
+An address contains an id, the street name, house number, zip code and the name of the country.
+
+NOTE: In this example the country is just a property of the address. A better Topic Maps modelling would be to create another class
+for the country and connects it via an association.
+
+The class for the person could look like the following:
+----------------------------------
+@Topic(subject_identifier="ex:person")
+public class Person {
+
+	@Id(type=IdType.SUBJECT_IDENTIFIER)
+	private String id;
+	
+	@Name(type="ex:firstname")
+	private String firstName;
+	
+	@Name(type="ex:lastname")
+	private String lastName;
+	
+	@Association(type="ex:lives",
+		played_role="ex:habitant",
+		other_role="ex:place",
+		persistOnCascade=true)
+	private Address address;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public Address getAddress() {
+		return address;
+	}
+
+	public void setAddress(Address address) {
+		this.address = address;
+	}
+}
+----------------------------------
+
+The most complex annotation is *Association*. The attribute *persistOnCascade* means that if *true* the instance is persisted when the
+person is persisted. If *persistOnCascade* is *false* only a stub with the identifier of the topic is persisted.
+
+The following is the implementation of Address:
+---------------------------------
+@Topic(subject_identifier="ex:address")
+public class Address {
+
+	@Id(type=IdType.ITEM_IDENTIFIER)
+	private int id;
+	
+	@Occurrence(type="ex:zipcode")
+	private String zipCode;
+	
+	@Occurrence(type="ex:city")
+	private String city;
+	
+	@Occurrence(type="ex:street")
+	private String street;
+	
+	@Occurrence(type="ex:number")
+	private String number;
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getZipCode() {
+		return zipCode;
+	}
+
+	public void setZipCode(String zipCode) {
+		this.zipCode = zipCode;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public String getStreet() {
+		return street;
+	}
+
+	public void setStreet(String street) {
+		this.street = street;
+	}
+
+	public String getNumber() {
+		return number;
+	}
+
+	public void setNumber(String number) {
+		this.number = number;
+	}
+}
+---------------------------------
+
+The classes are simple classes with a default constructor and mutator and accessor methods for every property.  In addition
+the properties and the class itself are annotated with the annotations of _Aranuka_. The *Topic* annotation specifies that the class should be mapped to 
+a topic with the given identifier. This topic is used as topic type for every instance of the class. The identifier in this example uses qnames as subject identifier.
+This produces identifier, which are easier to understand and memorise. Alternatively the subject identifier can be any IRI. If qnames are used, the qnames identifier, 
+called prefix must be specified. More to that later. The types specified in the annotation also have no other charactersitic. In the configuration it is possible to
+add a name to the type, which looks better in any Topic Maps browser.
+ 
+=== The Configuration ===
+
+The next step is to generate a small application which uses the model. 
+
+Create a class *Test* with a method *main*. The first step is the instantiation of the *Configuration* class:
+---------------------------
+Configuration conf = new Configuration(TinyTiMConnector.class);
+---------------------------
+
+The constructor of Configuration needs one parameter: the connectors class. It is not possible to
+switch between connectors. In this example the tinyTiM connector is used, which means _Aranuka stores 
+the topics into a memory topic map of the tinyTiM Topic Maps engine.
+ 
+ The next step is to add the annotated classes which should be persisted:
+---------------------------------
+conf.addClass(Person.class);
+conf.addClass(Address.class);
+---------------------------------
+
+Now the configuration knows which classes to parse.
+
+To create a Topic Map the engine needs an IRI which identifies the topic map. This IRI is called the base locator.
+The base locator is set via properties of the connection.
+
+------------------------------
+conf.setProperty(IProperties.BASE_LOCATOR, "http://example.aranuka.org/");
+------------------------------ 
+
+Last but not least is a file name necessary where to store the serialised topic map. The type of serialisation is based on
+the filenames suffix.
+
+------------------------------------
+conf.setProperty(IProperties.FILENAME, "/tmp/test.ctm");
+------------------------------------
+
+NOTE: If the file already exists it will be loaded into the topic map.
+
+The annotations use QNames and therefore it is necessary to set a prefix:
+
+---------------------------------------
+conf.addPrefix("ex", "http://aranuka.example.org/");
+---------------------------------------
+
+To set some names for the specified types do:
+-----------------------------------------------------
+conf.addName("ex:person", "Person");
+conf.addName("ex:firstname", "First Name");
+conf.addName("ex:lastname", "Surname");
+conf.addName("ex:lives", "lives");
+conf.addName("ex:habitant", "Habitant");
+conf.addName("ex:place", "Place");
+		
+conf.addName("ex:address", "Address");
+conf.addName("ex:zipcode", "Zip Code");
+conf.addName("ex:street", "Street");
+conf.addName("ex:city", "City");
+conf.addName("ex:number", "House Number");
+-----------------------------------------------------
+
+The first parameter of *addName* is the specified identifier for the type. The second parameter is the name for the topic. This name
+has the default name type specified by the TMDM.
+
+
+NOTE: It is advised to set names for the types, but it is not mandatory.
+
+=== The session ===
+
+The session is used to persist instances into the topic map, flush the topic map and to retrieve instances from the topic map.
+
+First get a session from the configuration:
+-----------------------
+Session session = conf.getSession(false);
+-----------------------
+
+now we can retrieve all instances of a specific type with:
+
+-----------------------------------
+Set<Object> persons = session.getAll(Person.class);
+		
+// persons.size() == 0
+System.out.println(persons.size());
+------------------------------------
+
+To add a new person create a person class with an address:
+-----------------------------
+Address a = new Address();
+a.setId(1);
+a.setZipCode("00815");
+a.setCity("Example City");
+a.setStreet("Example Street");
+a.setNumber("1");
+		
+Person p = new Person();
+p.setId("ex:max");
+p.setFirstName("Max");
+p.setLastName("Powers");
+p.setAddress(a);
+
+return p;
+------------------------------
+
+Again a QName for the id is used. This QName is resolved when persisting the topic. If the topic is retrieved _Aranuka_ recognises the 
+prefix and sets the identifier to the short version. Inside the topic map the dientifier is resolved. 
+After that the person is persisted with:
+
+------------------------------------
+Person p = createPerson();
+session.persist(p);
+------------------------------------
+
+It is not necessary to persist the attribute instance because of the *persistOnCascade* annotation property.
+
+To serialise the topic map call:
+------------------------------------
+session.flushTopicMap();
+------------------------------------
+
+Run the application and you should find the ctm file in the tmp directory which has the following content:
+------------------------------------
+# Generated by the CTM Topic Map Writer.
+%encoding "UTF-8"
+%version 1.0
+
+
+# prefixes
+
+%prefix ex  <http://aranuka.example.org/>
+
+
+
+# topic definitions
+^<http://aranuka.example.org/address/1>  
+         isa ex:address;
+         ex:zipcode :  "00815";
+         ex:street :  "Example Street";
+         ex:city :  "Example City";
+         ex:number :  "1".
+
+ex:firstname  
+         -  <http://psi.topicmaps.org/iso13250/model/topic-name> : "First Name".                                                                                 
+                                                                                                                                                                 
+ex:city                                                                                                                                                          
+         -  <http://psi.topicmaps.org/iso13250/model/topic-name> : "City".                                                                                       
+                                                                                                                                                                 
+ex:street                                                                                                                                                        
+         -  <http://psi.topicmaps.org/iso13250/model/topic-name> : "Street".                                                                                     
+                                                                                                                                                                 
+ex:place                                                                                                                                                         
+         -  <http://psi.topicmaps.org/iso13250/model/topic-name> : "Place".                                                                                      
+                                                                                                                                                                 
+ex:person                                                                                                                                                        
+         -  <http://psi.topicmaps.org/iso13250/model/topic-name> : "Person".                                                                                     
+                                                                                                                                                                 
+ex:address                                                                                                                                                       
+         -  <http://psi.topicmaps.org/iso13250/model/topic-name> : "Address".                                                                                    
+                                                                                                                                                                 
+ex:lives                                                                                                                                                         
+         -  <http://psi.topicmaps.org/iso13250/model/topic-name> : "lives".                                                                                      
+                                                                                                                                                                 
+ex:zipcode                                                                                                                                                       
+         -  <http://psi.topicmaps.org/iso13250/model/topic-name> : "Zip Code".                                                                                   
+                                                                                                                                                                 
+ex:number                                                                                                                                                        
+         -  <http://psi.topicmaps.org/iso13250/model/topic-name> : "House Number".
+
+ex:lastname  
+         -  <http://psi.topicmaps.org/iso13250/model/topic-name> : "Surname".
+
+ex:max  
+         isa ex:person;
+         -  ex:firstname : "Max";
+         -  ex:lastname : "Powers".
+
+ex:habitant  
+         -  <http://psi.topicmaps.org/iso13250/model/topic-name> : "Habitant".
+
+# association definitions
+ex:lives (
+         ex:place : ^<http://aranuka.example.org/address/1>,
+         ex:habitant : ex:max
+)
+------------------------------------------------
+
+NOTE: Starting the application again, the application should print *1* instead of *0* because it loads the previously persisted  topic map.
+

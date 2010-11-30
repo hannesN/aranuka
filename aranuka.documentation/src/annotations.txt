@@ -1,0 +1,88 @@
+== _Aranuka_ Annotations ==
+
+For every construct an annotation exists. The following sections describe 
+the annotations and their properties.
+
+=== *Topic* ===
+Use the *Topic* annotation to create a mapping to a topic type. Every class annotated 
+with _Topic_ represents a topic type in the topic map. This annotation has the following property:
+
+* *subject_identifier*: a list of subject identifiers for the type. 
+Default: A subject identifier based the scheme "class:" and the qualified name of the class.
+
+EXAMPLE: The base locator "http://test.de" is set. A topic type for a class *de.test.Person* would get the
+automatically generated subject identifier "class:de/test/Person"
+
+=== *Id* ===
+The annotation is used for class properties which tells_Aranuka_, that the value of this property is a
+topic identifier. The type of the property must be either a String or an integer value.
+If it is the first the value has to be a valid IRI. In case of the latter an URI is generated using the
+subject identifier of the topic type and adds the value of the number. 
+
+This annotation has the following property:
+
+* *type*: The kind of identifier is set via the *type* property. The type is specified via the enumeration 
+*aranuka.src.main.java.de.topicmapslab.aranuka.enummerations.IdType.java*
+Default: The default value is IdType.ITEM_IDENTIFIER
+
+The type of the property can also be a collection of *String* or *Integer*. This indicated, that the topic
+has more than one identifier of this type. It is also possible to have more than one property with an identifier
+annotation. If this is the case they must not have the same type. 
+
+===  *Name* ===
+Use this annotation to specify that a value of a field of type *String* or a collection of *String* represents a or many names 
+of a specific type. 
+This annotation has the following property:
+
+* *type*: The subject identifier of the name type. If non is specified a name type is generated based on the subject identifier
+of the containing class and the name of the field.
+
+===  *Occurrence* ===
+Use this annotation to specify that  a value of a field is persisted as occurrence. The field must have either
+have a primitive type or *java.util.Date*. The datatype of the occurrence is based on the fields type.
+This annotation has the following property:
+
+* *type*: The subject identifier of the name type. If non is specified a occurrence type is generated based on the 
+subject identifier of the containing class and the name of the field.
+
+===  *Association* ===
+The *Association* annotation is the most complex annotation. It us used to specify an association between 
+the containing instance and the instance which is the value of the field. The type of the field must be either
+*boolean* which indicates a unary association or another class annotated with *Topic* or *AssociationContainer*.
+This annotation has the following properties:
+
+* *persistOnCascade*: specifies if the value of the field should be persisted as automatically when the 
+containing instance is persisted
+Default: *false*
+* *type*: The subject identifier of the type of the association
+Default: "base_locator:is-attribute-of"
+* *played_role*: The type of the role the containing instance play in the association.
+Default: "base_locator:attribute"
+* *other_role*: The role the value of the field plays in the association
+Default: "base_locator:attributed"
+
+Their are three types of associations:
+
+* unary association: This association maps a boolean field to an association. Only the *type* and *played_role* property are allowed.
+* binary association: This association maps the field container to an association with another instance represented
+by the value of the field. The type of field needs to be annotated with *Topic*. 
+* n-nary association: This association maps the field container with an association with more than two players. These players
+are fields of an additional class which is annotated with *AssociationContainer*. Only the *type* and *played_role* property are allowed.
+
+If multiple instances are needed it is possible to use Collections of the types. For every instance in the collection an association
+will be created.
+
+
+===  *AssociationContainer* ===
+An association container is a class which field represent players in a n-nary association. Every player has to be
+annotated with *Role*.
+
+The *AssociationContainer* is used to annotate a class like *Topic*. 
+
+=== *Role* ===
+The *Role* annotation is used to specify the role type of a value of the field in an *AssociationContainer*.
+This annotation has the following property:
+
+* *type* the subject identifier of the role type
+
+

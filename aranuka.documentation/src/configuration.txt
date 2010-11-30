@@ -1,0 +1,156 @@
+== Using _Aranuka_ ==
+
+=== Configuration ===
+
+After annotating the domain model _Aranuke_ needs some configuration parameters to create a session.
+This configuration is done with an instance of *de.topicmapslab.aranuka.Configuration*.
+
+
+----
+Configuration conf = new Configuration();
+----
+
+After instantiating the configuration it is necessary to add all annotated classes to the configuration, like:
+
+----
+conf.addClass(Person.class);
+---- 
+
+The next step is to set some properties for the topic map. Configuration properties are:
+
+* IProperties.CONNECTOR_CLASS the qualified name of the connector class to use
+* IProperties.BASE_LOCATOR the base locator for the topic map
+* IProperties.BACKEND which backend should be used
+** _memory_ configures the connector to use a memory backend
+** _db_ configures the connector to use a memory backend
+
+Backends which support the memory backend need the property:
+
+*  IProperties.FILENAME filename for the serialization.
+
+The database backends need informations about the connection. The properties are:
+
+* IProperties.DATABASESYSTEM This property tells _Aranuka_ which database management system is used. Valid values are:
+** mysql
+** postgresql
+** h2
+* IProperties.DATABASE_HOST the host where the DBMS is running
+* IProperties.DATABASE_PORT the port the DBMS is listening
+* IProperties.DATABASE_NAME the name of the database
+* IProperties.DATABASE_LOGIN the login for the database
+* IProperties.DATABASE_PASSWORD the password of the database
+
+NOTE: Right now MaJorToM supports only posgresql.
+
+NOTE: Ontopia  is able to connect to much more DBMS. It is possible to configure the engine using the 
+its own properties. If the property "net.ontopia.topicmaps.impl.rdbms.Database" is found the
+MaJorToM properties will be ignored. For more information refer to the Ontopia docs.
+
+----
+conf.setProperty(IProperties.CONNECTOR_CLASS, "de.topicmapslab.aranuka.tinytim.connectors.TinyTiMConnector");
+conf.setProperty(IProperties.BASE_LOCATOR, "http://docs.aranuka.de/documentation/");
+
+---- 
+
+NOTE: It is possible to load the property files from a file and set them at once using the method: 
+*conf.setProperties(properties)*
+
+If qnames were used to specify the identifiers for the types the qname identifier, called prefix, and the URI should be
+set to the configuration. It is also possible to specify new prefixes which will be used for identifiers of the prefixes.
+Add a prefix definition like:
+
+----
+conf.addPrefix("tp", "http://test.de/");
+---- 
+
+NOTE: The base locator is used to resolve the prefix 'base_locator'. If another prefix is desired it is possible to overwrite the
+prefix by adding a new prefix with the base locator URI.
+
+The memory connectors of _Aranuka_ store their topic maps into a file. This can be either XTM or CTM. The filename is also set in the configuration:
+
+------------
+conf.setProperty(IProperties.FILENAME, "/path/to/file.ctm");
+------------
+
+NOTE: The serializer is chosen based on the file suffix. If it's 'ctm' the ctm serializer is used. If it's 'xtm' the xtm2.0 serializer is used.
+
+It is possible to change the filename property after the session is created. This means the topic map is stored in the new file overwrting any existent
+file.
+
+
+==== Naming the types ====
+
+Every type used in the annotations only has a subject identifier. For a easier understanding of the type, the user might want to add
+names to the types. This is possible via the configuration. 
+---------------
+conf.addName(id, name)
+---------------  
+
+Alternatively create a map and fill it using the subject identifier of the type as key
+and its name as value. After filling the map add it to the configuration with:
+---------------
+conf.setNameMap(nameMap)
+--------------- 
+
+NOTE: If you use setNameMap all names put in the configuration via addName will be overwritten.
+
+=== Session ===
+
+After the configuration is finished a session can be retrieved from the configuration instance:
+
+--------
+conf.getSession(false);
+--------
+
+The parameter asks if the classes annotations should be parsed before creating the session (*false*) or lazy when the class is used the first time (*true*).
+
+NOTE: If the filename of the configuration points to an existing topic map it will be loaded and the topics.
+
+==== Persist Topics ====
+
+To persist an instance of an annotated class the session class provides the method persist.
+Every instance must have a property annotated with *Id*. Persist checks if a topic identified by  
+the value of this property exists and updates the other properties and association according to the 
+values of the instance. If no topic exists a new one is created. 
+
+==== Retrieve Topics ====
+
+Of course it is possible to get instances from the topic map. The session provides two ways to retrieve an instance
+from the topic map. The first retrieves all instances from a specific type. The method:
+
+-------
+getAll(Class<?> clazz)
+-------
+
+The parameter of this method is the class object of the annotated class. This method returns a set of instances which 
+represent the topics of that type.
+
+
+The other way is to retrieve a instance by identifier. The session provides three methods one for each kind of Topic Maps 
+identifier and returns either *null* if no topic with the given identifier exists or the instance representing the topic.
+
+--------------
+getByItemIdentifier(String)
+getBySubjectIdentifier(String)
+getBySubjectLocator(String)
+-------------- 
+
+NOTE: The given identifier must be resolved. QNames are not allowed at the moment.
+
+==== Persist the Topic Map ====
+
+The session provides the following method:
+---------
+flushTopicMap()
+---------
+
+The memory connectors serialize the file according to the filename set in the configuration.
+
+==== Clear the Topic Map ====
+
+With version 1.0.1 _Aranuka_ provides a method to clear the topic map inside the session. This can come handy especially in unit tests.
+To clear the method call:
+-------------
+clearTopicMap()
+-------------
+

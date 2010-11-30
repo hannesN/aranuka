@@ -1,0 +1,103 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<parent>
+		<groupId>de.topicmapslab.aranuka</groupId>
+		<artifactId>aranuka-parent</artifactId>
+		<version>1.0.2-SNAPSHOT</version>
+	</parent>
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>de.topicmapslab.aranuka</groupId>
+	<artifactId>aranuka-connector-ontopia</artifactId>
+	<version>${project.parent.version}</version>
+	
+	<name>Aranuka Ontopia Connector</name>
+	
+	<build>
+		<plugins>
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3.1</version>
+                <configuration>
+                    <archive>
+                        <manifestFile>META-INF/MANIFEST.MF</manifestFile>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+	</build>
+	<repositories>
+    <repository>
+      <id>ontopia</id>
+      <url>http://ontopia.googlecode.com/svn/maven-repository</url>
+    </repository>
+  </repositories>
+	<dependencies>
+		<dependency>
+			<groupId>de.topicmapslab.aranuka</groupId>
+			<artifactId>aranuka-runtime</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.ontopia</groupId>
+			<artifactId>ontopia-engine</artifactId>
+			<version>5.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.tmapix</groupId>
+			<artifactId>tmapix-io</artifactId>
+			<version>0.3.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.6.1</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.1</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.topicmapslab</groupId>
+			<artifactId>ctm-writer</artifactId>
+			<version>1.0.8-SNAPSHOT</version>
+			<type>pom</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.topicmapslab.aranuka</groupId>
+			<artifactId>aranuka-tests</artifactId>
+			<version>${project.version}</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.2.140</version>
+			<type>java-source</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.2.140</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>gnu.trove</groupId>
+			<artifactId>trove</artifactId>
+			<version>2.0.4</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	
+</project>
