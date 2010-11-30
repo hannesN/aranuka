@@ -9,7 +9,7 @@ import de.topicmapslab.aranuka.annotations.Topic;
 import de.topicmapslab.aranuka.enummerations.IdType;
 
 /**
- * Testclass tot est id generation
+ * Testclass to test id generation
  * 
  * @author Hannes
  *
