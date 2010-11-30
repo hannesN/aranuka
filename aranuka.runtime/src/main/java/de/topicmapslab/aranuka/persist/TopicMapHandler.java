@@ -11,11 +11,10 @@ package de.topicmapslab.aranuka.persist;
 import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.text.MessageFormat;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -62,8 +61,8 @@ import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
+import de.topicmapslab.tmql4j.common.context.TMQLRuntimeProperties;
 import de.topicmapslab.tmql4j.common.core.runtime.TMQLRuntimeFactory;
-import de.topicmapslab.tmql4j.common.model.query.IQuery;
 import de.topicmapslab.tmql4j.common.model.runtime.ITMQLRuntime;
 import de.topicmapslab.tmql4j.common.utility.HashUtil;
 import de.topicmapslab.tmql4j.resultprocessing.core.simple.SimpleResultSet;
@@ -106,6 +105,11 @@ public class TopicMapHandler {
 	 * Temporary cache for objects created for existing topics.
 	 */
 	private Map<Topic, Object> objectCache;
+
+	/**
+	 * Cache for associations.
+	 */
+	private Map<Association, AssociationBinding> associationCache;
 
 	/**
 	 * The topic map system.
@@ -167,6 +171,9 @@ public class TopicMapHandler {
 
 			topicToPersist.add(topicObject);
 			persistTopics(topicToPersist);
+			
+			objectCache = null;
+			
 		} catch (Exception e) {
 			throw new AranukaException(e);
 		}
@@ -266,7 +273,7 @@ public class TopicMapHandler {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
 	 */
-	public <E> E  getObjectBySubjectIdentifier(String si) throws AranukaException {
+	public <E> E getObjectBySubjectIdentifier(String si) throws AranukaException {
 		Locator siLoc = getIdentifierLocator(si);
 		Topic topic = getTopicMap().getTopicBySubjectIdentifier(siLoc);
 
@@ -282,7 +289,11 @@ public class TopicMapHandler {
 	 * @param sl
 	 *            - The subject locator as string.
 	 * @return The object or null if not found.
-	 * @throws AranukaException
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
 	 */
 	public <E> E getObjectBySubjectLocator(String sl) throws AranukaException {
 
@@ -300,7 +311,11 @@ public class TopicMapHandler {
 	 * @param ii
 	 *            - The item identifier as string.
 	 * @return The object or null if not found or the identifier identifies an non topic construct.
-	 * @throws AranukaException
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
 	 */
 	public <E> E getObjectByItemIdentifier(String ii) throws AranukaException {
 
@@ -355,73 +370,26 @@ public class TopicMapHandler {
 
 			String id = resolveIdentifier(ids.iterator().next());
 
-			String query = MessageFormat.format(ITMQLQueries.DELETE_TOPIC, "\"" + id + "\" << " + axis);
+			String query = "DELETE CASCADE \"" + id + "\" << " + axis;
 			runTMQL(query);
 
-			clearCache();
+			Topic t = getTopicFromCache(object);
+			if (t != null) {
+				topicCache.remove(object);
+				if (objectCache != null)
+					objectCache.remove(t);
+			}
 			return true;
 		} catch (Exception e) {
 			throw new AranukaException("Error while removing topic", e);
 		}
 	}
 
-	private String getIDQueryPart(Object instance) throws AranukaException {
-		try {
-			TopicBinding binding = (TopicBinding) bindingHandler.getBinding(instance.getClass());
-			Set<String> ids = getIdentifier(instance, binding, IdType.SUBJECT_IDENTIFIER);
-			String axis = "indicators";
-
-			if (ids.size() == 0) {
-				ids = getIdentifier(instance, binding, IdType.ITEM_IDENTIFIER);
-				axis = "item";
-			}
-
-			if (ids.size() == 0) {
-				ids = getIdentifier(instance, binding, IdType.SUBJECT_LOCATOR);
-				axis = "locators";
-			}
-
-			if (ids.size() == 0)
-				throw new AranukaException("No identifier found");
-
-			String id = resolveIdentifier(ids.iterator().next());
-			return "\""+id+"\" << "+ axis;
-		} catch (Throwable e) {
-			if (e instanceof AranukaException)
-				throw (AranukaException) e;
-			
-			throw new AranukaException(e);
-		}
-	}
-	
-	private String getIDCTMPart(Object instance) throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
-		TopicBinding binding = (TopicBinding) bindingHandler.getBinding(instance.getClass());
-		Set<String> ids = getIdentifier(instance, binding, IdType.SUBJECT_IDENTIFIER);
-		String axis = "";
-
-		if (ids.size() == 0) {
-			ids = getIdentifier(instance, binding, IdType.ITEM_IDENTIFIER);
-			axis = "^";
-		}
-
-		if (ids.size() == 0) {
-			ids = getIdentifier(instance, binding, IdType.SUBJECT_LOCATOR);
-			axis = "=";
-		}
-
-		if (ids.size() == 0)
-			throw new RuntimeException("No identifier found");
-
-		String id = resolveIdentifier(ids.iterator().next());
-		return axis+"<"+id+">";
-	}
-	
-	
-	
 	/**
 	 * Clears the cache of the topic map handler
 	 */
 	public void clearCache() {
+		associationCache = null;
 		objectCache = null;
 		topicCache = null;
 	}
@@ -475,10 +443,10 @@ public class TopicMapHandler {
 		if (this.TMQLRuntime == null) {
 			this.TMQLRuntime = TMQLRuntimeFactory.newFactory().newRuntime(topicMapSystem, getTopicMap());
 			this.TMQLRuntime.getProperties().enableLanguageExtensionTmqlUl(true);
-//			this.TMQLRuntime.getProperties().setProperty(TMQLRuntimeProperties.RESULT_SET_IMPLEMENTATION_CLASS,
-//					SimpleResultSet.class.getName());
-//			this.TMQLRuntime.getProperties().setProperty(TMQLRuntimeProperties.RESULT_TUPLE_IMPLEMENTATION_CLASS,
-//					SimpleTupleResult.class.getName());
+			this.TMQLRuntime.getProperties().setProperty(TMQLRuntimeProperties.RESULT_SET_IMPLEMENTATION_CLASS,
+					SimpleResultSet.class.getName());
+			this.TMQLRuntime.getProperties().setProperty(TMQLRuntimeProperties.RESULT_TUPLE_IMPLEMENTATION_CLASS,
+					SimpleTupleResult.class.getName());
 
 		} else {
 			return this.TMQLRuntime;
@@ -527,18 +495,28 @@ public class TopicMapHandler {
 	 * @param topic
 	 *            - The topic.
 	 * @return The object or null if not found.
-	 * @throws AranukaException
+	 * @throws TopicMapIOException
+	 * @throws TopicMapInconsistentException
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
 	 */
-	private <E> E  getObject(Topic topic) throws AranukaException {
+	@SuppressWarnings("unchecked")
+	private <E> E getObject(Topic topic) throws AranukaException {
 
 		TopicBinding binding = getTopicBinding(topic);
 
 		if (binding == null)
-			throw new AranukaException("No binding for the Topic with "+topic);
+			throw new AranukaException("No binding for the Topic");
+
+		Class<?> clazz = getBindingHandler().getClassForBinding(binding);
+
+		if (clazz == null)
+			return null;
 
 		E obj;
 		try {
-			obj = getInstanceFromTopic(topic, binding);
+			obj = (E) getInstanceFromTopic(topic, binding, clazz);
 		} catch (Exception e) {
 			throw new AranukaException(e);
 		}
@@ -654,13 +632,23 @@ public class TopicMapHandler {
 
 		// add topic to cache
 		addTopicToCache(newTopic, topicObject);
-		addObjectToCache(topicObject, newTopic);
 
 		// set topic type
 		newTopic.addType(getTopicType(binding));
 
-		// persisting topic 
-		updateTopic(newTopic, topicObject, binding, topicObjects);
+		// update identifier
+		updateSubjectIdentifier(newTopic, topicObject, binding);
+		updateSubjectLocator(newTopic, topicObject, binding);
+		updateItemIdentifier(newTopic, topicObject, binding);
+
+		// update names
+		updateNames(newTopic, topicObject, binding);
+
+		// update occurrences
+		updateOccurrences(newTopic, topicObject, binding);
+
+		// update associations
+		updateAssociations(newTopic, topicObject, binding, topicObjects);
 
 		return newTopic;
 	}
@@ -1005,7 +993,7 @@ public class TopicMapHandler {
 			Topic nameType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(newName.getKey().getNameType(),
 					this.config.getPrefixMap()));
 
-			Set<Topic> scope = getScope(newName.getKey().getThemes());
+			Set<Topic> scope = getScope(newName.getKey().getThemes(), getTopicMap());
 
 			for (String name : newName.getValue()) {
 
@@ -1047,6 +1035,20 @@ public class TopicMapHandler {
 		}
 	}
 
+	private Set<Topic> getScope(Set<String> themes, TopicMap topicMap2) {
+		if (themes == null)
+			return Collections.emptySet();
+
+		Set<Topic> scope = new HashSet<Topic>();
+
+		for (String theme : themes) {
+			scope.add(topicMap.createTopicBySubjectIdentifier(topicMap.createLocator(TopicMapsUtils.resolveURI(theme,
+					this.config.getPrefixMap()))));
+		}
+
+		return scope;
+	}
+
 	/**
 	 * Updates the occurrences of an specific topic according to an object.
 	 * 
@@ -1074,7 +1076,7 @@ public class TopicMapHandler {
 			Topic occurrenceType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(newOccurrence.getKey()
 					.getOccurrenceType(), this.config.getPrefixMap()));
 
-			Set<Topic> scope = getScope(newOccurrence.getKey().getThemes());
+			Set<Topic> scope = getScope(newOccurrence.getKey().getThemes(), getTopicMap());
 			Locator datatype = topic.getTopicMap().createLocator(newOccurrence.getKey().getDataType()); // creating
 																										// datatype
 																										// locator
@@ -1152,101 +1154,135 @@ public class TopicMapHandler {
 		if (newAssociations.isEmpty())
 			return;
 
+		// get existing associartions, i.e. played roles
+		Map<Role, Match> playedRoles = addFlags(topic.getRolesPlayed());
+
 		for (Map.Entry<AssociationBinding, Set<Object>> newAssociation : newAssociations.entrySet()) {
 
 			if (newAssociation.getKey().getKind() == AssociationKind.UNARY) {
-				
-				updateUnaryAssociation(topicObject, newAssociation.getKey());
+				updateUnaryAssociation(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles);
 
 			} else if (newAssociation.getKey().getKind() == AssociationKind.BINARY) {
 
-				updateBinaryAssociations(topicObject, newAssociation.getKey());
+				updateBinaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles,
+						topicObjects);
 
 			} else if (newAssociation.getKey().getKind() == AssociationKind.NNARY) {
 
-				updateNnaryAssociations(topicObject, newAssociation.getKey());
+				updateNnaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles,
+						topicObjects);
+			}
+		}
+
+		// remove obsolete roles
+		for (Map.Entry<Role, Match> entry : playedRoles.entrySet()) {
+
+			Association ass = entry.getKey().getParent();
+			if (ass != null) {
+
+				if (entry.getValue() == Match.BINDING) { // only binding match
+															// found but no
+															// instance
+
+					logger.info("Remove obsolete association " + ass.getType());
+					ass.remove();
+
+				} else if (entry.getValue() == Match.NO) {
+
+					// find association in cache and remove if it belongs to
+					// this topic
+
+					if (getAssociationBindingFromCache(ass) != null) {
+						if (binding.getFieldBindings().contains(getAssociationBindingFromCache(ass))) {
+							// if the binding belongs to this topic, the
+							// association was created by this topic
+							removeAssociationFromCache(ass);
+
+							logger.info("Remove obsolete association " + ass.getType());
+							ass.remove();
+						}
+
+					}
+				}
 			}
 		}
 	}
 
 	/**
-	 * Updates a number of specific unary associations. If the instances value is <code>false</code>
-	 * an existing association will be deleted. If the value is <code>true</code> the association will be
-	 * created if it does not exists.
+	 * Updates a number of specific unary associations.
 	 * 
 	 * @param topic
 	 *            - The topic which plays a role in the associations.
 	 * @param binding
 	 *            - The association binding.
-	 *            
+	 * @param associationObjects
+	 *            - The association objects, i.e. the boolean values.
+	 * @param playedRoles
+	 *            - The roles played by the topic.
 	 * @throws AranukaException
-	 * @throws ClassNotSpecifiedException 
-	 * @throws NoSuchMethodException 
-	 * @throws BadAnnotationException 
 	 */
-	private void updateUnaryAssociation(Object instance, AssociationBinding binding) throws AranukaException, BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
-		String asscoTypeSi = TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap());
-		String roleTypeSi = TopicMapsUtils.resolveURI(binding.getPlayedRole(), this.config.getPrefixMap());
-		
-		boolean value = (Boolean) binding.getValue(instance);
-		
-		// check if an assoc exists
-			// building scope part
-		String scope = getTMQLScopeString(binding);
+	private void updateUnaryAssociation(Topic topic, AssociationBinding binding, Set<Object> associationObjects,
+			Map<Role, Match> playedRoles) throws AranukaException {
 
-		String queryString = MessageFormat.format(ITMQLQueries.GET_UNARY_ASSOCIATION, getIDQueryPart(instance),
-				asscoTypeSi, roleTypeSi, scope);
-		IQuery q = getTMQLRuntime().run(queryString);
-		
-		boolean oldVal = false;
-		if (!q.getResults().isEmpty()) {
-			if (q.getResults().size()>1)
-				throw new AranukaException("Unary association has more the one type.");
-			
-			oldVal = true;
-		}
-		
-		
-		
-		if (value && !oldVal) {
-			scope = getCTMScopeString(binding);
-			queryString = MessageFormat.format(ITMQLQueries.INSERT_UNARY_ASSOCIATION, asscoTypeSi, roleTypeSi,
-					getIDCTMPart(instance), scope);
-			getTMQLRuntime().run(queryString);
-		} else if (!value && oldVal) {
-			getTMQLRuntime().run("DELETE " + queryString);			
-		}
-	}
+		if (associationObjects.size() != 1)
+			throw new AranukaException("Unary association has more the one type.");
 
-	private String getCTMScopeString(AssociationBinding binding) {
-		StringBuilder scopeBuilder = new StringBuilder();
-		if (binding.getThemes().size()>0) {
-			scopeBuilder.append("@");
-			Iterator<String> it = binding.getThemes().iterator();
-			while (it.hasNext()) {
-				scopeBuilder.append("<"+it.next()+">");
-				if (it.hasNext())
-					scopeBuilder.append(", ");
+		Topic associationType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getAssociationType(),
+				this.config.getPrefixMap()));
+
+		Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getPlayedRole(),
+				this.config.getPrefixMap()));
+
+		Set<Topic> scope = getScope(binding.getThemes(), getTopicMap());
+
+		boolean value = (Boolean) associationObjects.iterator().next();
+
+		// try to find the association
+		Role role = null;
+
+		for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
+
+			if (playedRole.getValue() != Match.INSTANCE // ignore roles which
+														// are already flagged
+														// true
+					&& playedRole.getKey().getParent().getRoles().size() == 1 // is
+																				// unary
+																				// association
+					&& playedRole.getKey().getType().equals(roleType) // check
+																		// role
+																		// type
+					&& playedRole.getKey().getParent().getType().equals(associationType)) { // check association
+																							// type
+
+				// binding found
+				logger.info("Unary association matches binding.");
+
+				if (playedRole.getKey().getParent().getScope().equals(scope)) { // check
+																				// scope
+
+					role = playedRole.getKey();
+					playedRole.setValue(Match.INSTANCE);
+					break;
+
+				}
 			}
 		}
-		return scopeBuilder.toString();
-	}
 
-	private String getTMQLScopeString(AssociationBinding binding) {
-		StringBuilder b = new StringBuilder();
-		if (binding.getThemes().size()>0) {
-			b.append(" [ ");
-			
-			Iterator<String> it = binding.getThemes().iterator();
-			while (it.hasNext()) {
-				b.append("@");
-				b.append(it.next());
-				if (it.hasNext())
-					b.append(" AND ");
+		if (role != null) {
+
+			if (value == false) {
+				logger.info("Remove unary association " + role.getParent());
+				role.getParent().remove();
 			}
-			b.append(" ] ");
+
+		} else {
+
+			if (value == true) {
+				logger.info("Creare new unary association " + associationType);
+				Association ass = getTopicMap().createAssociation(associationType, scope);
+				ass.createRole(roleType, topic);
+			}
 		}
-		return b.toString();
 	}
 
 	/**
@@ -1267,89 +1303,102 @@ public class TopicMapHandler {
 	 * @throws TopicMapIOException
 	 * @throws BadAnnotationException
 	 */
+	private void updateBinaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects,
+			Map<Role, Match> playedRoles, List<Object> topicObjects) throws Exception {
 
-	@SuppressWarnings("unchecked")
-	private void updateBinaryAssociations(Object instance, AssociationBinding binding) throws Exception {
+		Topic associationType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getAssociationType(),
+				this.config.getPrefixMap()));
+		Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getPlayedRole(),
+				this.config.getPrefixMap()));
+		Topic otherRoleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getOtherRole(),
+				this.config.getPrefixMap()));
 
-		String asscoTypeSi = TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap());
-		String roleTypeSI = TopicMapsUtils.resolveURI(binding.getPlayedRole(), this.config.getPrefixMap());
-		String otherRoleTypeSI = TopicMapsUtils.resolveURI(binding.getOtherRole(), this.config.getPrefixMap());
+		Set<Topic> scope = getScope(binding.getThemes(), getTopicMap());
 
-		
-		// cache all identifier of the other players
-		Collection<Object> otherPlayers = null;
-		Object value = binding.getValue(instance);
-		if (value != null) {
-			if (binding.isArray())
-				otherPlayers = Arrays.asList((Object[]) value);
-			else if (binding.isCollection()) {
-				otherPlayers = (Collection<Object>) value;
-			} else {
-				otherPlayers = new ArrayList<Object>();
-				otherPlayers.add(value);
+		for (Object associationObject : associationObjects) { // check each
+																// binary
+																// association
+
+			Topic counterPlayer = null;
+
+			if (associationObject != null) {
+				// get binding for counter player
+				TopicBinding tb = (TopicBinding) bindingHandler.getBinding(associationObject.getClass());
+
+				if (!checkBinding(tb, binding.getOtherPlayerBinding())) {
+					throw new AranukaException("Binding of player is neither binding of association player nor a subtype of it");
+				}
+
+				counterPlayer = createTopicByIdentifier(associationObject, tb);
+				counterPlayer.addType(getTopicType(tb));
+			}
+
+			boolean found = false;
+
+			for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
+
+				if (playedRole.getValue() != Match.INSTANCE // ignore roles
+															// which are already
+															// flagged true
+						&& playedRole.getKey().getParent().getRoles().size() == 2 // check
+																					// if
+																					// the
+																					// association
+																					// is
+																					// binary
+						&& playedRole.getKey().getType().equals(roleType) // check
+																			// role
+																			// type
+						&& playedRole.getKey().getParent().getType().equals(associationType) // check association
+																								// type
+						&& playedRole.getKey().getParent().getScope().equals(scope) // check scope
+						&& TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey())
+								.getType().equals(otherRoleType)) { // check counter
+																	// player role
+
+					// binding found
+					playedRole.setValue(Match.BINDING);
+
+					if (counterPlayer != null)
+						if (TopicMapsUtils.getCounterRole(playedRole.getKey().getParent(), playedRole.getKey())
+								.getPlayer().equals(counterPlayer)) { // check counter
+																		// player
+
+							found = true;
+							playedRole.setValue(Match.INSTANCE);
+							break;
+						}
+				}
+			}
+
+			if (!found && counterPlayer != null) {
+
+				logger.info("Create new binary association " + associationType);
+
+				Association ass = getTopicMap().createAssociation(associationType, scope);
+
+				ass.createRole(roleType, topic);
+				ass.createRole(otherRoleType, counterPlayer);
+
+				if (binding.isPersistOnCascade()) {
+
+					topicObjects.add(associationObject);
+					logger.info("Persist/Update " + associationObject + " on cascade.");
+				}
 			}
 		}
-		
-		Set<String> validIds = new HashSet<String>();
-		
-		if (otherPlayers==null)
-			otherPlayers = Collections.emptyList();
-		for (Object otherPlayer : otherPlayers) {
-			String queryString = MessageFormat.format(ITMQLQueries.GET_ID_OF_BINARY_ASSOCIATION, getIDQueryPart(instance), getIDQueryPart(otherPlayer),
-					asscoTypeSi, roleTypeSI, otherRoleTypeSI, getTMQLScopeString(binding));
-			
-			IQuery q = getTMQLRuntime().run(queryString);
-			
-			if (q.getResults().isEmpty()) {
-				TopicBinding otherBinding = (TopicBinding) getBindingHandler().getBinding(otherPlayer.getClass());
-				// insert the association
-				String insertQuery = MessageFormat.format(ITMQLQueries.INSERT_BINARY_ASSOCIATION, 
-						asscoTypeSi, 
-						roleTypeSI, 
-						getIDCTMPart(instance), 
-						otherRoleTypeSI, 
-						getIDCTMPart(otherPlayer),
-						getCTMScopeString(binding),
-						otherBinding.getIdentifier().iterator().next());
-				getTMQLRuntime().run(insertQuery);
-			
-				q = getTMQLRuntime().run(queryString);
-			}
-			
-			// adding id to valid ids list
-			validIds.add((String) q.getResults().get(0, 0));
-		}
-		
-		
-		// removing the non valid associationinstance
-		removeOtherAssociations(asscoTypeSi, validIds,instance);
 	}
 
-	/**
-	 * Removes the association of the type with the given 
-	 * 
-	 * @param asscoTypeSi the association type to delete
-	 * @param validIds the list of association ids not to delete
-	 * @throws AranukaException 
-	 */
-	private void removeOtherAssociations(String asscoTypeSi, Set<String> validIds, Object instance) throws AranukaException {
-		String idUnion = "";
-		if (!validIds.isEmpty()) {
-			StringBuilder b = new StringBuilder("MINUS ");
-			Iterator<String> it = validIds.iterator();
-			while (it.hasNext()) {
-				b.append("\"");
-				b.append(it.next());
-				b.append("\" << id");
-				if (it.hasNext())
-					b.append(" UNION ");
+	private boolean checkBinding(TopicBinding tb, TopicBinding otherPlayerBinding) {
+		TopicBinding currBinding = tb;
+		while (currBinding != null) {
+			if (currBinding.equals(otherPlayerBinding)) {
+				return true;
 			}
-			idUnion = b.toString();
+			currBinding = currBinding.getParent();
 		}
-		String deleteQuery = MessageFormat.format(ITMQLQueries.DELETE_BINARY_ASSOCIATION, asscoTypeSi, idUnion, getIDQueryPart(instance));
-		getTMQLRuntime().run(deleteQuery);
+		return false;
 	}
-
 
 	/**
 	 * Updates a number of specific nnary associations.
@@ -1370,156 +1419,282 @@ public class TopicMapHandler {
 	 * @throws ClassNotSpecifiedException
 	 * @throws TopicMapIOException
 	 */
+	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects,
+			Map<Role, Match> playedRoles, List<Object> topicObjects) throws Exception {
+
+		Topic associationType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getAssociationType(),
+				this.config.getPrefixMap()));
+		Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getPlayedRole(),
+				this.config.getPrefixMap()));
+
+		Set<Topic> scope = getScope(binding.getThemes(), getTopicMap());
+
+		for (Object associationObject : associationObjects) { // check each nnary association
+
+			if (associationObject == null)
+				continue; // skip when the association object is null
+
+			boolean found = false;
+
+			// get role-player for container
+			Map<Topic, Set<Topic>> containerRolePlayer = getRolesFromContainer(associationObject);
+
+			for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
+
+				if (playedRole.getValue() != Match.INSTANCE // ignore roles
+															// which are already
+															// flagged true
+						&& playedRole.getKey().getType().equals(roleType) // check
+																			// role
+																			// type
+						&& playedRole.getKey().getParent().getType().equals(associationType)) { // check association
+																								// type
+
+					// add own role to rolePlayer
+					Map<Topic, Set<Topic>> rolePlayer = containerRolePlayer;
+					Set<Topic> ownTypePlayer = null;
+
+					if (rolePlayer.get(playedRole.getKey().getType()) != null)
+						ownTypePlayer = rolePlayer.get(playedRole.getKey().getType());
+					else
+						ownTypePlayer = new HashSet<Topic>();
+
+					ownTypePlayer.add(playedRole.getKey().getPlayer());
+					rolePlayer.put(playedRole.getKey().getType(), ownTypePlayer);
+
+					// check counter player roles
+					if (matchCounterRoleTypes(playedRole.getKey(), rolePlayer)) {
+
+						playedRole.setValue(Match.BINDING);
+
+						// check counter player
+						if (matchCounterPlayer(playedRole.getKey(), rolePlayer)) {
+
+							found = true;
+							playedRole.setValue(Match.INSTANCE);
+							break;
+						}
+					}
+				}
+			}
+
+			if (!found) {
+
+				// create new association
+				logger.info("Create new nnary association " + associationType);
+
+				Association ass = getTopicMap().createAssociation(associationType, scope);
+
+				// add own player
+				ass.createRole(roleType, topic);
+
+				// add player from container
+				for (Map.Entry<Topic, Set<Topic>> rolePlayer : containerRolePlayer.entrySet()) {
+
+					for (Topic player : rolePlayer.getValue()) {
+						logger.info("Create role " + player + " with type " + rolePlayer.getKey());
+						ass.createRole(rolePlayer.getKey(), player);
+					}
+				}
+
+				// add association to cache
+				addAssociationToCache(ass, binding);
+
+				if (binding.isPersistOnCascade()) {
+
+					addCascadingRole(associationObject, topicObjects);
+
+				}
+			}
+		}
+	}
+
+	/**
+	 * Adds an object to an set of objects which to be persisted as well.
+	 * 
+	 * @param associationContainer
+	 *            - The association container in which the role is specified.
+	 * @param topicObjects
+	 *            - The set if objects.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 */
 	@SuppressWarnings("unchecked")
-	private void updateNnaryAssociations(Object instance, AssociationBinding binding) throws Exception {
+	private void addCascadingRole(Object associationContainer, List<Object> topicObjects)
+			throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
 
-		String associationTypeSI = TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap());
-		String roleTypeSI = TopicMapsUtils.resolveURI(binding.getPlayedRole(), this.config.getPrefixMap());
+		AssociationContainerBinding binding = (AssociationContainerBinding) getBindingHandler().getBinding(
+				associationContainer.getClass());
 
-		AssociationContainerBinding acb = binding.getAssociationContainerBinding();
-		
-		// store for the newly created associations
-		Set<String> validIds = new HashSet<String>();
-		
-		// get all containers in the instances values
-		Collection<Object> otherPlayerContainers = Collections.emptyList();
-		Object value = binding.getValue(instance);
-		if (value != null) {
-			if (binding.isArray())
-				otherPlayerContainers = Arrays.asList((Object[]) value);
-			else if (binding.isCollection()) {
-				otherPlayerContainers = (Collection<Object>) value;
+		for (RoleBinding roleBinding : binding.getRoleBindings()) {
+
+			// get the objects
+
+			if (roleBinding.isArray()) {
+
+				Object[] objects = (Object[]) roleBinding.getValue(associationContainer);
+
+				for (Object obj : objects) {
+					topicObjects.add(obj);
+					logger.info("Persist/Update " + obj + " on cascade.");
+				}
+
+			} else if (roleBinding.isCollection()) {
+
+				Collection<Object> objects = (Collection<Object>) roleBinding.getValue(associationContainer);
+
+				for (Object obj : objects) {
+					topicObjects.add(obj);
+					logger.info("Persist/Update " + obj + " on cascade.");
+				}
+
 			} else {
-				otherPlayerContainers = new ArrayList<Object>();
-				otherPlayerContainers.add(value);
+
+				topicObjects.add(roleBinding.getValue(associationContainer));
+				logger.info("Persist/Update " + roleBinding.getValue(associationContainer) + " on cascade.");
 			}
 		}
-		
-		// for each container a new association will be created
-		for (Object ac : otherPlayerContainers) {
-			// first create query to get id of the wanted association
-			// in case its already there
-			String queryString = getIdRetrievalQuery(instance, binding, associationTypeSI, roleTypeSI, acb, ac);
-			
-			System.out.println(queryString);
-			IQuery query = getTMQLRuntime().run(queryString);
-			if (query.getResults().isEmpty()) {
-				getTMQLRuntime().run(getInsertQuery(instance, binding, associationTypeSI, roleTypeSI, acb, ac));
-			}
-		
-			query = getTMQLRuntime().run(queryString);
-			if (query.getResults().isEmpty()) {
-				throw new AranukaException("Could not persist association");
-			}
-			
-			validIds.add((String) query.getResults().get(0, 0));
-			
-		}
-		removeOtherAssociations(associationTypeSI, validIds, instance);
-		
 	}
 
-	@SuppressWarnings("unchecked")
-	private String getIdRetrievalQuery(Object instance, AssociationBinding assocBinding, String associationTypeSI,
-			String roleTypeSI, AssociationContainerBinding containerBinding, Object assocContainer)
-			throws AranukaException {
-		
-		StringBuilder getIdQuery = new StringBuilder();
-		getIdQuery.append(" FOR $a IN ");
-		getIdQuery.append(associationTypeSI);
-		getIdQuery.append(" ( ");
-		getIdQuery.append(roleTypeSI);
-		getIdQuery.append(" : ");
-		getIdQuery.append(getIDQueryPart(instance));
-		
-		
-		for (RoleBinding rb : containerBinding.getRoleBindings()) {
+	/**
+	 * Checks if a set if role types an player matches a specific association.
+	 * 
+	 * @param playedRole
+	 *            - The role specifying the association.
+	 * @param rolePlayers
+	 *            - Map if role types and player.
+	 * @return True in case the association maches, otherwise false.
+	 */
+	private boolean matchCounterRoleTypes(Role playedRole, Map<Topic, Set<Topic>> rolePlayers) {
 
-			// now we need to get the roles of the container
-			
-			Collection<Object> otherPlayersOfRole = Collections.emptyList();
-			Object value = rb.getValue(assocContainer);
-			if (value != null) {
-				if (rb.isArray())
-					otherPlayersOfRole = Arrays.asList((Object[]) value);
-				else if (rb.isCollection()) {
-					otherPlayersOfRole = (Collection<Object>) value;
-				} else {
-					otherPlayersOfRole = new ArrayList<Object>();
-					otherPlayersOfRole.add(value);
-				}
-			}
-			
-			for (Object o : otherPlayersOfRole) {
-				getIdQuery.append(" , ");
-				getIdQuery.append(rb.getRoleType());
-				getIdQuery.append(" : ");
-				getIdQuery.append(getIDQueryPart(o));
-			}
-			
+		Set<Topic> existingRolesTypes = playedRole.getParent().getRoleTypes();
+
+		if (existingRolesTypes.size() != rolePlayers.keySet().size())
+			return false;
+
+		for (Topic newRoleType : rolePlayers.keySet()) {
+
+			if (!existingRolesTypes.contains(newRoleType))
+				return false;
 		}
-		getIdQuery.append(" ) WHERE $a ");
-		getIdQuery.append(getTMQLScopeString(assocBinding));
-		getIdQuery.append(" RETURN $a >> id ");
 
-		return getIdQuery.toString();
+		return true;
 	}
-	
+
+	/**
+	 * Checks if a number of topics matches the counter player in an specific association.
+	 * 
+	 * @param playedRole
+	 *            - The role specifying the association.
+	 * @param rolePlayers
+	 *            - Map of role types and player.
+	 * @return
+	 */
+	private boolean matchCounterPlayer(Role playedRole, Map<Topic, Set<Topic>> rolePlayers) {
+
+		Association association = playedRole.getParent();
+
+		for (Map.Entry<Topic, Set<Topic>> rolePlayer : rolePlayers.entrySet()) {
+
+			Set<Role> existingRoles = association.getRoles(rolePlayer.getKey()); // get
+																					// player
+																					// of
+																					// type
+
+			if (existingRoles.size() != rolePlayer.getValue().size())
+				return false;
+
+			for (Role existingRole : existingRoles) {
+
+				if (!rolePlayer.getValue().contains(existingRole.getPlayer()))
+					return false;
+
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Gets all role types and the related player from an association container object.
+	 * 
+	 * @param associationContainerInstance
+	 *            - The object.
+	 * @return - A map containing the role types and corresponding player.
+	 * @throws BadAnnotationException
+	 * @throws NoSuchMethodException
+	 * @throws ClassNotSpecifiedException
+	 * @throws TopicMapIOException
+	 *             TODO add recursive call to get roles from superclasses as well.
+	 */
 	@SuppressWarnings("unchecked")
-	private String getInsertQuery(Object instance, AssociationBinding assocBinding, String associationTypeSI,
-			String roleTypeSI, AssociationContainerBinding containerBinding, Object assocContainer)
-			throws Exception {
+	private Map<Topic, Set<Topic>> getRolesFromContainer(Object associationContainerInstance) throws Exception {
 
-		StringBuilder stubInserts = new StringBuilder();
-		
-		StringBuilder getIdQuery = new StringBuilder();
-		getIdQuery.append("INSERT ''' <");
-		getIdQuery.append(associationTypeSI);
-		getIdQuery.append("> ( <");
-		getIdQuery.append(roleTypeSI);
-		getIdQuery.append("> : ");
-		getIdQuery.append(getIDCTMPart(instance));
-		
-		
-		for (RoleBinding rb : containerBinding.getRoleBindings()) {
+		Map<Topic, Set<Topic>> result = new HashMap<Topic, Set<Topic>>();
 
-			// now we need to get the roles of the container
-			
-			Collection<Object> otherPlayersOfRole = Collections.emptyList();
-			Object value = rb.getValue(assocContainer);
-			if (value != null) {
-				if (rb.isArray())
-					otherPlayersOfRole = Arrays.asList((Object[]) value);
-				else if (rb.isCollection()) {
-					otherPlayersOfRole = (Collection<Object>) value;
+		AssociationContainerBinding binding = (AssociationContainerBinding) getBindingHandler().getBinding(
+				associationContainerInstance.getClass());
+
+		for (RoleBinding roleBinding : binding.getRoleBindings()) {
+
+			Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(roleBinding.getRoleType(),
+					this.config.getPrefixMap()));
+			Set<Topic> player = null;
+			if (result.get(roleType) == null)
+				player = new HashSet<Topic>();
+			else
+				player = result.get(roleType);
+
+			if (roleBinding.getValue(associationContainerInstance) != null) {
+
+				if (roleBinding.isArray()) {
+
+					for (Object obj : (Object[]) roleBinding.getValue(associationContainerInstance)) {
+
+						createPlayer(roleBinding, player, obj);
+					}
+
+				} else if (roleBinding.isCollection()) {
+
+					for (Object obj : (Collection<Object>) roleBinding.getValue(associationContainerInstance)) {
+
+						createPlayer(roleBinding, player, obj);
+					}
+
 				} else {
-					otherPlayersOfRole = new ArrayList<Object>();
-					otherPlayersOfRole.add(value);
+
+					Object obj = roleBinding.getValue(associationContainerInstance);
+					createPlayer(roleBinding, player, obj);
 				}
 			}
-			
-			String otherRoleSI = TopicMapsUtils.resolveURI(rb.getRoleType(), this.config.getPrefixMap());
-			for (Object o : otherPlayersOfRole) {
-				getIdQuery.append(" , <");
-				getIdQuery.append(otherRoleSI);
-				getIdQuery.append("> : ");
-				getIdQuery.append(getIDCTMPart(o));
-				
-				stubInserts.append(getIDCTMPart(o));
-				stubInserts.append(" isa <");
-				String otherTypeSI = TopicMapsUtils.resolveURI(rb.getPlayerBinding().getIdentifier().iterator().next(), this.config.getPrefixMap());
-				stubInserts.append(otherTypeSI);
-				stubInserts.append("> .\n");
-				
-			}
-			
+
+			result.put(roleType, player);
 		}
-		getIdQuery.append(" ) ");
-		getIdQuery.append(getCTMScopeString(assocBinding));
-		getIdQuery.append("\n");
-		getIdQuery.append(stubInserts.toString());
-		getIdQuery.append(" '''\n");
-		return getIdQuery.toString();
+
+		return result;
+	}
+
+	/**
+	 * Creates a player according to a role binding and sets the type.
+	 * It takes to account that the type of the given object may be a subtype of the type of the rolebinding.
+	 * @param roleBinding
+	 * @param player
+	 * @param obj
+	 * @throws Exception
+	 */
+	private void createPlayer(RoleBinding roleBinding, Set<Topic> player, Object obj) throws Exception {
+		// get binding for Object
+		TopicBinding tb = (TopicBinding) bindingHandler.getBinding(obj.getClass());
+		
+		if (!checkBinding(tb, roleBinding.getPlayerBinding())) {
+			throw new AranukaException("Binding of player is neither binding of association player nor a subtype of it");
+		}
+		
+		
+		Topic topic = createTopicByIdentifier(obj, tb);
+		topic.addType(getTopicType(tb));
+		player.add(topic);
 	}
 
 	/**
@@ -1538,7 +1713,7 @@ public class TopicMapHandler {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
 	 */
-
+	
 	@SuppressWarnings("unchecked")
 	private <E> Set<E> getInstancesFromTopics(Set<Topic> topics, TopicBinding binding) throws Exception {
 
@@ -1546,11 +1721,16 @@ public class TopicMapHandler {
 			return Collections.emptySet();
 
 		Set<E> objects = new HashSet<E>();
+
+		Class<?> clazz = getBindingHandler().getClassForBinding(binding);
 		for (Topic topic : topics) {
-			objects.add((E) getInstanceFromTopic(topic, binding));
+
+			
+			objects.add((E) getInstanceFromTopic(topic, binding, clazz));
+
 		}
 
-//		clearObjectCache(); // free object cache at end of session
+		clearObjectCache(); // free object cache at end of session
 
 		return objects;
 	}
@@ -1566,29 +1746,28 @@ public class TopicMapHandler {
 	 *            - The class type of the new object.
 	 * @return The object.
 	 */
-	@SuppressWarnings("unchecked")
-	private <E> E getInstanceFromTopic(Topic topic, TopicBinding binding) throws Exception {
+	private <E> E getInstanceFromTopic(Topic topic, TopicBinding binding, Class<E> clazz) throws Exception {
 
-		Class<E> clazz = (Class<E>) getBindingHandler().getClassForBinding(binding);
-		
+		@SuppressWarnings("unchecked")
 		E object = (E) getObjectFromCache(topic);
 
 		if (object != null)
 			return object;
 
-//		if (binding.getParent() != null) {
+		if (binding.getParent() != null) {
 
-//			object = getInstanceFromTopic(topic, binding.getParent());
+			object = getInstanceFromTopic(topic, binding.getParent(), clazz);
 
-//		} else {
+		} else {
 
 			try {
 				object = clazz.getConstructor().newInstance();
 			} catch (Exception e) {
 				throw new TopicMapIOException("Cannot instanciate new object: " + e.getMessage());
 			}
-//		}
+		}
 
+		
 		addObjectToCache(object, topic);
 
 		// add identifier
@@ -1620,49 +1799,47 @@ public class TopicMapHandler {
 	 */
 	private void addIdentifier(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException {
 
-		TopicBinding currBinding = binding;
-		
-		while (currBinding != null) {
-			for (AbstractFieldBinding afb : currBinding.getFieldBindings()) {
+		for (AbstractFieldBinding afb : binding.getFieldBindings()) {
 
-				if (afb instanceof IdBinding) {
+			if (afb instanceof IdBinding) {
 
-					IdBinding idBinding = (IdBinding) afb;
+				IdBinding idBinding = (IdBinding) afb;
 
-					if (idBinding.getIdtype() == IdType.ITEM_IDENTIFIER) {
+				if (idBinding.getIdtype() == IdType.ITEM_IDENTIFIER) {
 
-						Set<Locator> identifier = HashUtil.getHashSet();
-						// filter out the item identifier created from the xtm2.0
-						// reader
-						for (Locator l : topic.getItemIdentifiers()) {
-							if (!l.toExternalForm().startsWith(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX))
-								identifier.add(l);
-						}
-						addIdentifier(object, idBinding, identifier);
-
-					} else if (idBinding.getIdtype() == IdType.SUBJECT_IDENTIFIER) {
-
-						Set<Locator> identifier = topic.getSubjectIdentifiers();
-						addIdentifier(object, idBinding, identifier);
-
-					} else if (idBinding.getIdtype() == IdType.SUBJECT_LOCATOR) {
-
-						Set<Locator> identifier = topic.getSubjectLocators();
-						addIdentifier(object, idBinding, identifier);
-
-					} else {
-
-						// / TODO handle unknown id-type
+					Set<Locator> identifier = HashUtil.getHashSet();
+					// filter out the item identifier created from the xtm2.0
+					// reader
+					for (Locator l : topic.getItemIdentifiers()) {
+						if (!l.toExternalForm().startsWith(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX))
+							identifier.add(l);
 					}
+					addIdentifier(topic, object, idBinding, identifier);
+
+				} else if (idBinding.getIdtype() == IdType.SUBJECT_IDENTIFIER) {
+
+					Set<Locator> identifier = topic.getSubjectIdentifiers();
+					addIdentifier(topic, object, idBinding, identifier);
+
+				} else if (idBinding.getIdtype() == IdType.SUBJECT_LOCATOR) {
+
+					Set<Locator> identifier = topic.getSubjectLocators();
+					addIdentifier(topic, object, idBinding, identifier);
+
+				} else {
+
+					// / TODO handle unknown id-type
 				}
+
 			}
-			currBinding = currBinding.getParent();
 		}
 	}
 
 	/**
 	 * Adds identifier to an object.
 	 * 
+	 * @param topic
+	 *            - The corresponding topic.
 	 * @param object
 	 *            - The object.
 	 * @param idBinding
@@ -1671,7 +1848,7 @@ public class TopicMapHandler {
 	 *            - Set of identifier.
 	 * @throws TopicMapIOException
 	 */
-	private void addIdentifier(Object object, IdBinding idBinding, Set<Locator> identifiers)
+	private void addIdentifier(Topic topic, Object object, IdBinding idBinding, Set<Locator> identifiers)
 			throws TopicMapIOException {
 
 		if (identifiers.isEmpty())
@@ -1794,70 +1971,64 @@ public class TopicMapHandler {
 	 */
 	private void addNames(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException {
 
-		TopicBinding currBinding = binding;
+		for (AbstractFieldBinding afb : binding.getFieldBindings()) {
 
-		while (currBinding != null) {
-			for (AbstractFieldBinding afb : currBinding.getFieldBindings()) {
+			if (afb instanceof NameBinding) {
 
-				if (afb instanceof NameBinding) {
+				NameBinding nameBinding = (NameBinding) afb;
+				// get name type
+				Topic nameType = getTopicMap().getTopicBySubjectIdentifier(
+						getTopicMap().createLocator(
+								TopicMapsUtils.resolveURI(nameBinding.getNameType(), this.config.getPrefixMap())));
 
-					NameBinding nameBinding = (NameBinding) afb;
-					// get name type
-					Topic nameType = getTopicMap().getTopicBySubjectIdentifier(
-							getTopicMap().createLocator(
-									TopicMapsUtils.resolveURI(nameBinding.getNameType(), this.config.getPrefixMap())));
+				if (nameType == null)
+					continue; // get to next binding if type don't exist
 
-					if (nameType == null)
-						continue; // get to next binding if type don't exist
+				Set<Name> names = topic.getNames(nameType);
 
-					Set<Name> names = topic.getNames(nameType);
+				if (names.isEmpty())
+					continue; // get to next binding if no names of this type
+								// are found
 
-					if (names.isEmpty())
-						continue; // get to next binding if no names of this type
-									// are found
+				Set<String> existingNames = new HashSet<String>();
 
-					Set<String> existingNames = new HashSet<String>();
+				for (Name name : names)
+					existingNames.add(name.getValue());
 
-					for (Name name : names)
-						existingNames.add(name.getValue());
+				if (!nameBinding.isArray() && !nameBinding.isCollection()) {
 
-					if (!nameBinding.isArray() && !nameBinding.isCollection()) {
+					if (existingNames.size() > 1)
+						throw new TopicMapIOException("Cannot add multiple names to an non container field.");
 
-						if (existingNames.size() > 1)
-							throw new TopicMapIOException("Cannot add multiple names to an non container field.");
+					nameBinding.setValue(existingNames.iterator().next(), object);
 
-						nameBinding.setValue(existingNames.iterator().next(), object);
+				} else {
+
+					if (nameBinding.isArray()) {
+
+						nameBinding.setValue(existingNames.toArray(new String[existingNames.size()]), object);
 
 					} else {
 
-						if (nameBinding.isArray()) {
+						Collection<String> collection;
 
-							nameBinding.setValue(existingNames.toArray(new String[existingNames.size()]), object);
+						if (((ParameterizedType) nameBinding.getFieldType()).getRawType().equals(Set.class)) { // is set
 
-						} else {
+							collection = new HashSet<String>();
 
-							Collection<String> collection;
+						} else { // is list
 
-							if (((ParameterizedType) nameBinding.getFieldType()).getRawType().equals(Set.class)) { // is
-																													// set
-
-								collection = new HashSet<String>();
-
-							} else { // is list
-
-								collection = new ArrayList<String>();
-							}
-
-							for (String name : existingNames)
-								collection.add(name);
-
-							nameBinding.setValue(collection, object);
-
+							collection = new ArrayList<String>();
 						}
+
+						for (String name : existingNames)
+							collection.add(name);
+
+						nameBinding.setValue(collection, object);
+
 					}
 				}
 			}
-			currBinding = currBinding.getParent();
 		}
 	}
 
@@ -1874,71 +2045,67 @@ public class TopicMapHandler {
 	 */
 	private void addOccurrences(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException {
 
-		TopicBinding currBinding = binding;
+		for (AbstractFieldBinding afb : binding.getFieldBindings()) {
 
-		while (currBinding != null) {
-			for (AbstractFieldBinding afb : currBinding.getFieldBindings()) {
+			if (afb instanceof OccurrenceBinding) {
 
-				if (afb instanceof OccurrenceBinding) {
+				OccurrenceBinding occurrenceBinding = (OccurrenceBinding) afb;
 
-					OccurrenceBinding occurrenceBinding = (OccurrenceBinding) afb;
+				// get occurrence type
+				Topic occurrenceType = getTopicMap().getTopicBySubjectIdentifier(
+						getTopicMap().createLocator(
+								TopicMapsUtils.resolveURI(occurrenceBinding.getOccurrenceType(),
+										this.config.getPrefixMap())));
 
-					// get occurrence type
-					Topic occurrenceType = getTopicMap().getTopicBySubjectIdentifier(
-							getTopicMap().createLocator(
-									TopicMapsUtils.resolveURI(occurrenceBinding.getOccurrenceType(),
-											this.config.getPrefixMap())));
+				if (occurrenceType == null)
+					continue; // get to next binding if type don't exist
 
-					if (occurrenceType == null)
-						continue; // get to next binding if type don't exist
+				Set<Occurrence> occurrences = topic.getOccurrences(occurrenceType);
 
-					Set<Occurrence> occurrences = topic.getOccurrences(occurrenceType);
+				if (occurrences.isEmpty())
+					continue; // get to next binding if no occurrence of this
+								// type are found
 
-					if (occurrences.isEmpty())
-						continue; // get to next binding if no occurrence of this
-									// type are found
+				if (!occurrenceBinding.isArray() && !occurrenceBinding.isCollection()) {
 
-					if (!occurrenceBinding.isArray() && !occurrenceBinding.isCollection()) {
+					if (occurrences.size() > 1)
+						throw new TopicMapIOException("Cannot add multiple occurrences to an non container field.");
 
-						if (occurrences.size() > 1)
-							throw new TopicMapIOException("Cannot add multiple occurrences to an non container field.");
+					occurrenceBinding
+							.setValue(
+									getOccurrenceValue(occurrences.iterator().next(),
+											occurrenceBinding.getParameterisedType()), object);
 
-						occurrenceBinding.setValue(
-								getOccurrenceValue(occurrences.iterator().next(),
-										occurrenceBinding.getParameterisedType()), object);
+				} else {
+
+					Set<Object> values = new HashSet<Object>();
+
+					for (Occurrence occurrence : occurrences)
+						values.add(getOccurrenceValue(occurrence, occurrenceBinding.getParameterisedType()));
+
+					if (occurrenceBinding.isArray()) {
+
+						Object[] tmp = (Object[]) Array.newInstance(
+								(Class<?>) occurrenceBinding.getParameterisedType(), values.size());
+						values.toArray(tmp);
+						occurrenceBinding.setValue(tmp, object);
 
 					} else {
 
-						Set<Object> values = new HashSet<Object>();
+						if (((ParameterizedType) occurrenceBinding.getFieldType()).getRawType().equals(Set.class)) { // is
+																														// set
 
-						for (Occurrence occurrence : occurrences)
-							values.add(getOccurrenceValue(occurrence, occurrenceBinding.getParameterisedType()));
+							occurrenceBinding.setValue(values, object);
 
-						if (occurrenceBinding.isArray()) {
+						} else { // is list
 
-							Object[] tmp = (Object[]) Array.newInstance(
-									(Class<?>) occurrenceBinding.getParameterisedType(), values.size());
-							values.toArray(tmp);
-							occurrenceBinding.setValue(tmp, object);
+							List<Object> list = new ArrayList<Object>(values);
+							occurrenceBinding.setValue(list, object);
 
-						} else {
-
-							if (((ParameterizedType) occurrenceBinding.getFieldType()).getRawType().equals(Set.class)) { // is
-																															// set
-
-								occurrenceBinding.setValue(values, object);
-
-							} else { // is list
-
-								List<Object> list = new ArrayList<Object>(values);
-								occurrenceBinding.setValue(list, object);
-
-							}
 						}
 					}
 				}
 			}
-			currBinding = currBinding.getParent();
 		}
 
 	}
@@ -1995,55 +2162,89 @@ public class TopicMapHandler {
 	 */
 	private void addAssociations(Topic topic, Object object, TopicBinding binding) throws Exception {
 
-		TopicBinding currBinding = binding;
+		for (AbstractFieldBinding afb : binding.getFieldBindings()) {
 
-		while (currBinding != null) {
-			for (AbstractFieldBinding afb : currBinding.getFieldBindings()) {
+			if (afb instanceof AssociationBinding) {
 
-				if (afb instanceof AssociationBinding) {
+				AssociationBinding associationBinding = (AssociationBinding) afb;
 
-					AssociationBinding associationBinding = (AssociationBinding) afb;
+				if (associationBinding.getKind() == AssociationKind.UNARY) {
 
-					if (associationBinding.getKind() == AssociationKind.UNARY) {
+					addUnaryAssociation(topic, object, associationBinding);
 
-						addUnaryAssociation(object, associationBinding);
+				} else if (associationBinding.getKind() == AssociationKind.BINARY) {
 
-					} else if (associationBinding.getKind() == AssociationKind.BINARY) {
+					addBinaryAssociation(topic, object, associationBinding);
 
-						addBinaryAssociation(object, associationBinding);
+				} else {
 
-					} else {
+					addNnaryAssociation(topic, object, associationBinding);
 
-						addNnaryAssociation(topic, object, associationBinding);
-
-					}
 				}
 			}
-			currBinding = currBinding.getParent();
 		}
 	}
 
 	/**
 	 * Adds unnary associations to an new object.
 	 * 
-	 * @param instance
-	 *            - The instance of the class
+	 * @param topic
+	 *            - The corresponding topic.
+	 * @param object
+	 *            - The object.
 	 * @param associationBinding
 	 *            - The association binding.
-	 * @throws AranukaException 
+	 * @throws TopicMapInconsistentException
 	 */
-	private void addUnaryAssociation(Object instance, AssociationBinding associationBinding) throws AranukaException {
+	private void addUnaryAssociation(Topic topic, Object object, AssociationBinding associationBinding)
+			throws TopicMapInconsistentException {
+
 		// get role type
-		String roleTypeSI = TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(), this.config.getPrefixMap());
+		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(
+				getTopicMap().createLocator(
+						TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(), this.config.getPrefixMap())));
+
+		if (roleType == null) {
+
+			associationBinding.setValue(false, object);
+			return;
+		}
+
+		Set<Role> rolesPlayed = topic.getRolesPlayed(roleType);
+
+		if (rolesPlayed.isEmpty()) {
+			associationBinding.setValue(false, object);
+			return;
+		}
 
 		// get association type
-		String associationTypeSI = TopicMapsUtils.resolveURI(associationBinding.getAssociationType(), this.config.getPrefixMap());
+		Topic associationType = getTopicMap()
+				.getTopicBySubjectIdentifier(
+						getTopicMap().createLocator(
+								TopicMapsUtils.resolveURI(associationBinding.getAssociationType(),
+										this.config.getPrefixMap())));
 
-		String queryString = MessageFormat.format(ITMQLQueries.GET_UNARY_ASSOCIATION, 
-						getIDQueryPart(instance), associationTypeSI, roleTypeSI, getTMQLScopeString(associationBinding));
-		
-		boolean val = !getTMQLRuntime().run(queryString).getResults().isEmpty();
-		associationBinding.setValue(val, instance);
+		if (associationType == null) {
+			associationBinding.setValue(false, object);
+			return;
+		}
+
+		// get matching roles
+		Set<Role> matchingRoles = new HashSet<Role>();
+
+		for (Role role : rolesPlayed) {
+
+			if (role.getParent().getType().equals(associationType) && role.getParent().getRoles().size() == 1)
+				matchingRoles.add(role);
+		}
+
+		if (matchingRoles.size() > 1)
+			throw new TopicMapInconsistentException("Topic playes more the one time in an unary association of type "
+					+ associationBinding.getAssociationType());
+
+		if (matchingRoles.size() > 0)
+			associationBinding.setValue(true, object);
+
 	}
 
 	/**
@@ -2061,52 +2262,126 @@ public class TopicMapHandler {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
 	 */
-	private void addBinaryAssociation(Object object, AssociationBinding associationBinding)
+	private void addBinaryAssociation(Topic topic, Object object, AssociationBinding associationBinding)
 			throws Exception {
 
 		// get role type
-		String ownRoleTypeSI = TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(), this.config.getPrefixMap());
+		Topic ownRoleType = getTopicMap().getTopicBySubjectIdentifier(
+				getTopicMap().createLocator(
+						TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(), this.config.getPrefixMap())));
+
+		if (ownRoleType == null)
+			return;
+
+		Set<Role> rolesPlayed = topic.getRolesPlayed(ownRoleType);
+
+		if (rolesPlayed.isEmpty())
+			return;
 
 		// get association type
-		String associationTypeSI = TopicMapsUtils.resolveURI(associationBinding.getAssociationType(),
-										this.config.getPrefixMap());
+		Topic associationType = getTopicMap()
+				.getTopicBySubjectIdentifier(
+						getTopicMap().createLocator(
+								TopicMapsUtils.resolveURI(associationBinding.getAssociationType(),
+										this.config.getPrefixMap())));
 
+		if (associationType == null)
+			return;
 
-		// get counter player role type
-		String otherRoleTypeSI = TopicMapsUtils.resolveURI(associationBinding.getOtherRole(), this.config.getPrefixMap());
+		// get counter player type
+		Topic counterPlayerRoleType = getTopicMap().getTopicBySubjectIdentifier(
+				getTopicMap().createLocator(
+						TopicMapsUtils.resolveURI(associationBinding.getOtherRole(), this.config.getPrefixMap())));
 
-		String queryString = MessageFormat.format(ITMQLQueries.GET_ALL_BINARY_ASSOCIATIONS, 
-				associationTypeSI, ownRoleTypeSI, getIDQueryPart(object),  
-				otherRoleTypeSI, getTMQLScopeString(associationBinding));
+		if (counterPlayerRoleType == null)
+			return;
+
+		Topic counterPlayerType = getTopicType(associationBinding.getOtherPlayerBinding());
+
+		if (counterPlayerType == null)
+			return;
 		
-		IQuery query = getTMQLRuntime().run(queryString);
-		if (query.getResults().isEmpty())
-			return; // no assocs, value stays null
-		
-		List<Object> results = new ArrayList<Object>(query.getResults().size()); 
-		for (IResult r : query.getResults()) {
-			Topic t = r.get(0);
-			Object o = getInstanceFromTopic(t, getBindingForType(t.getTypes().iterator().next()));
-			results.add(o);
+		String counterPlayerSI = associationBinding.getOtherPlayerBinding().getIdentifier().iterator().next();
+
+		// get matching roles
+		Set<Role> matchingRoles = new HashSet<Role>();
+
+		for (Role role : rolesPlayed) {
+
+			if (role.getParent().getType().equals(associationType)
+					&& role.getParent().getRoles().size() == 2
+					&& TopicMapsUtils.getCounterRole(role.getParent(), role).getType().equals(counterPlayerRoleType)
+					&& isTypeOf(TopicMapsUtils.getCounterRole(role.getParent(), role).getPlayer(), counterPlayerSI)) 
+			{
+
+				matchingRoles.add(role);
+			}
 		}
+
+		if (matchingRoles.isEmpty())
+			return;
 		
-		// add the values according to the binding information
-		if (associationBinding.isCollection()) {
-			// TODO what if now set?
-			associationBinding.setValue(new HashSet<Object>(results), object);
-		} else if (associationBinding.isArray()) {
-			
-			Class<?> type = (Class<?>) associationBinding.getParameterisedType();
-			Object[] array = (Object[]) Array.newInstance(type, results.size());
-			associationBinding.setValue(results.toArray(array), object);
-		} else if (results.size()>1) {
-			throw new AranukaException("Illegal number of instances of associations of type :" + associationTypeSI
-					+ " for topic with " + getIDCTMPart(object));
+		// get real binding of counterplayer
+		Role matchingRole = matchingRoles.iterator().next();
+		counterPlayerType = TopicMapsUtils.getCounterRole(matchingRole.getParent(), 
+						matchingRole).getPlayer().getTypes().iterator().next();
+		
+		TopicBinding counterlayerBinding = getBindingForType(counterPlayerType);
+		
+		// get class type of counter player
+		Class<?> counterClass = getBindingHandler().getClassForBinding(counterlayerBinding);
+
+		if (counterClass == null)
+			throw new TopicMapIOException("Unable to resolve counter player type ");
+
+		if (!associationBinding.isArray() && !associationBinding.isCollection()) {
+
+			if (matchingRoles.size() > 1)
+				throw new TopicMapIOException("Cannot add multiple association to an non container field.");
+
+			Object counterPlayer = getInstanceFromTopic(
+					TopicMapsUtils.getCounterRole(matchingRoles.iterator().next().getParent(),
+							matchingRoles.iterator().next()).getPlayer(), counterlayerBinding,
+					counterClass);
+
+			associationBinding.setValue(counterPlayer, object);
+
 		} else {
-			associationBinding.setValue(results.get(0), object);
-		}
-		
 
+			Set<Object> counterPlayers = new HashSet<Object>();
+
+			for (Role role : matchingRoles) {
+
+				Object counterPlayer = getInstanceFromTopic(TopicMapsUtils.getCounterRole(role.getParent(), role)
+						.getPlayer(), associationBinding.getOtherPlayerBinding(), counterClass);
+				counterPlayers.add(counterPlayer);
+			}
+
+			if (associationBinding.isArray()) {
+
+				// is array
+				Object[] tmp = (Object[]) Array.newInstance((Class<?>) associationBinding.getParameterisedType(),
+						counterPlayers.size());
+				counterPlayers.toArray(tmp);
+				associationBinding.setValue(tmp, object);
+
+			} else {
+
+				// is collection
+				if (((ParameterizedType) associationBinding.getFieldType()).getRawType().equals(Set.class)) {
+
+					// is set
+					associationBinding.setValue(counterPlayers, object);
+
+				} else {
+
+					// is list
+					List<Object> list = new ArrayList<Object>(counterPlayers);
+					associationBinding.setValue(list, object);
+
+				}
+			}
+		}
 	}
 
 	/**
@@ -2119,16 +2394,14 @@ public class TopicMapHandler {
 	 * @param associationBinding
 	 *            - The association binding.
 	 */
-	private void addNnaryAssociation(Topic topic, Object object, AssociationBinding associationBinding)
-			throws Exception {
+	private void addNnaryAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws Exception {
 
 		if (associationBinding.getAssociationContainerBinding() == null)
 			throw new RuntimeException("An nnary association has to be defined via a association container.");
 
 		// get role type
 		Topic roleType = getTopicMap().getTopicBySubjectIdentifier(
-				getTopicMap().createLocator(
-						TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(), this.config.getPrefixMap())));
+				getTopicMap().createLocator(TopicMapsUtils.resolveURI(associationBinding.getPlayedRole(), this.config.getPrefixMap())));
 
 		if (roleType == null)
 			return;
@@ -2139,11 +2412,8 @@ public class TopicMapHandler {
 			return;
 
 		// get association type
-		Topic associationType = getTopicMap()
-				.getTopicBySubjectIdentifier(
-						getTopicMap().createLocator(
-								TopicMapsUtils.resolveURI(associationBinding.getAssociationType(),
-										this.config.getPrefixMap())));
+		Topic associationType = getTopicMap().getTopicBySubjectIdentifier(getTopicMap().createLocator(
+								TopicMapsUtils.resolveURI(associationBinding.getAssociationType(), this.config.getPrefixMap())));
 
 		if (associationType == null)
 			return;
@@ -2201,6 +2471,8 @@ public class TopicMapHandler {
 						// add container to set
 						counterSet.add(container);
 
+						// add association to cache
+						addAssociationToCache(rolePlayed.getParent(), associationBinding); // TODO verify!
 					} catch (Exception e) {
 						throw e;
 					}
@@ -2310,7 +2582,7 @@ public class TopicMapHandler {
 			for (Topic topic : counterTopics) {
 
 				TopicBinding typeBinding = getBindingForType(topic.getTypes().iterator().next());
-				Object obj = getInstanceFromTopic(topic, (TopicBinding) typeBinding);
+				Object obj = getInstanceFromTopic(topic, (TopicBinding) typeBinding, bindingHandler.getClassForBinding(typeBinding));
 				counterObjects.add(obj);
 			}
 
@@ -2378,8 +2650,7 @@ public class TopicMapHandler {
 
 		for (RoleBinding roleBinding : containerBinding.getRoleBindings()) {
 
-			Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(roleBinding.getRoleType(),
-					this.config.getPrefixMap()));
+			Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(roleBinding.getRoleType(), this.config.getPrefixMap()));
 			types.add(roleType);
 		}
 
@@ -2970,6 +3241,54 @@ public class TopicMapHandler {
 	}
 
 	/**
+	 * Adds an association to the cache.
+	 * 
+	 * @param association
+	 *            - The association.
+	 * @param binding
+	 *            - The related association binding.
+	 */
+	private void addAssociationToCache(Association association, AssociationBinding binding) {
+
+		if (this.associationCache == null)
+			this.associationCache = new HashMap<Association, AssociationBinding>();
+
+		this.associationCache.put(association, binding);
+
+	}
+
+	/**
+	 * Removes an association from cache.
+	 * 
+	 * @param association
+	 *            - The association.
+	 */
+	private void removeAssociationFromCache(Association association) {
+
+		if (this.associationCache == null)
+			return;
+
+		this.associationCache.remove(association);
+
+	}
+
+	/**
+	 * Gets the association binding of a specific association.
+	 * 
+	 * @param association
+	 *            - The association
+	 * @return The Binding or null of not found.
+	 */
+	private AssociationBinding getAssociationBindingFromCache(Association association) {
+
+		if (this.associationCache == null)
+			return null;
+
+		return this.associationCache.get(association);
+
+	}
+
+	/**
 	 * Creates a topic by subject identifier, but checks first if the topic already exists. Adds also a name if
 	 * specified.
 	 * 
@@ -2999,15 +3318,28 @@ public class TopicMapHandler {
 
 		return result;
 	}
-
+	
+	
+	private boolean isTypeOf(Topic instance, String checkedTypeSI) {
+		String query = "%pragma taxonometry tm:transitive"
+				+ " fn:count(" 
+				+ TopicMapsUtils.getTMQLIdentifierString(instance)
+				+ " >> types ==  \""+ checkedTypeSI +"\" << indicators) ";
+		
+		SimpleResultSet rs = runTMQL(query);
+		BigInteger count = rs.get(0,0);
+		
+		return (count.intValue()==1);
+	}
+	
+	
 	/**
 	 * Returns the topic binding which contains a si of the given topic
-	 * 
 	 * @param counterPlayerType
 	 * @return
 	 */
 	public TopicBinding getBindingForType(org.tmapi.core.Topic counterPlayerType) {
-
+		
 		for (TopicBinding tb : bindingHandler.getAllTopicBindings()) {
 			String si = counterPlayerType.getSubjectIdentifiers().iterator().next().toExternalForm();
 			for (String s : tb.getIdentifier()) {
@@ -3020,26 +3352,25 @@ public class TopicMapHandler {
 
 	/**
 	 * 
-	 * @param tmqlQuery
-	 *            a query which results in a list of topics
+	 * @param tmqlQuery a query which results in a list of topics
 	 * @return the list of objects representing the resulting topics
-	 * @throws AranukaException
+	 * @throws AranukaException 
 	 */
 	public List<Object> getObjectsByQuery(String tmqlQuery) throws AranukaException {
-
+		
 		List<Object> result;
-
+		
 		SimpleResultSet results = runTMQL(tmqlQuery);
-
+		
 		if (results.isEmpty())
 			return Collections.emptyList();
-
+		
 		result = new ArrayList<Object>();
-
+		
 		for (IResult r : results.getResults()) {
-			if (r.size() != 1)
-				throw new AranukaException("Illegal TMQL Query: " + tmqlQuery);
-
+			if (r.size()!=1)
+				throw new AranukaException("Illegal TMQL Query: "+tmqlQuery);
+			
 			Object resObj = r.get(0);
 			if (resObj instanceof Topic) {
 				result.add(getObject((Topic) resObj));
@@ -3055,30 +3386,7 @@ public class TopicMapHandler {
 			} else
 				throw new AranukaException("Illegal result in TMQL Query: " + tmqlQuery);
 		}
-
+		
 		return result;
 	}
-
-	/**
-	 * Returns the scope as a set of topics.
-	 * 
-	 * @param themes
-	 *            - Set of sujbect identifiers of the themes
-	 * @return Set of topics representing the scope.
-	 */
-	public Set<Topic> getScope(Set<String> themes) {
-
-		if (themes == null)
-			return Collections.emptySet();
-
-		Set<Topic> scope = new HashSet<Topic>();
-
-		for (String theme : themes) {
-			scope.add(topicMap.createTopicBySubjectIdentifier(topicMap.createLocator(TopicMapsUtils.resolveURI(theme,
-					this.config.getPrefixMap()))));
-		}
-
-		return scope;
-	}
-
 }
