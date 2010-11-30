@@ -23,6 +23,7 @@ import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.aranuka.exception.AranukaException;
 import de.topicmapslab.aranuka.test.AbstractTest;
 import de.topicmapslab.aranuka.test.associations.model.Address;
+import de.topicmapslab.aranuka.test.associations.model.Company;
 import de.topicmapslab.aranuka.test.associations.model.Date;
 import de.topicmapslab.aranuka.test.associations.model.Gun;
 import de.topicmapslab.aranuka.test.associations.model.Person;
@@ -141,6 +142,8 @@ public class AssociationTest extends AbstractTest {
 	
 		serializeTopicMap("/tmp/bond2.ctm", topicMap);	
 		
+		session.clearCache();
+		
 		// checking tony
 		p = (Person) session.getBySubjectIdentifier(tony.getSubjectIdentifier());
 		assertEquals(tony.getName(), p.getName());
@@ -202,8 +205,28 @@ public class AssociationTest extends AbstractTest {
 		
 		p2 = (Person) session.getBySubjectIdentifier(p.getSubjectIdentifier());
 		checkNewPerson(p, p2);
+	}
+	
+	@Test
+	public void cascade() throws Exception {
+		Company comp = new Company();
+		comp.setSubjectIdentifier("http://ibm.com");
 		
+		Address a = new Address();
+		a.setContent("Anywhere");
+		a.setItemIdentifier("http://test.de/a/2");
+		comp.setAddress(a);
 		
+		session.persist(comp);
+		
+		session.clearCache();
+		Company testComp = (Company) session.getBySubjectIdentifier(comp.getSubjectIdentifier());
+		
+		serializeTopicMap("/tmp/company.ctm", session.getTopicMap());
+		
+		assertEquals(comp.getSubjectIdentifier(), testComp.getSubjectIdentifier());
+		assertEquals(comp.getAddress(), testComp.getAddress());
+		assertEquals(comp.getAddress().getContent(), testComp.getAddress().getContent());
 		
 	}
 	
@@ -231,4 +254,6 @@ public class AssociationTest extends AbstractTest {
 		assertEquals(eAddress.getContent(), aAddress.getContent());
 		assertEquals(eAddress.getItemIdentifier(), aAddress.getItemIdentifier());
 	}
+	
+	
 }

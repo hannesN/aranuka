@@ -267,7 +267,7 @@ public class TopicMapHandler {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
 	 */
-	public Object getObjectBySubjectIdentifier(String si) throws AranukaException {
+	public <E> E  getObjectBySubjectIdentifier(String si) throws AranukaException {
 		Locator siLoc = getIdentifierLocator(si);
 		Topic topic = getTopicMap().getTopicBySubjectIdentifier(siLoc);
 
@@ -283,13 +283,9 @@ public class TopicMapHandler {
 	 * @param sl
 	 *            - The subject locator as string.
 	 * @return The object or null if not found.
-	 * @throws TopicMapIOException
-	 * @throws TopicMapInconsistentException
-	 * @throws BadAnnotationException
-	 * @throws NoSuchMethodException
-	 * @throws ClassNotSpecifiedException
+	 * @throws AranukaException
 	 */
-	public Object getObjectBySubjectLocator(String sl) throws AranukaException {
+	public <E> E getObjectBySubjectLocator(String sl) throws AranukaException {
 
 		Topic topic = getTopicMap().getTopicBySubjectLocator(getIdentifierLocator(sl));
 
@@ -305,13 +301,9 @@ public class TopicMapHandler {
 	 * @param ii
 	 *            - The item identifier as string.
 	 * @return The object or null if not found or the identifier identifies an non topic construct.
-	 * @throws TopicMapIOException
-	 * @throws TopicMapInconsistentException
-	 * @throws BadAnnotationException
-	 * @throws NoSuchMethodException
-	 * @throws ClassNotSpecifiedException
+	 * @throws AranukaException
 	 */
-	public Object getObjectByItemIdentifier(String ii) throws AranukaException {
+	public <E> E getObjectByItemIdentifier(String ii) throws AranukaException {
 
 		Construct construct = getTopicMap().getConstructByItemIdentifier(getIdentifierLocator(ii));
 
@@ -367,11 +359,7 @@ public class TopicMapHandler {
 			String query = MessageFormat.format(ITMQLQueries.DELETE_TOPIC, "\"" + id + "\" << " + axis);
 			runTMQL(query);
 
-			Topic t = getTopicFromCache(object);
-			if (t != null) {
-				topicCache = null;
-				objectCache = null;
-			}
+			clearCache();
 			return true;
 		} catch (Exception e) {
 			throw new AranukaException("Error while removing topic", e);
@@ -540,20 +528,16 @@ public class TopicMapHandler {
 	 * @param topic
 	 *            - The topic.
 	 * @return The object or null if not found.
-	 * @throws TopicMapIOException
-	 * @throws TopicMapInconsistentException
-	 * @throws BadAnnotationException
-	 * @throws NoSuchMethodException
-	 * @throws ClassNotSpecifiedException
+	 * @throws AranukaException
 	 */
-	private Object getObject(Topic topic) throws AranukaException {
+	private <E> E  getObject(Topic topic) throws AranukaException {
 
 		TopicBinding binding = getTopicBinding(topic);
 
 		if (binding == null)
 			throw new AranukaException("No binding for the Topic with "+topic);
 
-		Object obj;
+		E obj;
 		try {
 			obj = getInstanceFromTopic(topic, binding);
 		} catch (Exception e) {
