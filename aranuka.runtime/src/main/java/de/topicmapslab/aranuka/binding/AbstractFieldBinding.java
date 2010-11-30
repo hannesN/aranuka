@@ -17,10 +17,6 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tmapi.core.Topic;
-import org.tmapi.core.TopicMap;
-
-import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
 /**
  * Abstract class for field bindings.
@@ -203,26 +199,6 @@ public abstract class AbstractFieldBinding{
 		this.themes = themes;
 	}
 	
-	/**
-	 * Returns the scope as a set of topics.
-	 * @param topicMap - The topic map instance to create the topics.
-	 * @return Set of topics representing the scope.
-	 */
-	public Set<Topic> getScope(TopicMap topicMap){
-		
-		if(this.themes == null)
-			return Collections.emptySet();
-		
-		Set<Topic> scope = new HashSet<Topic>();
-		
-		for(String theme:themes)
-		{
-			scope.add(topicMap.createTopicBySubjectIdentifier(topicMap.createLocator(TopicMapsUtils.resolveURI(theme, this.prefixMap))));
-		}
-		
-		return scope;
-	}
-
 	/**
 	 * Returns the prefix map.
 	 * @return The prefix map.

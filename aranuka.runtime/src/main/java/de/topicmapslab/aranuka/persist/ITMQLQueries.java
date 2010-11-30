@@ -81,11 +81,12 @@ public interface ITMQLQueries {
 	 * number of params: 2
 	 * <ol>
 	 * <li>identifier of the association type without brackets</li>
-	 * <li>values of non to remove associations in the form: "id" << id UNION "id2" << id </li>
+	 * <li>values of non to remove associations in the form: MINUS "id" << id UNION "id2" << id </li>
+	 * <li>identifier of the player type to persist</li>
 	 * </ol> 
 	 * 
 	 */
-	public final String DELETE_BINARY_ASSOCIATION = "DELETE {0} >> typed MINUS {1}";
+	public final String DELETE_BINARY_ASSOCIATION = "DELETE {0} >> typed [. >> players == {2} ] {1}";
 	
 	/** String using params for {@link MessageFormat}.
 	 * 

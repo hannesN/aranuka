@@ -13,6 +13,9 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.tmapi.core.Locator;
+import org.tmapi.core.Topic;
+import org.tmapi.core.TopicMap;
 
 import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
@@ -120,7 +123,8 @@ public class AssociationTest extends AbstractTest {
 		bond.setGun(walther);
 		session.persist(bond);
 		
-		serializeTopicMap("/tmp/bond.ctm", session.getTopicMap());
+		TopicMap topicMap = session.getTopicMap();
+		serializeTopicMap("/tmp/bond.ctm", topicMap);
 		
 		// checking bond
 		Person p = (Person) session.getBySubjectIdentifier(bond.getSubjectIdentifier());
@@ -134,7 +138,9 @@ public class AssociationTest extends AbstractTest {
 		tony.setGun(desertEagle);
 		tony.setSpy(false);
 		session.persist(tony);
-			
+	
+		serializeTopicMap("/tmp/bond2.ctm", topicMap);	
+		
 		// checking tony
 		p = (Person) session.getBySubjectIdentifier(tony.getSubjectIdentifier());
 		assertEquals(tony.getName(), p.getName());
@@ -146,6 +152,11 @@ public class AssociationTest extends AbstractTest {
 		assertEquals(bond.getName(), p.getName());
 		assertEquals(bond.getGun(), p.getGun());
 		assertEquals(bond.isSpy(), p.isSpy());
+		
+		// check if the walther has its type twice
+		Locator l = topicMap.createLocator(walther.getSubjectIdentifier());
+		Topic wTopic = topicMap.getTopicBySubjectIdentifier(l);
+		assertEquals(1, wTopic.getTypes().size());
 	}
 	
 	@Test
@@ -175,11 +186,13 @@ public class AssociationTest extends AbstractTest {
 		l.setDate(d1);
 		p.setLives(l);
 		
+		
+		serializeTopicMap("/tmp/test.ctm", session.getTopicMap());
 		session.persist(p);
 		
 		
 		Person p2 = (Person) session.getBySubjectIdentifier(p.getSubjectIdentifier());
-		serializeTopicMap("/tmp/test.ctm", session.getTopicMap());
+		
 		checkNewPerson(p, p2);
 		
 		p.getLives().setDate(d2);
