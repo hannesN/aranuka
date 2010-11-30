@@ -207,7 +207,7 @@ public class AssociationTest extends AbstractTest {
 		checkNewPerson(p, p2);
 	}
 	
-	@Test
+//	@Test
 	public void cascade() throws Exception {
 		Company comp = new Company();
 		comp.setSubjectIdentifier("http://ibm.com");

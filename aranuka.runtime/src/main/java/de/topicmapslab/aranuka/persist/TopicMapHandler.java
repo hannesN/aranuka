@@ -11,7 +11,6 @@ package de.topicmapslab.aranuka.persist;
 import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -1351,16 +1350,6 @@ public class TopicMapHandler {
 		getTMQLRuntime().run(deleteQuery);
 	}
 
-	private boolean checkBinding(TopicBinding tb, TopicBinding otherPlayerBinding) {
-		TopicBinding currBinding = tb;
-		while (currBinding != null) {
-			if (currBinding.equals(otherPlayerBinding)) {
-				return true;
-			}
-			currBinding = currBinding.getParent();
-		}
-		return false;
-	}
 
 	/**
 	 * Updates a number of specific nnary associations.
@@ -1534,194 +1523,6 @@ public class TopicMapHandler {
 	}
 
 	/**
-	 * Adds an object to an set of objects which to be persisted as well.
-	 * 
-	 * @param associationContainer
-	 *            - The association container in which the role is specified.
-	 * @param topicObjects
-	 *            - The set if objects.
-	 * @throws BadAnnotationException
-	 * @throws NoSuchMethodException
-	 * @throws ClassNotSpecifiedException
-	 */
-	@SuppressWarnings("unchecked")
-	private void addCascadingRole(Object associationContainer, List<Object> topicObjects)
-			throws BadAnnotationException, NoSuchMethodException, ClassNotSpecifiedException {
-
-		AssociationContainerBinding binding = (AssociationContainerBinding) getBindingHandler().getBinding(
-				associationContainer.getClass());
-
-		for (RoleBinding roleBinding : binding.getRoleBindings()) {
-
-			// get the objects
-
-			if (roleBinding.isArray()) {
-
-				Object[] objects = (Object[]) roleBinding.getValue(associationContainer);
-
-				for (Object obj : objects) {
-					topicObjects.add(obj);
-					logger.info("Persist/Update " + obj + " on cascade.");
-				}
-
-			} else if (roleBinding.isCollection()) {
-
-				Collection<Object> objects = (Collection<Object>) roleBinding.getValue(associationContainer);
-
-				for (Object obj : objects) {
-					topicObjects.add(obj);
-					logger.info("Persist/Update " + obj + " on cascade.");
-				}
-
-			} else {
-
-				topicObjects.add(roleBinding.getValue(associationContainer));
-				logger.info("Persist/Update " + roleBinding.getValue(associationContainer) + " on cascade.");
-			}
-		}
-	}
-
-	/**
-	 * Checks if a set if role types an player matches a specific association.
-	 * 
-	 * @param playedRole
-	 *            - The role specifying the association.
-	 * @param rolePlayers
-	 *            - Map if role types and player.
-	 * @return True in case the association maches, otherwise false.
-	 */
-	private boolean matchCounterRoleTypes(Role playedRole, Map<Topic, Set<Topic>> rolePlayers) {
-
-		Set<Topic> existingRolesTypes = playedRole.getParent().getRoleTypes();
-
-		if (existingRolesTypes.size() != rolePlayers.keySet().size())
-			return false;
-
-		for (Topic newRoleType : rolePlayers.keySet()) {
-
-			if (!existingRolesTypes.contains(newRoleType))
-				return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Checks if a number of topics matches the counter player in an specific association.
-	 * 
-	 * @param playedRole
-	 *            - The role specifying the association.
-	 * @param rolePlayers
-	 *            - Map of role types and player.
-	 * @return
-	 */
-	private boolean matchCounterPlayer(Role playedRole, Map<Topic, Set<Topic>> rolePlayers) {
-
-		Association association = playedRole.getParent();
-
-		for (Map.Entry<Topic, Set<Topic>> rolePlayer : rolePlayers.entrySet()) {
-
-			Set<Role> existingRoles = association.getRoles(rolePlayer.getKey()); // get
-																					// player
-																					// of
-																					// type
-
-			if (existingRoles.size() != rolePlayer.getValue().size())
-				return false;
-
-			for (Role existingRole : existingRoles) {
-
-				if (!rolePlayer.getValue().contains(existingRole.getPlayer()))
-					return false;
-
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Gets all role types and the related player from an association container object.
-	 * 
-	 * @param associationContainerInstance
-	 *            - The object.
-	 * @return - A map containing the role types and corresponding player.
-	 * @throws BadAnnotationException
-	 * @throws NoSuchMethodException
-	 * @throws ClassNotSpecifiedException
-	 * @throws TopicMapIOException
-	 *             TODO add recursive call to get roles from superclasses as well.
-	 */
-	@SuppressWarnings("unchecked")
-	private Map<Topic, Set<Topic>> getRolesFromContainer(Object associationContainerInstance) throws Exception {
-
-		Map<Topic, Set<Topic>> result = new HashMap<Topic, Set<Topic>>();
-
-		AssociationContainerBinding binding = (AssociationContainerBinding) getBindingHandler().getBinding(
-				associationContainerInstance.getClass());
-
-		for (RoleBinding roleBinding : binding.getRoleBindings()) {
-
-			Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(roleBinding.getRoleType(),
-					this.config.getPrefixMap()));
-			Set<Topic> player = null;
-			if (result.get(roleType) == null)
-				player = new HashSet<Topic>();
-			else
-				player = result.get(roleType);
-
-			if (roleBinding.getValue(associationContainerInstance) != null) {
-
-				if (roleBinding.isArray()) {
-
-					for (Object obj : (Object[]) roleBinding.getValue(associationContainerInstance)) {
-
-						createPlayer(roleBinding, player, obj);
-					}
-
-				} else if (roleBinding.isCollection()) {
-
-					for (Object obj : (Collection<Object>) roleBinding.getValue(associationContainerInstance)) {
-
-						createPlayer(roleBinding, player, obj);
-					}
-
-				} else {
-
-					Object obj = roleBinding.getValue(associationContainerInstance);
-					createPlayer(roleBinding, player, obj);
-				}
-			}
-
-			result.put(roleType, player);
-		}
-
-		return result;
-	}
-
-	/**
-	 * Creates a player according to a role binding and sets the type. It takes to account that the type of the given
-	 * object may be a subtype of the type of the rolebinding.
-	 * 
-	 * @param roleBinding
-	 * @param player
-	 * @param obj
-	 * @throws Exception
-	 */
-	private void createPlayer(RoleBinding roleBinding, Set<Topic> player, Object obj) throws Exception {
-		// get binding for Object
-		TopicBinding tb = (TopicBinding) bindingHandler.getBinding(obj.getClass());
-
-		if (!checkBinding(tb, roleBinding.getPlayerBinding())) {
-			throw new AranukaException("Binding of player is neither binding of association player nor a subtype of it");
-		}
-
-		Topic topic = createTopicByIdentifier(obj, tb);
-		topic.addType(getTopicType(tb));
-		player.add(topic);
-	}
-
-	/**
 	 * Creates objects for a set of topics of an specific type.
 	 * 
 	 * @param topics
@@ -1837,17 +1638,17 @@ public class TopicMapHandler {
 							if (!l.toExternalForm().startsWith(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX))
 								identifier.add(l);
 						}
-						addIdentifier(topic, object, idBinding, identifier);
+						addIdentifier(object, idBinding, identifier);
 
 					} else if (idBinding.getIdtype() == IdType.SUBJECT_IDENTIFIER) {
 
 						Set<Locator> identifier = topic.getSubjectIdentifiers();
-						addIdentifier(topic, object, idBinding, identifier);
+						addIdentifier(object, idBinding, identifier);
 
 					} else if (idBinding.getIdtype() == IdType.SUBJECT_LOCATOR) {
 
 						Set<Locator> identifier = topic.getSubjectLocators();
-						addIdentifier(topic, object, idBinding, identifier);
+						addIdentifier(object, idBinding, identifier);
 
 					} else {
 
@@ -1862,8 +1663,6 @@ public class TopicMapHandler {
 	/**
 	 * Adds identifier to an object.
 	 * 
-	 * @param topic
-	 *            - The corresponding topic.
 	 * @param object
 	 *            - The object.
 	 * @param idBinding
@@ -1872,7 +1671,7 @@ public class TopicMapHandler {
 	 *            - Set of identifier.
 	 * @throws TopicMapIOException
 	 */
-	private void addIdentifier(Topic topic, Object object, IdBinding idBinding, Set<Locator> identifiers)
+	private void addIdentifier(Object object, IdBinding idBinding, Set<Locator> identifiers)
 			throws TopicMapIOException {
 
 		if (identifiers.isEmpty())
@@ -3199,17 +2998,6 @@ public class TopicMapHandler {
 			result.createName(name);
 
 		return result;
-	}
-
-	private boolean isTypeOf(Topic instance, String checkedTypeSI) {
-		String query = "%pragma taxonometry tm:transitive" + " fn:count("
-				+ TopicMapsUtils.getTMQLIdentifierString(instance) + " >> types ==  \"" + checkedTypeSI
-				+ "\" << indicators) ";
-
-		SimpleResultSet rs = runTMQL(query);
-		BigInteger count = rs.get(0, 0);
-
-		return (count.intValue() == 1);
 	}
 
 	/**
