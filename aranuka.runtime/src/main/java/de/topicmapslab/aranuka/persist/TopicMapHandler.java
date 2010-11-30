@@ -43,7 +43,6 @@ import org.tmapi.core.TopicMap;
 import org.tmapi.core.TopicMapSystem;
 
 import de.topicmapslab.aranuka.Configuration;
-import de.topicmapslab.aranuka.binding.AbstractClassBinding;
 import de.topicmapslab.aranuka.binding.AbstractFieldBinding;
 import de.topicmapslab.aranuka.binding.AssociationBinding;
 import de.topicmapslab.aranuka.binding.AssociationContainerBinding;
@@ -108,11 +107,6 @@ public class TopicMapHandler {
 	 * Temporary cache for objects created for existing topics.
 	 */
 	private Map<Topic, Object> objectCache;
-
-	/**
-	 * Cache for associations.
-	 */
-	private Map<Association, AssociationBinding> associationCache;
 
 	/**
 	 * The topic map system.
@@ -375,9 +369,8 @@ public class TopicMapHandler {
 
 			Topic t = getTopicFromCache(object);
 			if (t != null) {
-				topicCache.remove(object);
-				if (objectCache != null)
-					objectCache.remove(t);
+				topicCache = null;
+				objectCache = null;
 			}
 			return true;
 		} catch (Exception e) {
@@ -442,7 +435,6 @@ public class TopicMapHandler {
 	 * Clears the cache of the topic map handler
 	 */
 	public void clearCache() {
-		associationCache = null;
 		objectCache = null;
 		topicCache = null;
 	}
@@ -679,23 +671,13 @@ public class TopicMapHandler {
 
 		// add topic to cache
 		addTopicToCache(newTopic, topicObject);
+		addObjectToCache(topicObject, newTopic);
 
 		// set topic type
 		newTopic.addType(getTopicType(binding));
 
-		// update identifier
-		updateSubjectIdentifier(newTopic, topicObject, binding);
-		updateSubjectLocator(newTopic, topicObject, binding);
-		updateItemIdentifier(newTopic, topicObject, binding);
-
-		// update names
-		updateNames(newTopic, topicObject, binding);
-
-		// update occurrences
-		updateOccurrences(newTopic, topicObject, binding);
-
-		// update associations
-		updateAssociations(newTopic, topicObject, binding, topicObjects);
+		// persisting topic 
+		updateTopic(newTopic, topicObject, binding, topicObjects);
 
 		return newTopic;
 	}
@@ -1040,7 +1022,7 @@ public class TopicMapHandler {
 			Topic nameType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(newName.getKey().getNameType(),
 					this.config.getPrefixMap()));
 
-			Set<Topic> scope = newName.getKey().getScope(getTopicMap());
+			Set<Topic> scope = getScope(newName.getKey().getThemes());
 
 			for (String name : newName.getValue()) {
 
@@ -1109,7 +1091,7 @@ public class TopicMapHandler {
 			Topic occurrenceType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(newOccurrence.getKey()
 					.getOccurrenceType(), this.config.getPrefixMap()));
 
-			Set<Topic> scope = newOccurrence.getKey().getScope(getTopicMap());
+			Set<Topic> scope = getScope(newOccurrence.getKey().getThemes());
 			Locator datatype = topic.getTopicMap().createLocator(newOccurrence.getKey().getDataType()); // creating
 																										// datatype
 																										// locator
@@ -1187,9 +1169,6 @@ public class TopicMapHandler {
 		if (newAssociations.isEmpty())
 			return;
 
-		// get existing associations, i.e. played roles
-		Map<Role, Match> playedRoles = addFlags(topic.getRolesPlayed());
-
 		for (Map.Entry<AssociationBinding, Set<Object>> newAssociation : newAssociations.entrySet()) {
 
 			if (newAssociation.getKey().getKind() == AssociationKind.UNARY) {
@@ -1198,46 +1177,11 @@ public class TopicMapHandler {
 
 			} else if (newAssociation.getKey().getKind() == AssociationKind.BINARY) {
 
-				updateBinaryAssociations(topicObject, newAssociation.getKey(), newAssociation.getValue(), playedRoles,
-						topicObjects);
+				updateBinaryAssociations(topicObject, newAssociation.getKey());
 
 			} else if (newAssociation.getKey().getKind() == AssociationKind.NNARY) {
 
-				updateNnaryAssociations(topic, newAssociation.getKey(), newAssociation.getValue(), playedRoles,
-						topicObjects);
-			}
-		}
-
-		// remove obsolete roles
-		for (Map.Entry<Role, Match> entry : playedRoles.entrySet()) {
-
-			Association ass = entry.getKey().getParent();
-			if (ass != null) {
-
-				if (entry.getValue() == Match.BINDING) { // only binding match
-															// found but no
-															// instance
-
-					logger.info("Remove obsolete association " + ass.getType());
-					ass.remove();
-
-				} else if (entry.getValue() == Match.NO) {
-
-					// find association in cache and remove if it belongs to
-					// this topic
-
-					if (getAssociationBindingFromCache(ass) != null) {
-						if (binding.getFieldBindings().contains(getAssociationBindingFromCache(ass))) {
-							// if the binding belongs to this topic, the
-							// association was created by this topic
-							removeAssociationFromCache(ass);
-
-							logger.info("Remove obsolete association " + ass.getType());
-							ass.remove();
-						}
-
-					}
-				}
+				updateNnaryAssociations(topicObject, newAssociation.getKey());
 			}
 		}
 	}
@@ -1341,8 +1285,8 @@ public class TopicMapHandler {
 	 * @throws BadAnnotationException
 	 */
 
-	private void updateBinaryAssociations(Object instance, AssociationBinding binding, Set<Object> associationObjects,
-			Map<Role, Match> playedRoles, List<Object> topicObjects) throws Exception {
+	@SuppressWarnings("unchecked")
+	private void updateBinaryAssociations(Object instance, AssociationBinding binding) throws Exception {
 
 		String asscoTypeSi = TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap());
 		String roleTypeSI = TopicMapsUtils.resolveURI(binding.getPlayedRole(), this.config.getPrefixMap());
@@ -1394,20 +1338,21 @@ public class TopicMapHandler {
 		}
 		
 		
-		// removing the non valid association
-		removeOtherAssociations(asscoTypeSi, validIds);
+		// removing the non valid associationinstance
+		removeOtherAssociations(asscoTypeSi, validIds,instance);
 	}
 
 	/**
+	 * Removes the association of the type with the given 
 	 * 
 	 * @param asscoTypeSi the association type to delete
 	 * @param validIds the list of association ids not to delete
+	 * @throws AranukaException 
 	 */
-	private void removeOtherAssociations(String asscoTypeSi, Set<String> validIds) {
-		if (validIds.isEmpty()) {
-			getTMQLRuntime().run("DELETE " + asscoTypeSi + " >> typed");
-		} else {
-			StringBuilder b = new StringBuilder();
+	private void removeOtherAssociations(String asscoTypeSi, Set<String> validIds, Object instance) throws AranukaException {
+		String idUnion = "";
+		if (!validIds.isEmpty()) {
+			StringBuilder b = new StringBuilder("MINUS ");
 			Iterator<String> it = validIds.iterator();
 			while (it.hasNext()) {
 				b.append("\"");
@@ -1416,11 +1361,10 @@ public class TopicMapHandler {
 				if (it.hasNext())
 					b.append(" UNION ");
 			}
-			String idUnion = b.toString();
-
-			String deleteQuery = MessageFormat.format(ITMQLQueries.DELETE_BINARY_ASSOCIATION, asscoTypeSi, idUnion);
-			getTMQLRuntime().run(deleteQuery);
+			idUnion = b.toString();
 		}
+		String deleteQuery = MessageFormat.format(ITMQLQueries.DELETE_BINARY_ASSOCIATION, asscoTypeSi, idUnion, getIDQueryPart(instance));
+		getTMQLRuntime().run(deleteQuery);
 	}
 
 	private boolean checkBinding(TopicBinding tb, TopicBinding otherPlayerBinding) {
@@ -1453,94 +1397,156 @@ public class TopicMapHandler {
 	 * @throws ClassNotSpecifiedException
 	 * @throws TopicMapIOException
 	 */
-	private void updateNnaryAssociations(Topic topic, AssociationBinding binding, Set<Object> associationObjects,
-			Map<Role, Match> playedRoles, List<Object> topicObjects) throws Exception {
+	@SuppressWarnings("unchecked")
+	private void updateNnaryAssociations(Object instance, AssociationBinding binding) throws Exception {
 
-		Topic associationType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getAssociationType(),
-				this.config.getPrefixMap()));
-		Topic roleType = createTopicBySubjectIdentifier(TopicMapsUtils.resolveURI(binding.getPlayedRole(),
-				this.config.getPrefixMap()));
+		String associationTypeSI = TopicMapsUtils.resolveURI(binding.getAssociationType(), this.config.getPrefixMap());
+		String roleTypeSI = TopicMapsUtils.resolveURI(binding.getPlayedRole(), this.config.getPrefixMap());
 
-		Set<Topic> scope = binding.getScope(getTopicMap());
-
-		for (Object associationObject : associationObjects) { // check each nnary association
-
-			if (associationObject == null)
-				continue; // skip when the association object is null
-
-			boolean found = false;
-
-			// get role-player for container
-			Map<Topic, Set<Topic>> containerRolePlayer = getRolesFromContainer(associationObject);
-
-			for (Map.Entry<Role, Match> playedRole : playedRoles.entrySet()) {
-
-				if (playedRole.getValue() != Match.INSTANCE // ignore roles
-															// which are already
-															// flagged true
-						&& playedRole.getKey().getType().equals(roleType) // check
-																			// role
-																			// type
-						&& playedRole.getKey().getParent().getType().equals(associationType)) { // check association
-																								// type
-
-					// add own role to rolePlayer
-					Map<Topic, Set<Topic>> rolePlayer = containerRolePlayer;
-					Set<Topic> ownTypePlayer = null;
-
-					if (rolePlayer.get(playedRole.getKey().getType()) != null)
-						ownTypePlayer = rolePlayer.get(playedRole.getKey().getType());
-					else
-						ownTypePlayer = new HashSet<Topic>();
-
-					ownTypePlayer.add(playedRole.getKey().getPlayer());
-					rolePlayer.put(playedRole.getKey().getType(), ownTypePlayer);
-
-					// check counter player roles
-					if (matchCounterRoleTypes(playedRole.getKey(), rolePlayer)) {
-
-						playedRole.setValue(Match.BINDING);
-
-						// check counter player
-						if (matchCounterPlayer(playedRole.getKey(), rolePlayer)) {
-
-							found = true;
-							playedRole.setValue(Match.INSTANCE);
-							break;
-						}
-					}
-				}
-			}
-
-			if (!found) {
-
-				// create new association
-				logger.info("Create new nnary association " + associationType);
-
-				Association ass = getTopicMap().createAssociation(associationType, scope);
-
-				// add own player
-				ass.createRole(roleType, topic);
-
-				// add player from container
-				for (Map.Entry<Topic, Set<Topic>> rolePlayer : containerRolePlayer.entrySet()) {
-
-					for (Topic player : rolePlayer.getValue()) {
-						logger.info("Create role " + player + " with type " + rolePlayer.getKey());
-						ass.createRole(rolePlayer.getKey(), player);
-					}
-				}
-
-				// add association to cache
-				addAssociationToCache(ass, binding);
-
-				if (binding.isPersistOnCascade()) {
-
-					addCascadingRole(associationObject, topicObjects);
-
-				}
+		AssociationContainerBinding acb = binding.getAssociationContainerBinding();
+		
+		// store for the newly created associations
+		Set<String> validIds = new HashSet<String>();
+		
+		// get all containers in the instances values
+		Collection<Object> otherPlayerContainers = Collections.emptyList();
+		Object value = binding.getValue(instance);
+		if (value != null) {
+			if (binding.isArray())
+				otherPlayerContainers = Arrays.asList((Object[]) value);
+			else if (binding.isCollection()) {
+				otherPlayerContainers = (Collection<Object>) value;
+			} else {
+				otherPlayerContainers = new ArrayList<Object>();
+				otherPlayerContainers.add(value);
 			}
 		}
+		
+		// for each container a new association will be created
+		for (Object ac : otherPlayerContainers) {
+			// first create query to get id of the wanted association
+			// in case its already there
+			String queryString = getIdRetrievalQuery(instance, binding, associationTypeSI, roleTypeSI, acb, ac);
+			
+			System.out.println(queryString);
+			IQuery query = getTMQLRuntime().run(queryString);
+			if (query.getResults().isEmpty()) {
+				getTMQLRuntime().run(getInsertQuery(instance, binding, associationTypeSI, roleTypeSI, acb, ac));
+			}
+		
+			query = getTMQLRuntime().run(queryString);
+			if (query.getResults().isEmpty()) {
+				throw new AranukaException("Could not persist association");
+			}
+			
+			validIds.add((String) query.getResults().get(0, 0));
+			
+		}
+		removeOtherAssociations(associationTypeSI, validIds, instance);
+		
+	}
+
+	@SuppressWarnings("unchecked")
+	private String getIdRetrievalQuery(Object instance, AssociationBinding assocBinding, String associationTypeSI,
+			String roleTypeSI, AssociationContainerBinding containerBinding, Object assocContainer)
+			throws AranukaException {
+		
+		StringBuilder getIdQuery = new StringBuilder();
+		getIdQuery.append(" FOR $a IN ");
+		getIdQuery.append(associationTypeSI);
+		getIdQuery.append(" ( ");
+		getIdQuery.append(roleTypeSI);
+		getIdQuery.append(" : ");
+		getIdQuery.append(getIDQueryPart(instance));
+		
+		
+		for (RoleBinding rb : containerBinding.getRoleBindings()) {
+
+			// now we need to get the roles of the container
+			
+			Collection<Object> otherPlayersOfRole = Collections.emptyList();
+			Object value = rb.getValue(assocContainer);
+			if (value != null) {
+				if (rb.isArray())
+					otherPlayersOfRole = Arrays.asList((Object[]) value);
+				else if (rb.isCollection()) {
+					otherPlayersOfRole = (Collection<Object>) value;
+				} else {
+					otherPlayersOfRole = new ArrayList<Object>();
+					otherPlayersOfRole.add(value);
+				}
+			}
+			
+			for (Object o : otherPlayersOfRole) {
+				getIdQuery.append(" , ");
+				getIdQuery.append(rb.getRoleType());
+				getIdQuery.append(" : ");
+				getIdQuery.append(getIDQueryPart(o));
+			}
+			
+		}
+		getIdQuery.append(" ) WHERE $a ");
+		getIdQuery.append(getTMQLScopeString(assocBinding));
+		getIdQuery.append(" RETURN $a >> id ");
+
+		return getIdQuery.toString();
+	}
+	
+	@SuppressWarnings("unchecked")
+	private String getInsertQuery(Object instance, AssociationBinding assocBinding, String associationTypeSI,
+			String roleTypeSI, AssociationContainerBinding containerBinding, Object assocContainer)
+			throws Exception {
+
+		StringBuilder stubInserts = new StringBuilder();
+		
+		StringBuilder getIdQuery = new StringBuilder();
+		getIdQuery.append("INSERT ''' <");
+		getIdQuery.append(associationTypeSI);
+		getIdQuery.append("> ( <");
+		getIdQuery.append(roleTypeSI);
+		getIdQuery.append("> : ");
+		getIdQuery.append(getIDCTMPart(instance));
+		
+		
+		for (RoleBinding rb : containerBinding.getRoleBindings()) {
+
+			// now we need to get the roles of the container
+			
+			Collection<Object> otherPlayersOfRole = Collections.emptyList();
+			Object value = rb.getValue(assocContainer);
+			if (value != null) {
+				if (rb.isArray())
+					otherPlayersOfRole = Arrays.asList((Object[]) value);
+				else if (rb.isCollection()) {
+					otherPlayersOfRole = (Collection<Object>) value;
+				} else {
+					otherPlayersOfRole = new ArrayList<Object>();
+					otherPlayersOfRole.add(value);
+				}
+			}
+			
+			String otherRoleSI = TopicMapsUtils.resolveURI(rb.getRoleType(), this.config.getPrefixMap());
+			for (Object o : otherPlayersOfRole) {
+				getIdQuery.append(" , <");
+				getIdQuery.append(otherRoleSI);
+				getIdQuery.append("> : ");
+				getIdQuery.append(getIDCTMPart(o));
+				
+				stubInserts.append(getIDCTMPart(o));
+				stubInserts.append(" isa <");
+				String otherTypeSI = TopicMapsUtils.resolveURI(rb.getPlayerBinding().getIdentifier().iterator().next(), this.config.getPrefixMap());
+				stubInserts.append(otherTypeSI);
+				stubInserts.append("> .\n");
+				
+			}
+			
+		}
+		getIdQuery.append(" ) ");
+		getIdQuery.append(getCTMScopeString(assocBinding));
+		getIdQuery.append("\n");
+		getIdQuery.append(stubInserts.toString());
+		getIdQuery.append(" '''\n");
+		return getIdQuery.toString();
 	}
 
 	/**
@@ -2412,8 +2418,6 @@ public class TopicMapHandler {
 						// add container to set
 						counterSet.add(container);
 
-						// add association to cache
-						addAssociationToCache(rolePlayed.getParent(), associationBinding); // TODO verify!
 					} catch (Exception e) {
 						throw e;
 					}
@@ -3183,54 +3187,6 @@ public class TopicMapHandler {
 	}
 
 	/**
-	 * Adds an association to the cache.
-	 * 
-	 * @param association
-	 *            - The association.
-	 * @param binding
-	 *            - The related association binding.
-	 */
-	private void addAssociationToCache(Association association, AssociationBinding binding) {
-
-		if (this.associationCache == null)
-			this.associationCache = new HashMap<Association, AssociationBinding>();
-
-		this.associationCache.put(association, binding);
-
-	}
-
-	/**
-	 * Removes an association from cache.
-	 * 
-	 * @param association
-	 *            - The association.
-	 */
-	private void removeAssociationFromCache(Association association) {
-
-		if (this.associationCache == null)
-			return;
-
-		this.associationCache.remove(association);
-
-	}
-
-	/**
-	 * Gets the association binding of a specific association.
-	 * 
-	 * @param association
-	 *            - The association
-	 * @return The Binding or null of not found.
-	 */
-	private AssociationBinding getAssociationBindingFromCache(Association association) {
-
-		if (this.associationCache == null)
-			return null;
-
-		return this.associationCache.get(association);
-
-	}
-
-	/**
 	 * Creates a topic by subject identifier, but checks first if the topic already exists. Adds also a name if
 	 * specified.
 	 * 
@@ -3330,4 +3286,27 @@ public class TopicMapHandler {
 
 		return result;
 	}
+
+	/**
+	 * Returns the scope as a set of topics.
+	 * 
+	 * @param themes
+	 *            - Set of sujbect identifiers of the themes
+	 * @return Set of topics representing the scope.
+	 */
+	public Set<Topic> getScope(Set<String> themes) {
+
+		if (themes == null)
+			return Collections.emptySet();
+
+		Set<Topic> scope = new HashSet<Topic>();
+
+		for (String theme : themes) {
+			scope.add(topicMap.createTopicBySubjectIdentifier(topicMap.createLocator(TopicMapsUtils.resolveURI(theme,
+					this.config.getPrefixMap()))));
+		}
+
+		return scope;
+	}
+
 }
