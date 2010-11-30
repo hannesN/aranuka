@@ -126,7 +126,7 @@ public class Session {
 	 * @throws ClassNotSpecifiedException
 	 * @throws TopicMapException
 	 */
-	public Object getBySubjectIdentifier(String si) throws AranukaException {
+	public <E> E getBySubjectIdentifier(String si) throws AranukaException {
 		// returns instance of topic with si as subject identifier
 		return getTopicMapHandler().getObjectBySubjectIdentifier(si);
 
@@ -145,7 +145,7 @@ public class Session {
 	 * @throws ClassNotSpecifiedException
 	 * @throws TopicMapException
 	 */
-	public Object getBySubjectLocator(String sl) throws AranukaException {
+	public <E> E getBySubjectLocator(String sl) throws AranukaException {
 		// returns instance of topic with si as subject locator
 		return getTopicMapHandler().getObjectBySubjectLocator(sl);
 	}
@@ -164,7 +164,7 @@ public class Session {
 	 * @throws ClassNotSpecifiedException
 	 * @throws TopicMapException
 	 */
-	public Object getByItemIdentifier(String ii) throws AranukaException {
+	public <E> E getByItemIdentifier(String ii) throws AranukaException {
 		// returns instance of topic with si as item identifier
 
 		return getTopicMapHandler().getObjectByItemIdentifier(ii);
@@ -203,6 +203,14 @@ public class Session {
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * Clears the object cache of the session. 
+	 * @throws AranukaException 
+	 */
+	public void clearCache() throws AranukaException {
+		getTopicMapHandler().clearCache();
+	}
+	
 	/**
 	 * Returns the topic map.
 	 * 
