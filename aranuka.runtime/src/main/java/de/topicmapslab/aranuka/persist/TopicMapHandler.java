@@ -1749,7 +1749,7 @@ public class TopicMapHandler {
 			objects.add((E) getInstanceFromTopic(topic, binding));
 		}
 
-		clearObjectCache(); // free object cache at end of session
+//		clearObjectCache(); // free object cache at end of session
 
 		return objects;
 	}
