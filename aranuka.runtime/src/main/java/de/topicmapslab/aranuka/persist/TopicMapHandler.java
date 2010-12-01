@@ -96,16 +96,12 @@ public class TopicMapHandler {
 	 */
 	private ITMQLRuntime TMQLRuntime;
 
-	/**
-	 * Cache for already created topic objects.
-	 */
-	private Map<Object, Topic> topicCache;
 
 	/**
-	 * Temporary cache for objects created for existing topics.
+	 * Cache for the created objects/topics
 	 */
-	private Map<Topic, Object> objectCache;
-
+	private AranukaCache cache;
+	
 	/**
 	 * Cache for associations.
 	 */
@@ -132,8 +128,10 @@ public class TopicMapHandler {
 		if (topicMap == null)
 			throw new RuntimeException("Topic map is null.");
 
+		
 		this.config = config;
 		this.topicMap = topicMap;
+		this.cache = new AranukaCache();
 	}
 
 	/**
@@ -172,7 +170,7 @@ public class TopicMapHandler {
 			topicToPersist.add(topicObject);
 			persistTopics(topicToPersist);
 			
-			objectCache = null;
+			
 			
 		} catch (Exception e) {
 			throw new AranukaException(e);
@@ -375,9 +373,9 @@ public class TopicMapHandler {
 
 			Topic t = getTopicFromCache(object);
 			if (t != null) {
-				topicCache.remove(object);
-				if (objectCache != null)
-					objectCache.remove(t);
+				// need to clear cache because of cascading deletion
+				cache.clear();
+				//cache.removePair(object, t);
 			}
 			return true;
 		} catch (Exception e) {
@@ -389,9 +387,7 @@ public class TopicMapHandler {
 	 * Clears the cache of the topic map handler
 	 */
 	public void clearCache() {
-		associationCache = null;
-		objectCache = null;
-		topicCache = null;
+		cache.clear();
 	}
 
 	/**
@@ -757,7 +753,7 @@ public class TopicMapHandler {
 
 		Set<String> newSubjectIdentifier = getIdentifier(topicObject, binding, IdType.SUBJECT_IDENTIFIER);
 
-		Map<Locator, Match> actualSubjectIdentifier = addFlags(topic.getSubjectIdentifiers());
+		Map<Locator, Match> actualSubjectIdentifier = initFlags(topic.getSubjectIdentifiers());
 
 		for (String si : newSubjectIdentifier) {
 
@@ -879,7 +875,7 @@ public class TopicMapHandler {
 
 		Set<String> newSubjectLocator = getIdentifier(topicObject, binding, IdType.SUBJECT_LOCATOR);
 
-		Map<Locator, Match> actualSubjectLocator = addFlags(topic.getSubjectLocators());
+		Map<Locator, Match> actualSubjectLocator = initFlags(topic.getSubjectLocators());
 
 		for (String sl : newSubjectLocator) {
 
@@ -930,7 +926,7 @@ public class TopicMapHandler {
 
 		Set<String> newItemIdentifier = getIdentifier(topicObject, binding, IdType.ITEM_IDENTIFIER);
 
-		Map<Locator, Match> actualItemIdentifier = addFlags(topic.getItemIdentifiers());
+		Map<Locator, Match> actualItemIdentifier = initFlags(topic.getItemIdentifiers());
 
 		for (String ii : newItemIdentifier) {
 
@@ -984,7 +980,7 @@ public class TopicMapHandler {
 		Map<NameBinding, Set<String>> newNames = getNames(topicObject, binding);
 
 		// get actual names
-		Map<Name, Match> actualNames = addFlags(topic.getNames());
+		Map<Name, Match> actualNames = initFlags(topic.getNames());
 
 		// update
 		for (Map.Entry<NameBinding, Set<String>> newName : newNames.entrySet()) {
@@ -1065,7 +1061,7 @@ public class TopicMapHandler {
 		Map<OccurrenceBinding, Set<String>> newOccurrences = getOccurrences(topicObject, binding);
 
 		// get actual occurrences
-		Map<Occurrence, Match> actualOccurrences = addFlags(topic.getOccurrences());
+		Map<Occurrence, Match> actualOccurrences = initFlags(topic.getOccurrences());
 
 		// update
 		for (Map.Entry<OccurrenceBinding, Set<String>> newOccurrence : newOccurrences.entrySet()) {
@@ -1155,7 +1151,7 @@ public class TopicMapHandler {
 			return;
 
 		// get existing associartions, i.e. played roles
-		Map<Role, Match> playedRoles = addFlags(topic.getRolesPlayed());
+		Map<Role, Match> playedRoles = initFlags(topic.getRolesPlayed());
 
 		for (Map.Entry<AssociationBinding, Set<Object>> newAssociation : newAssociations.entrySet()) {
 
@@ -1730,7 +1726,7 @@ public class TopicMapHandler {
 
 		}
 
-		clearObjectCache(); // free object cache at end of session
+//		clearObjectCache(); // free object cache at end of session
 
 		return objects;
 	}
@@ -2658,7 +2654,7 @@ public class TopicMapHandler {
 	}
 
 	/**
-	 * Adds an flag to an set.
+	 * Inits   the flags of a set by setting the flag for all instances to {@link Match.NO} set.
 	 * 
 	 * @param <T>
 	 *            - Template for the set parameter
@@ -2666,7 +2662,7 @@ public class TopicMapHandler {
 	 *            - The set.
 	 * @return A map where each element of the set has an additional boolean value.
 	 */
-	private <T extends Object> Map<T, Match> addFlags(Set<T> set) {
+	private <T extends Object> Map<T, Match> initFlags(Set<T> set) {
 
 		Map<T, Match> map = new HashMap<T, Match>();
 
@@ -3166,10 +3162,7 @@ public class TopicMapHandler {
 	 */
 	private void addTopicToCache(Topic topic, Object object) {
 
-		if (this.topicCache == null)
-			this.topicCache = new HashMap<Object, Topic>();
-
-		this.topicCache.put(object, topic);
+		this.cache.addPair(object, topic);
 
 	}
 
@@ -3182,10 +3175,7 @@ public class TopicMapHandler {
 	 */
 	private Topic getTopicFromCache(Object object) {
 
-		if (this.topicCache == null)
-			return null;
-
-		return this.topicCache.get(object);
+		return this.cache.getTopic(object);
 	}
 
 	/**
@@ -3212,10 +3202,7 @@ public class TopicMapHandler {
 	 */
 	private void addObjectToCache(Object object, Topic topic) {
 
-		if (this.objectCache == null)
-			this.objectCache = new HashMap<Topic, Object>();
-
-		this.objectCache.put(topic, object);
+		this.cache.addPair(object, topic);
 	}
 
 	/**
@@ -3227,19 +3214,10 @@ public class TopicMapHandler {
 	 */
 	private Object getObjectFromCache(Topic topic) {
 
-		if (this.objectCache == null)
-			return null;
-
-		return this.objectCache.get(topic);
+		return this.cache.getInstance(topic);
 	}
 
-	/**
-	 * Clears the temporary object cache.
-	 */
-	private void clearObjectCache() {
-		this.objectCache = null;
-	}
-
+	
 	/**
 	 * Adds an association to the cache.
 	 * 
