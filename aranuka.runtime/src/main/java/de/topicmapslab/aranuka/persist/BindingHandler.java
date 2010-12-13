@@ -150,7 +150,7 @@ public class BindingHandler {
 		} else {
 
 			throw new BadAnnotationException(
-					"Class is not @Topic or @AssociationContainer annotated.");
+					"Class "+clazz.getName()+" is not @Topic or @AssociationContainer annotated.");
 		}
 
 		return binding;
