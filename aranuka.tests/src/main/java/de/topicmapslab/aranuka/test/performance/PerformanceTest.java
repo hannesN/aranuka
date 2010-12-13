@@ -25,7 +25,6 @@ import de.topicmapslab.aranuka.test.performance.model.Person;
 
 /**
  * @author Hannes Niederhausen
- * 
  */
 @Ignore
 public class PerformanceTest extends AbstractTest {
@@ -36,7 +35,6 @@ public class PerformanceTest extends AbstractTest {
 
 	/**
 	 * Setup for test
-	 * 
 	 * @throws AranukaException
 	 */
 	@Before
@@ -123,6 +121,9 @@ public class PerformanceTest extends AbstractTest {
 	
 	private Person createPerson(int i) {
 		Person p = new Person();
+		p.setSubjectIdentifier("http://test.de/persons/"+i);
+		p.setName("Hans Meyer "+i);
+		p.setAge(i*30%5);
 		p.setSubjectIdentifier("http://test.de/persons/" + i);
 		p.setName("Hans Meyer " + i);
 		p.setAge(i * 30 % 5);
