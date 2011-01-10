@@ -42,23 +42,23 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 
 		removeItemIdentifiers();
 
+		File temporaryFile = null;
 		try {
-			File f = new File(filename);
+			// create a temporary file so that write failures won't affect the
+			// original file
+			temporaryFile = new File(filename + "$");
 
-			// overwrite existing file, which means we delete the old one
-			if (f.exists())
-				f.delete();
-
-			FileOutputStream fo = new FileOutputStream(f);
+			FileOutputStream fo = new FileOutputStream(temporaryFile);
 
 			TopicMapWriter writer = null;
 
-			if (f.getName().endsWith(".xtm")) {
-				writer = new XTM2TopicMapWriter(fo, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX,
-						XTMVersion.XTM_2_1);
+			if (filename.endsWith(".xtm")) {
+				writer = new XTM2TopicMapWriter(fo,
+						IAranukaIRIs.ITEM_IDENTIFIER_PREFIX, XTMVersion.XTM_2_1);
 				((XTM2TopicMapWriter) writer).setPrettify(true);
 			} else {
-				writer = new CTMTopicMapWriter(fo, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
+				writer = new CTMTopicMapWriter(fo,
+						IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
 
 				for (Entry<String, String> e : getPrefixMap().entrySet()) {
 					if (e.getKey().equals(IProperties.BASE_LOCATOR))
@@ -69,9 +69,17 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 			}
 			writer.write(this.topicMap);
 
+			temporaryFile.renameTo(new File(filename));
+
 			return true;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		} finally {
+			if (temporaryFile.exists()) {
+				// clean up the temporary file
+				temporaryFile.delete();
+			}
+
 		}
 	}
 
@@ -112,9 +120,11 @@ public class TinyTiMConnector extends AbstractEngineConnector {
 					// read
 					TopicMapReader reader = null;
 					if (f.getName().endsWith(".xtm")) {
-						reader = new XTMTopicMapReader(this.topicMap, f, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
+						reader = new XTMTopicMapReader(this.topicMap, f,
+								IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
 					} else {
-						reader = new CTMTopicMapReader(this.topicMap, f, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
+						reader = new CTMTopicMapReader(this.topicMap, f,
+								IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
 					}
 					reader.read();
 				}
