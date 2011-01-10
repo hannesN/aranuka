@@ -30,18 +30,18 @@ import de.topicmapslab.majortom.util.FeatureStrings;
 
 /**
  * @author Hannes Niederhausen
- *
+ * 
  */
 public class MaJorToMEngineConnector extends AbstractEngineConnector {
 	private TopicMap topicMap;
 
 	public MaJorToMEngineConnector() {
 	}
-	
+
 	public MaJorToMEngineConnector(Configuration conf) {
 		setConfiguration(conf);
 	}
-	
+
 	public boolean flushTopicMap() {
 
 		if (this.topicMap == null)
@@ -55,54 +55,62 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 		if (filename == null)
 			return false;
 
+		File temporaryFile = null;
 		try {
-			File f = new File(filename);
+			// create a temporary file so that write failures won't affect the
+			// original file
+			temporaryFile = new File(filename + "$");
 
-			// overwrite existing file, which means we delete the old one
-			if (f.exists())
-				f.delete();
-
-			FileOutputStream fo = new FileOutputStream(f);
+			FileOutputStream fo = new FileOutputStream(temporaryFile);
 
 			TopicMapWriter writer = null;
 
-			if (f.getName().endsWith(".xtm")) {
-				writer = new XTM2TopicMapWriter(fo, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX, XTMVersion.XTM_2_1);
+			if (filename.endsWith(".xtm")) {
+				writer = new XTM2TopicMapWriter(fo,
+						IAranukaIRIs.ITEM_IDENTIFIER_PREFIX, XTMVersion.XTM_2_1);
 				((XTM2TopicMapWriter) writer).setPrettify(true);
 			} else {
 				writer = new CTMTopicMapWriter(fo, baseLocator);
 
 				for (Entry<String, String> e : getPrefixMap().entrySet()) {
-					((CTMTopicMapWriter) writer).setPrefix(e.getKey(), e.getValue());
+					((CTMTopicMapWriter) writer).setPrefix(e.getKey(),
+							e.getValue());
 				}
 			}
 			writer.write(this.topicMap);
 
+			// overwrite the original file
+			temporaryFile.renameTo(new File(filename));
+
 			return true;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		} finally {
+			if (temporaryFile.exists()) {
+				// clean up the temporary file
+				temporaryFile.delete();
+			}
 		}
 	}
-		
 
 	public TopicMap createTopicMap() {
 		try {
-				String baseLocator = getProperty(IProperties.BASE_LOCATOR);
-				TopicMapSystem tms = getTopicMapSystem();
-								
-				topicMap = tms.createTopicMap(baseLocator);
-				
-				// load file if it exists
-				if ("memory".equals(getProperty(IProperties.BACKEND))) {
-					String filename = getProperty(IProperties.FILENAME);
-					if (filename !=null) {
-						File f = new File(filename);
-						if (f.exists()) {
-							readTopicMap(f);
-						}
+			String baseLocator = getProperty(IProperties.BASE_LOCATOR);
+			TopicMapSystem tms = getTopicMapSystem();
+
+			topicMap = tms.createTopicMap(baseLocator);
+
+			// load file if it exists
+			if ("memory".equals(getProperty(IProperties.BACKEND))) {
+				String filename = getProperty(IProperties.FILENAME);
+				if (filename != null) {
+					File f = new File(filename);
+					if (f.exists()) {
+						readTopicMap(f);
 					}
 				}
-				return topicMap;
+			}
+			return topicMap;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -110,40 +118,50 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 
 	private void readTopicMap(File f) throws IOException {
 		if (f.getName().endsWith("ctm")) {
-			CTMTopicMapReader reader = new CTMTopicMapReader(topicMap, f, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
+			CTMTopicMapReader reader = new CTMTopicMapReader(topicMap, f,
+					IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
 			reader.read();
 			return;
 		}
 		if (f.getName().endsWith("xtm")) {
-			XTMTopicMapReader reader = new XTMTopicMapReader(topicMap, f, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
+			XTMTopicMapReader reader = new XTMTopicMapReader(topicMap, f,
+					IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
 			reader.read();
 			return;
-		}		
-		
+		}
+
 	}
 
 	public TopicMapSystem getTopicMapSystem() {
 		try {
 			TopicMapSystemFactoryImpl fac = new TopicMapSystemFactoryImpl();
 			String backend = getProperty(IProperties.BACKEND);
-			if ((backend==null) || (backend.equals("memory"))) {
-				fac.setProperty(TopicMapStoreProperty.TOPICMAPSTORE_CLASS, "de.topicmapslab.majortom.inmemory.store.InMemoryTopicMapStore");
+			if ((backend == null) || (backend.equals("memory"))) {
+				fac.setProperty(TopicMapStoreProperty.TOPICMAPSTORE_CLASS,
+						"de.topicmapslab.majortom.inmemory.store.InMemoryTopicMapStore");
 			} else if (backend.equals("db")) {
-				fac.setProperty(TopicMapStoreProperty.TOPICMAPSTORE_CLASS, "de.topicmapslab.majortom.database.store.JdbcTopicMapStore");
-				
-				fac.setProperty(JdbcTopicMapStoreProperty.DATABASE_NAME, getProperty(IProperties.DATABASE_NAME));
-				fac.setProperty(JdbcTopicMapStoreProperty.DATABASE_USER, getProperty(IProperties.DATABASE_LOGIN));
-				fac.setProperty(JdbcTopicMapStoreProperty.DATABASE_PASSWORD, getProperty(IProperties.DATABASE_PASSWORD));
-				fac.setProperty(JdbcTopicMapStoreProperty.DATABASE_HOST, getProperty(IProperties.DATABASE_HOST));
-				fac.setProperty(JdbcTopicMapStoreProperty.SQL_DIALECT, getDialect());
-				
+				fac.setProperty(TopicMapStoreProperty.TOPICMAPSTORE_CLASS,
+						"de.topicmapslab.majortom.database.store.JdbcTopicMapStore");
+
+				fac.setProperty(JdbcTopicMapStoreProperty.DATABASE_NAME,
+						getProperty(IProperties.DATABASE_NAME));
+				fac.setProperty(JdbcTopicMapStoreProperty.DATABASE_USER,
+						getProperty(IProperties.DATABASE_LOGIN));
+				fac.setProperty(JdbcTopicMapStoreProperty.DATABASE_PASSWORD,
+						getProperty(IProperties.DATABASE_PASSWORD));
+				fac.setProperty(JdbcTopicMapStoreProperty.DATABASE_HOST,
+						getProperty(IProperties.DATABASE_HOST));
+				fac.setProperty(JdbcTopicMapStoreProperty.SQL_DIALECT,
+						getDialect());
+
 			}
-			fac.setFeature(FeatureStrings.TOPIC_MAPS_TYPE_INSTANCE_ASSOCIATION, false);
-			
-			if (getProperty(IProperties.DISABLE_HISTORY)!=null) {
+			fac.setFeature(FeatureStrings.TOPIC_MAPS_TYPE_INSTANCE_ASSOCIATION,
+					false);
+
+			if (getProperty(IProperties.DISABLE_HISTORY) != null) {
 				fac.setFeature(FeatureStrings.SUPPORT_HISTORY, false);
 			}
-			
+
 			return fac.newTopicMapSystem();
 		} catch (TMAPIException e) {
 			throw new RuntimeException(e);
@@ -152,10 +170,10 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 
 	private String getDialect() {
 		String dbms = getProperty(IProperties.DATABASESYSTEM);
-		
+
 		if ("postgresql".equals(dbms))
 			return "POSTGRESQL99";
-		
+
 		return null;
 	}
 
@@ -164,7 +182,8 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 			((ITopicMap) topicMap).clear();
 			return;
 		}
-		throw new IllegalArgumentException("Argumant is not a MaJorToM TopicMap!");
+		throw new IllegalArgumentException(
+				"Argumant is not a MaJorToM TopicMap!");
 	}
 
 }
