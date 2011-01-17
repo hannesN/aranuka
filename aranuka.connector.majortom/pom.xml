@@ -83,13 +83,6 @@
 			<optional>false</optional>
 		</dependency>
 		<dependency>
-			<groupId>de.topicmapslab</groupId>
-			<artifactId>ctm-writer</artifactId>
-			<version>1.0.8-SNAPSHOT</version>
-			<scope>compile</scope>
-			<optional>false</optional>
-		</dependency>
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.6.1</version>

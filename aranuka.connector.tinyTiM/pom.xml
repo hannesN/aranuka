@@ -71,17 +71,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>de.topicmapslab</groupId>
-			<artifactId>ctm-writer</artifactId>
-			<version>1.0.8-SNAPSHOT</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>tmapi</artifactId>
-					<groupId>org.tmapi</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
 			<groupId>org.tinytim</groupId>
 			<artifactId>tinytim</artifactId>
 			<version>2.0.1-SNAPSHOT</version>
