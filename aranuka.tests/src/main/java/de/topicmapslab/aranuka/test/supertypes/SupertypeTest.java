@@ -64,7 +64,8 @@ public class SupertypeTest extends AbstractTest {
 
 	@After
 	public void tearDown() {
-		session.clearTopicMap();
+		if (session!=null)
+			session.clearTopicMap();
 	}
 
 	@Test
