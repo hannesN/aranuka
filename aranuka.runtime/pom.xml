@@ -105,7 +105,6 @@
 			<groupId>de.topicmapslab</groupId>
 			<artifactId>ctm-writer</artifactId>
 			<version>1.0.9-SNAPSHOT</version>
-			<type>pom</type>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
