@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,6 +55,11 @@ public class UpdateTest extends  AbstractTest {
 		
 		assertNotNull(this.session);
 
+	}
+	
+	@After
+	public void tearDown() {
+		this.session.clearTopicMap();
 	}
 	
 	@Test

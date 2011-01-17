@@ -267,6 +267,7 @@ public class TopicMapHandler {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
 	 */
+	@SuppressWarnings("unchecked")
 	public <E> E getObjectBySubjectIdentifier(String si) throws AranukaException {
 		Locator siLoc = getIdentifierLocator(si);
 		Topic topic = getTopicMap().getTopicBySubjectIdentifier(siLoc);
@@ -274,7 +275,7 @@ public class TopicMapHandler {
 		if (topic == null)
 			return null;
 
-		return getObject(topic);
+		return (E) getObject(topic);
 	}
 
 	/**
@@ -289,6 +290,7 @@ public class TopicMapHandler {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
 	 */
+	@SuppressWarnings("unchecked")
 	public <E> E getObjectBySubjectLocator(String sl) throws AranukaException {
 
 		Topic topic = getTopicMap().getTopicBySubjectLocator(getIdentifierLocator(sl));
@@ -296,7 +298,7 @@ public class TopicMapHandler {
 		if (topic == null)
 			return null;
 
-		return getObject(topic);
+		return (E) getObject(topic);
 	}
 
 	/**
@@ -311,6 +313,7 @@ public class TopicMapHandler {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotSpecifiedException
 	 */
+	@SuppressWarnings("unchecked")
 	public <E> E getObjectByItemIdentifier(String ii) throws AranukaException {
 
 		Construct construct = getTopicMap().getConstructByItemIdentifier(getIdentifierLocator(ii));
@@ -326,7 +329,7 @@ public class TopicMapHandler {
 			return null;
 		}
 
-		return getObject(topic);
+		return (E) getObject(topic);
 
 	}
 
