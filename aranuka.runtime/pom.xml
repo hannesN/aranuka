@@ -87,12 +87,25 @@
 			<groupId>de.topicmapslab.tmql4j</groupId>
 			<artifactId>tmql4j-tmml-extension</artifactId>
 			<version>2.6.5</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>ctm-writer</artifactId>
+					<groupId>de.topicmapslab</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.core</artifactId>
 			<version>4.1.0</version>
 			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.topicmapslab</groupId>
+			<artifactId>ctm-writer</artifactId>
+			<version>1.0.9-SNAPSHOT</version>
+			<type>pom</type>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
