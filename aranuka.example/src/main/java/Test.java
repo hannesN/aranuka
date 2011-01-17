@@ -59,7 +59,7 @@ public class Test {
 		Session session = conf.getSession(false);
 		
 		// try getting all persons in the topic map
-		Set<Object> persons = session.getAll(Person.class);
+		Set<Person> persons = session.getAll(Person.class);
 		
 		// persons.size() == 0 at the first start 1 else
 		System.out.println(persons.size());

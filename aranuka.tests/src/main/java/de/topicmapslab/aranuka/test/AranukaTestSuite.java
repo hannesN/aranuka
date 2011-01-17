@@ -30,7 +30,7 @@ import de.topicmapslab.aranuka.test.write.WriteTest;
  *
  */
 @RunWith(Suite.class)
-@SuiteClasses({PreuskerAssociationTest.class, PerformanceTest.class, AssociationTest.class, QueryTest.class, ParseTest.class, AnnotationTest.class, DeleteTest.class, OccDatatypeTest.class, ReadTest.class, PrefixReadTest.class, UpdateTest.class, WriteTest.class, SupertypeTest.class, TransientTest.class})
+@SuiteClasses({UpdateTest.class, PreuskerAssociationTest.class, PerformanceTest.class, AssociationTest.class, QueryTest.class, ParseTest.class, AnnotationTest.class, DeleteTest.class, OccDatatypeTest.class, ReadTest.class, PrefixReadTest.class, WriteTest.class, SupertypeTest.class, TransientTest.class})
 public class AranukaTestSuite {
 
 	/**

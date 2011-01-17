@@ -11,6 +11,7 @@ import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,6 +51,13 @@ public class ReadTest extends  AbstractTest{
 	@Before
 	public void setUp() throws Exception {
 
+	}
+	
+
+	@After
+	public void tearDown() {
+		if (session!=null)
+			session.clearTopicMap();
 	}
 	
 	@Test

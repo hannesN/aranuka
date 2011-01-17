@@ -28,10 +28,6 @@ public class AnnotationTest extends AbstractTest {
 		
 	}
 	
-	public void tearDown() throws Exception {
-		this.config.getSession(false).clearTopicMap();
-	}
-
 	@Test
 	public void testCase01() throws Exception {
 

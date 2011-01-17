@@ -34,11 +34,6 @@ import de.topicmapslab.aranuka.test.associations.model.Person.Lives;
  * Test for nnary associations
  * 
  * @author Hannes Niederhausen
-<<<<<<< local
- * 
-=======
- *
->>>>>>> other
  */
 public class AssociationTest extends AbstractTest {
 	private Session session;
@@ -62,7 +57,7 @@ public class AssociationTest extends AbstractTest {
 	}
 
 	/**
-	 * Cleaning the topic map aftet testing
+	 * Cleaning the topic map after testing
 	 */
 	@After
 	public void tearDown() {

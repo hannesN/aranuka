@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import org.junit.After;
 import org.junit.Before;
 
 import de.topicmapslab.aranuka.Configuration;
@@ -50,6 +51,12 @@ public class DeleteTest extends AbstractTest {
 		t2.setId("http://test.de/topic2");
 		t2.setTopic1(t1);
 		session.persist(t2);
+	}
+	
+
+	@After
+	public void tearDown() {
+		session.clearTopicMap();
 	}
 	
 	@org.junit.Test

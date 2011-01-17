@@ -126,9 +126,10 @@ public class Session {
 	 * @throws ClassNotSpecifiedException
 	 * @throws TopicMapException
 	 */
+	@SuppressWarnings("unchecked")
 	public <E> E getBySubjectIdentifier(String si) throws AranukaException {
 		// returns instance of topic with si as subject identifier
-		return getTopicMapHandler().getObjectBySubjectIdentifier(si);
+		return (E) getTopicMapHandler().getObjectBySubjectIdentifier(si);
 
 	}
 
@@ -145,9 +146,10 @@ public class Session {
 	 * @throws ClassNotSpecifiedException
 	 * @throws TopicMapException
 	 */
+	@SuppressWarnings("unchecked")
 	public <E> E getBySubjectLocator(String sl) throws AranukaException {
 		// returns instance of topic with si as subject locator
-		return getTopicMapHandler().getObjectBySubjectLocator(sl);
+		return (E) getTopicMapHandler().getObjectBySubjectLocator(sl);
 	}
 
 	/**
@@ -164,10 +166,11 @@ public class Session {
 	 * @throws ClassNotSpecifiedException
 	 * @throws TopicMapException
 	 */
+	@SuppressWarnings("unchecked")
 	public <E> E getByItemIdentifier(String ii) throws AranukaException {
 		// returns instance of topic with si as item identifier
 
-		return getTopicMapHandler().getObjectByItemIdentifier(ii);
+		return (E) getTopicMapHandler().getObjectByItemIdentifier(ii);
 	}
 
 	/**
