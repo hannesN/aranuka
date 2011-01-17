@@ -3,8 +3,13 @@
  */
 package de.topicmapslab.aranuka.majortom.connector;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map.Entry;
 
@@ -59,7 +64,7 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 		try {
 			// create a temporary file so that write failures won't affect the
 			// original file
-			temporaryFile = new File(filename + "$");
+			temporaryFile = new File(filename + ".tmp");
 
 			FileOutputStream fo = new FileOutputStream(temporaryFile);
 
@@ -78,9 +83,32 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 				}
 			}
 			writer.write(this.topicMap);
-
+			fo.close();
+			
 			// overwrite the original file
-			temporaryFile.renameTo(new File(filename));
+			if (temporaryFile.exists()) {
+				String sCurrentLine = "";
+				try
+			    {
+			        BufferedReader br = new BufferedReader(new FileReader(filename + ".tmp"));
+			        BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
+
+			        while ((sCurrentLine = br.readLine()) != null)
+			        {
+			            bw.write(sCurrentLine);
+			            bw.newLine();
+			        }
+
+			        br.close();
+			        bw.close();
+
+//					temporaryFile.delete();
+			    }
+			    catch (Exception e)
+			    {
+					throw new RuntimeException(e);
+			    }
+			}
 
 			return true;
 		} catch (Exception e) {
@@ -117,19 +145,19 @@ public class MaJorToMEngineConnector extends AbstractEngineConnector {
 	}
 
 	private void readTopicMap(File f) throws IOException {
+		FileInputStream inStream = new FileInputStream(f);
 		if (f.getName().endsWith("ctm")) {
-			CTMTopicMapReader reader = new CTMTopicMapReader(topicMap, f,
-					IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
+			CTMTopicMapReader reader = new CTMTopicMapReader(topicMap,
+					inStream, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
 			reader.read();
-			return;
 		}
 		if (f.getName().endsWith("xtm")) {
-			XTMTopicMapReader reader = new XTMTopicMapReader(topicMap, f,
-					IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
+			XTMTopicMapReader reader = new XTMTopicMapReader(topicMap,
+					inStream, IAranukaIRIs.ITEM_IDENTIFIER_PREFIX);
 			reader.read();
-			return;
 		}
-
+		inStream.close();
+		return;
 	}
 
 	public TopicMapSystem getTopicMapSystem() {
