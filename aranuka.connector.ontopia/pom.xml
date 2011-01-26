@@ -10,29 +10,98 @@
 	<groupId>de.topicmapslab.aranuka</groupId>
 	<artifactId>aranuka-connector-ontopia</artifactId>
 	<version>${project.parent.version}</version>
-	
+
 	<name>Aranuka Ontopia Connector</name>
-	
+
 	<build>
+		<resources>
+			<resource>
+				<directory>OSGI-INF</directory>
+				<targetPath>${project.build.directory}/classes/OSGI-INF</targetPath>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.1</version>
-                <configuration>
-                    <archive>
-                        <manifestFile>META-INF/MANIFEST.MF</manifestFile>
-                    </archive>
-                </configuration>
-            </plugin>
-        </plugins>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<version>2.2.0</version>
+				<!-- configure plugin to generate MANIFEST.MF -->
+				<executions>
+					<execution>
+						<id>bundle-manifest</id>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>manifest</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<!-- configure plugin to support jar packaging -->
+					<supportedProjectTypes>
+						<supportedProjectType>jar</supportedProjectType>
+					</supportedProjectTypes>
+					<instructions>
+						<Bundle-Version>${osgi.version}</Bundle-Version>
+						<Import-Package>
+							de.topicmapslab.aranuka,
+							de.topicmapslab.aranuka.annotations,
+							de.topicmapslab.aranuka.binding,
+							de.topicmapslab.aranuka.connectors,
+							de.topicmapslab.aranuka.constants,
+							de.topicmapslab.aranuka.enummerations,
+							de.topicmapslab.aranuka.exception,
+							org.tmapi.core;version="2.0.3",
+							org.tmapi.index;version="2.0.3",
+							net.ontopia.infoset.core,
+							net.ontopia.infoset.fulltext.core,
+							net.ontopia.infoset.fulltext.impl.lucene,
+							net.ontopia.infoset.fulltext.impl.rdbms,
+							net.ontopia.infoset.fulltext.topicmaps,
+							net.ontopia.infoset.fulltext.topicmaps.nav.plugins,
+							net.ontopia.infoset.fulltext.utils,
+							net.ontopia.infoset.impl.basic,
+							net.ontopia.infoset.utils,
+							net.ontopia.net,
+							net.ontopia.net.data,
+							net.ontopia.product,
+							net.ontopia.topicmaps.classify,
+							net.ontopia.topicmaps.core,
+							net.ontopia.topicmaps.core.events,
+							net.ontopia.topicmaps.core.index,
+							net.ontopia.topicmaps.db2tm,
+							net.ontopia.topicmaps.entry,
+							net.ontopia.topicmaps.impl.basic,
+							net.ontopia.topicmaps.impl.basic.index,
+							net.ontopia.topicmaps.impl.rdbms,
+							net.ontopia.topicmaps.impl.rdbms.index,
+							net.ontopia.topicmaps.impl.remote,
+							net.ontopia.topicmaps.impl.tmapi2,
+							net.ontopia.topicmaps.impl.tmapi2.index,
+							net.ontopia.topicmaps.impl.utils,
+							net.ontopia.topicmaps.utils.ctm,
+							net.ontopia.topicmaps.utils.ltm,
+							net.ontopia.topicmaps.xml,
+							net.ontopia.utils,
+							net.ontopia.xml,
+							org.junit;resolution:=optional,
+							org.tmapix.io
+ 						</Import-Package>
+						<Service-Component>OSGI-INF/ontopiaconnector.xml</Service-Component>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
 	<repositories>
-    <repository>
-      <id>ontopia</id>
-      <url>http://ontopia.googlecode.com/svn/maven-repository</url>
-    </repository>
-  </repositories>
+		<repository>
+			<id>ontopia</id>
+			<url>http://ontopia.googlecode.com/svn/maven-repository</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>de.topicmapslab.aranuka</groupId>
@@ -99,5 +168,5 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
+
 </project>

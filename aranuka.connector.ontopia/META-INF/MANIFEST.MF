@@ -42,4 +42,4 @@ Import-Package: net.ontopia.infoset.core,
  org.tmapix.io
 Bundle-ClassPath: .
 Bundle-ActivationPolicy: lazy
-
+Service-Component: OSGI-INF/ontopiaconnector.xml
