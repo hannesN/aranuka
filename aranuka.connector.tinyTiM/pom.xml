@@ -10,27 +10,78 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab.aranuka</groupId>
 	<artifactId>aranuka-connector-tinytim</artifactId>
-	<version>${project.parent.version}</version>
 
 	<name>Aranuka tinyTiM Connector</name>
-	<url>http://maven.apache.org</url>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>OSGI-INF</directory>
+				<targetPath>${project.build.directory}/classes/OSGI-INF</targetPath>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.3.1</version>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<version>2.2.0</version>
+				<!-- configure plugin to generate MANIFEST.MF -->
+				<executions>
+					<execution>
+						<id>bundle-manifest</id>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>manifest</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
-					<archive>
-						<manifestFile>META-INF/MANIFEST.MF</manifestFile>
-					</archive>
+					<!-- configure plugin to support jar packaging -->
+					<supportedProjectTypes>
+						<supportedProjectType>jar</supportedProjectType>
+					</supportedProjectTypes>
+					<instructions>
+						<Bundle-Version>${osgi.version}</Bundle-Version>
+						<Require-Bundle>
+							
+						</Require-Bundle>
+						<Export-Package>
+							de.topicmapslab.aranuka.tinytim.connectors
+						</Export-Package>
+						<Import-Package>
+							de.topicmapslab.aranuka,
+							de.topicmapslab.aranuka.annotations,
+							de.topicmapslab.aranuka.binding,
+							de.topicmapslab.aranuka.connectors,
+							de.topicmapslab.aranuka.constants,
+							de.topicmapslab.aranuka.enummerations,
+							de.topicmapslab.aranuka.exception,
+							de.topicmapslab.ctm.writer.core,
+							de.topicmapslab.ctm.writer.core.serializer,
+							de.topicmapslab.ctm.writer.exception,
+							de.topicmapslab.ctm.writer.properties,
+							de.topicmapslab.ctm.writer.templates,
+							de.topicmapslab.ctm.writer.templates.autodetection,
+							de.topicmapslab.ctm.writer.templates.entry,
+							de.topicmapslab.ctm.writer.templates.entry.base,
+							de.topicmapslab.ctm.writqer.templates.entry.param,
+							de.topicmapslab.ctm.writer.test,
+							de.topicmapslab.ctm.writer.test.construct,
+							de.topicmapslab.ctm.writer.utility,
+							org.tinytim.mio,
+							org.tmapi.core;version="2.0.3",
+							org.tmapi.index;version="2.0.3",
+							org.tmapix.io,
+							org.tmapix.voc
+ 						</Import-Package>
+						<Service-Component>OSGI-INF/tinytimconnector.xml</Service-Component>
+					</instructions>
 				</configuration>
 			</plugin>
-
-			<!--<plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-surefire-plugin</artifactId> 
-				<configuration> To force maven to run the suite <includes> <include>**/MavenSuite.java</include> 
-				</includes> </configuration> </plugin> -->
 		</plugins>
 	</build>
 
@@ -60,6 +111,10 @@
 				<exclusion>
 					<artifactId>tmapi</artifactId>
 					<groupId>org.tmapi</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>ctm-writer</artifactId>
+					<groupId>de.topicmapslab</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -105,6 +160,11 @@
 			<artifactId>tmapi</artifactId>
 			<version>2.0.3-SNAPSHOT</version>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.topicmapslab</groupId>
+			<artifactId>ctm-writer</artifactId>
+			<version>1.0.9-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>
