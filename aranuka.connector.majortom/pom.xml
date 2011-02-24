@@ -62,9 +62,11 @@
 					<supportedProjectTypes>
 						<supportedProjectType>jar</supportedProjectType>
 					</supportedProjectTypes>
+					<manifestLocation>META-INF</manifestLocation>
 					<instructions>
 						<Bundle-Version>${osgi.version}</Bundle-Version>
 						<Import-Package>
+							com.semagia.mio,
 							de.topicmapslab.aranuka,
 							de.topicmapslab.aranuka.annotations,
 							de.topicmapslab.aranuka.connectors,
@@ -84,6 +86,8 @@
 							de.topicmapslab.majortom.jdbc;bundle-version="1.2.0"
  						</Require-Bundle>
 						<Service-Component>OSGI-INF/majortomconnector.xml</Service-Component>
+						<Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
+						<Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
 					</instructions>
 				</configuration>
 			</plugin>

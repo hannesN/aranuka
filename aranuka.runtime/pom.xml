@@ -39,6 +39,7 @@
 					<supportedProjectTypes>
 						<supportedProjectType>jar</supportedProjectType>
 					</supportedProjectTypes>
+					<manifestLocation>META-INF</manifestLocation>
 					<instructions>
 						<Bundle-Version>${osgi.version}</Bundle-Version>
 						<Import-Package>
@@ -53,6 +54,7 @@
 						</Require-Bundle>
 						<Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
 						<Bundle-Activator>de.topicmapslab.aranuka.osgi.RuntimeActivator</Bundle-Activator>
+						<Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
 					</instructions>
 				</configuration>
 			</plugin>

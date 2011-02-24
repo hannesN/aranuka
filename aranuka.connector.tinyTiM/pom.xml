@@ -44,6 +44,7 @@
 					<supportedProjectTypes>
 						<supportedProjectType>jar</supportedProjectType>
 					</supportedProjectTypes>
+					<manifestLocation>META-INF</manifestLocation>
 					<instructions>
 						<Bundle-Version>${osgi.version}</Bundle-Version>
 						<Require-Bundle>
@@ -78,6 +79,8 @@
 							org.tmapix.io,
 							org.tmapix.voc
  						</Import-Package>
+ 						<Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
+						<Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
 						<Service-Component>OSGI-INF/tinytimconnector.xml</Service-Component>
 					</instructions>
 				</configuration>
