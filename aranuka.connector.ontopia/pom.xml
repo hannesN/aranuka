@@ -44,6 +44,7 @@
 					<supportedProjectTypes>
 						<supportedProjectType>jar</supportedProjectType>
 					</supportedProjectTypes>
+					<manifestLocation>META-INF</manifestLocation>
 					<instructions>
 						<Bundle-Version>${osgi.version}</Bundle-Version>
 						<Import-Package>
@@ -91,6 +92,8 @@
 							org.tmapix.io
  						</Import-Package>
 						<Service-Component>OSGI-INF/ontopiaconnector.xml</Service-Component>
+						<Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
+						<Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
 					</instructions>
 				</configuration>
 			</plugin>
