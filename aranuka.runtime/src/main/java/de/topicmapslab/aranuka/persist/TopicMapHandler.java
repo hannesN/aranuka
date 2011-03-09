@@ -63,6 +63,7 @@ import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 import de.topicmapslab.tmql4j.components.processor.results.model.IResult;
 import de.topicmapslab.tmql4j.components.processor.results.model.IResultSet;
+import de.topicmapslab.tmql4j.components.processor.results.tmdm.SimpleResultSet;
 import de.topicmapslab.tmql4j.components.processor.runtime.ITMQLRuntime;
 import de.topicmapslab.tmql4j.components.processor.runtime.TMQLRuntimeFactory;
 import de.topicmapslab.tmql4j.path.components.processor.runtime.TmqlRuntime2007;
@@ -435,7 +436,8 @@ public class TopicMapHandler {
 	 */
 	private ITMQLRuntime getTMQLRuntime() {
 		if (this.tmqlRuntime == null) {
-			this.tmqlRuntime = TMQLRuntimeFactory.newFactory().newRuntime(this.topicMapSystem, TmqlRuntime2007.TMQL_2007);
+			this.tmqlRuntime = TMQLRuntimeFactory.newFactory().newRuntime(this.topicMapSystem,
+					TmqlRuntime2007.TMQL_2007);
 		} else {
 			return this.tmqlRuntime;
 		}
@@ -1166,7 +1168,6 @@ public class TopicMapHandler {
 		List<Association> removedAssocs = new ArrayList<Association>();
 		for (Map.Entry<Role, Match> entry : playedRoles.entrySet()) {
 
-			
 			Association ass = entry.getKey().getParent();
 			if ((ass != null) && (!removedAssocs.contains(ass))) {
 
@@ -1475,7 +1476,7 @@ public class TopicMapHandler {
 
 				// removing the ownPlayer from the containerRolePlayerMap *schluck*
 				containerRolePlayer.remove(roleType);
-				
+
 				// add player from container
 				for (Map.Entry<Topic, Set<Topic>> rolePlayer : containerRolePlayer.entrySet()) {
 
@@ -2301,6 +2302,11 @@ public class TopicMapHandler {
 				matchingRoles.add(role);
 			}
 		}
+
+		// String query =
+		// "http://psi.topicmapslab.de/inventurtool/GSA << players << roles http://psi.topicmapslab.de/inventurtool/implemented_in >> roles http://psi.topicmapslab.de/inventurtool/programming_language >> players";
+
+		// tmqlRuntime.run(topicMap, "");
 
 		if (matchingRoles.isEmpty())
 			return;
@@ -3291,7 +3297,7 @@ public class TopicMapHandler {
 	}
 
 	private boolean isTypeOf(Topic instance, String checkedTypeSI) {
-		String query = "%pragma taxonometry tm:transitive" + " fn:count("
+		String query = "%pragma taxonometry tm:transitive" + " fn:count( "
 				+ TopicMapsUtils.getTMQLIdentifierString(instance) + " >> types ==  \"" + checkedTypeSI
 				+ "\" << indicators) ";
 
