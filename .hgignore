@@ -34,3 +34,4 @@ aranuka.documentation/bin
 **/*.versionsBackup
 
 .project
+MANIFEST.MF
