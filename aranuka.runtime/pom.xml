@@ -46,11 +46,15 @@
 							org.osgi.framework;version="1.5.0",
 							org.slf4j,
 							org.tmapi.core;version="2.0.2",
-							org.tmapi.index;version="2.0.2"
- 						</Import-Package>
-						<Require-Bundle> de.topicmapslab.tmql4j;bundle-version="2.6.5",
-							de.topicmapslab.tmql4j.tmml.extension;bundle-version="2.6.5"
-						</Require-Bundle>
+							org.tmapi.index;version="2.0.2",
+							de.topicmapslab.tmql4j.delete.exception,
+							de.topicmapslab.tmql4j.components.processor.results,
+							de.topicmapslab.tmql4j.components.processor.runtime,
+							de.topicmapslab.tmql4j.path.components.processor.runtime,
+							de.topicmapslab.tmql4j.util,
+							de.topicmapslab.tmql4j.components.processor.results.model,
+							de.topicmapslab.tmql4j.query
+						</Import-Package>
 						<Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
 						<Bundle-Activator>de.topicmapslab.aranuka.osgi.RuntimeActivator</Bundle-Activator>
 						<Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
@@ -113,22 +117,22 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>de.topicmapslab.tmql4j</groupId>
-			<artifactId>tmql4j-tmml-extension</artifactId>
-			<version>2.6.5</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>ctm-writer</artifactId>
-					<groupId>de.topicmapslab</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.core</artifactId>
 			<version>4.1.0</version>
 			<type>jar</type>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.topicmapslab.tmql4j</groupId>
+			<artifactId>tmql4j-draft2007-pack</artifactId>
+			<version>3.1.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>tmql4j-majortom</artifactId>
+					<groupId>de.topicmapslab.tmql4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>de.topicmapslab</groupId>

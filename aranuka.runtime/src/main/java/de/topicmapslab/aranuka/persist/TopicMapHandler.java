@@ -61,13 +61,12 @@ import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
-import de.topicmapslab.tmql4j.common.context.TMQLRuntimeProperties;
-import de.topicmapslab.tmql4j.common.core.runtime.TMQLRuntimeFactory;
-import de.topicmapslab.tmql4j.common.model.runtime.ITMQLRuntime;
-import de.topicmapslab.tmql4j.common.utility.HashUtil;
-import de.topicmapslab.tmql4j.resultprocessing.core.simple.SimpleResultSet;
-import de.topicmapslab.tmql4j.resultprocessing.core.simple.SimpleTupleResult;
-import de.topicmapslab.tmql4j.resultprocessing.model.IResult;
+import de.topicmapslab.tmql4j.components.processor.results.model.IResult;
+import de.topicmapslab.tmql4j.components.processor.results.model.IResultSet;
+import de.topicmapslab.tmql4j.components.processor.runtime.ITMQLRuntime;
+import de.topicmapslab.tmql4j.components.processor.runtime.TMQLRuntimeFactory;
+import de.topicmapslab.tmql4j.path.components.processor.runtime.TmqlRuntime2007;
+import de.topicmapslab.tmql4j.util.HashUtil;
 
 /**
  * Class which encapsulates interactions with the topic map.
@@ -94,7 +93,7 @@ public class TopicMapHandler {
 	/**
 	 * The TMQL runtime.
 	 */
-	private ITMQLRuntime TMQLRuntime;
+	private ITMQLRuntime tmqlRuntime;
 
 	/**
 	 * Cache for the created objects/topics
@@ -228,7 +227,7 @@ public class TopicMapHandler {
 			Set<Topic> topicInstances = new HashSet<Topic>();
 			for (String id : tb.getIdentifier()) {
 				id = resolveIdentifier(id);
-				SimpleResultSet rs = runTMQL("// " + id);
+				IResultSet<?> rs = runTMQL("// " + id);
 				if (!rs.isEmpty()) {
 					// type exists, get instances
 					for (IResult r : rs) {
@@ -435,18 +434,12 @@ public class TopicMapHandler {
 	 * @return The internal TMQL runtime object.
 	 */
 	private ITMQLRuntime getTMQLRuntime() {
-		if (this.TMQLRuntime == null) {
-			this.TMQLRuntime = TMQLRuntimeFactory.newFactory().newRuntime(topicMapSystem, getTopicMap());
-			this.TMQLRuntime.getProperties().enableLanguageExtensionTmqlUl(true);
-			this.TMQLRuntime.getProperties().setProperty(TMQLRuntimeProperties.RESULT_SET_IMPLEMENTATION_CLASS,
-					SimpleResultSet.class.getName());
-			this.TMQLRuntime.getProperties().setProperty(TMQLRuntimeProperties.RESULT_TUPLE_IMPLEMENTATION_CLASS,
-					SimpleTupleResult.class.getName());
-
+		if (this.tmqlRuntime == null) {
+			this.tmqlRuntime = TMQLRuntimeFactory.newFactory().newRuntime(this.topicMapSystem, TmqlRuntime2007.TMQL_2007);
 		} else {
-			return this.TMQLRuntime;
+			return this.tmqlRuntime;
 		}
-		return this.TMQLRuntime;
+		return this.tmqlRuntime;
 	}
 
 	/**
@@ -456,8 +449,8 @@ public class TopicMapHandler {
 	 *            - The TMQL query
 	 * @return The {@link SimpleResultSet} that contains the results of the TMQL run.
 	 */
-	private SimpleResultSet runTMQL(String query) {
-		return (SimpleResultSet) getTMQLRuntime().run(query).getResults();
+	private IResultSet<?> runTMQL(String query) {
+		return getTMQLRuntime().run(getTopicMap(), query).getResults();
 	}
 
 	/**
@@ -3302,7 +3295,7 @@ public class TopicMapHandler {
 				+ TopicMapsUtils.getTMQLIdentifierString(instance) + " >> types ==  \"" + checkedTypeSI
 				+ "\" << indicators) ";
 
-		SimpleResultSet rs = runTMQL(query);
+		IResultSet<?> rs = runTMQL(query);
 		BigInteger count = rs.get(0, 0);
 
 		return (count.intValue() == 1);
@@ -3337,7 +3330,7 @@ public class TopicMapHandler {
 
 		List<Object> result;
 
-		SimpleResultSet results = runTMQL(tmqlQuery);
+		IResultSet<?> results = runTMQL(tmqlQuery);
 
 		if (results.isEmpty())
 			return Collections.emptyList();
