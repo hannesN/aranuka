@@ -10,7 +10,6 @@
 
 	<groupId>de.topicmapslab.aranuka</groupId>
 	<artifactId>aranuka-connector-majortom</artifactId>
-	<version>${project.parent.version}</version>
 	<packaging>jar</packaging>
 
 	<url>http://maven.apache.org</url>

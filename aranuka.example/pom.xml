@@ -8,7 +8,6 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab.aranuka</groupId>
 	<artifactId>aranuka-example</artifactId>
-	<version>${project.parent.version}</version>
 	<name>Aranuka Example Application</name>
 	<build>
 		<plugins>
@@ -41,6 +40,7 @@
 					<supportedProjectTypes>
 						<supportedProjectType>jar</supportedProjectType>
 					</supportedProjectTypes>
+					<manifestLocation>META-INF</manifestLocation>
 					<instructions>
 						<Bundle-Version>${osgi.version}</Bundle-Version>
 					</instructions>
