@@ -1750,12 +1750,13 @@ public class TopicMapHandler {
 
 			try {
 				object = clazz.getConstructor().newInstance();
+				addObjectToCache(object, topic);
 			} catch (Exception e) {
 				throw new TopicMapIOException("Cannot instanciate new object: " + e.getMessage());
 			}
 		}
 
-		addObjectToCache(object, topic);
+
 
 		// add identifier
 		addIdentifier(topic, object, binding);
@@ -2303,11 +2304,6 @@ public class TopicMapHandler {
 			}
 		}
 
-		// String query =
-		// "http://psi.topicmapslab.de/inventurtool/GSA << players << roles http://psi.topicmapslab.de/inventurtool/implemented_in >> roles http://psi.topicmapslab.de/inventurtool/programming_language >> players";
-
-		// tmqlRuntime.run(topicMap, "");
-
 		if (matchingRoles.isEmpty())
 			return;
 
@@ -2316,10 +2312,10 @@ public class TopicMapHandler {
 		counterPlayerType = TopicMapsUtils.getCounterRole(matchingRole.getParent(), matchingRole).getPlayer()
 				.getTypes().iterator().next();
 
-		TopicBinding counterlayerBinding = getBindingForType(counterPlayerType);
+		TopicBinding counterPlayerBinding = getBindingForType(counterPlayerType);
 
 		// get class type of counter player
-		Class<?> counterClass = getBindingHandler().getClassForBinding(counterlayerBinding);
+		Class<?> counterClass = getBindingHandler().getClassForBinding(counterPlayerBinding);
 
 		if (counterClass == null)
 			throw new TopicMapIOException("Unable to resolve counter player type ");
@@ -2331,7 +2327,7 @@ public class TopicMapHandler {
 
 			Object counterPlayer = getInstanceFromTopic(
 					TopicMapsUtils.getCounterRole(matchingRoles.iterator().next().getParent(),
-							matchingRoles.iterator().next()).getPlayer(), counterlayerBinding, counterClass);
+							matchingRoles.iterator().next()).getPlayer(), counterPlayerBinding, counterClass);
 
 			associationBinding.setValue(counterPlayer, object);
 
@@ -2342,7 +2338,7 @@ public class TopicMapHandler {
 			for (Role role : matchingRoles) {
 
 				Object counterPlayer = getInstanceFromTopic(TopicMapsUtils.getCounterRole(role.getParent(), role)
-						.getPlayer(), associationBinding.getOtherPlayerBinding(), counterClass);
+						.getPlayer(), counterPlayerBinding, counterClass);
 				counterPlayers.add(counterPlayer);
 			}
 
@@ -3213,7 +3209,7 @@ public class TopicMapHandler {
 	 * @return -The object or null if not found.
 	 */
 	private Object getObjectFromCache(Topic topic) {
-
+//		System.out.println(this.cache.getTopic2ObjectMapDump());;
 		return this.cache.getInstance(topic);
 	}
 
