@@ -6,6 +6,7 @@ package de.topicmapslab.aranuka.persist;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.tmapi.core.Topic;
 
@@ -26,7 +27,6 @@ public class AranukaCache {
 			objectMap = new HashMap<Object, Topic>();
 			topicMap = new HashMap<Topic, Object>();
 		}
-		
 		objectMap.put(instance, topic);
 		topicMap.put(topic, instance);
 	}
@@ -67,5 +67,17 @@ public class AranukaCache {
 		if (topicMap==null)
 			return Collections.emptyMap();
 		return topicMap;
+	}
+	
+	public String getTopic2ObjectMapDump() {
+		StringBuilder builder = new StringBuilder();
+		for (Entry<Topic, Object> e : getTopicMap().entrySet()) {
+			builder.append(e.getKey().toString());
+			builder.append(" = ");
+			builder.append(e.getValue().toString());
+			builder.append(System.getProperty("line.separator"));
+		}
+		
+		return builder.toString();
 	}
 }
