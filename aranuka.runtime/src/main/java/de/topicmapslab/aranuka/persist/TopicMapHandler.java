@@ -234,8 +234,6 @@ public class TopicMapHandler {
 					for (IResult r : rs) {
 						topicInstances.add((Topic) r.get(0));
 					}
-
-					break;
 				}
 			}
 			if (!topicInstances.isEmpty())
