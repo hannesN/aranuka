@@ -1757,7 +1757,7 @@ public class TopicMapHandler {
 
 
 		// add identifier
-		addIdentifier(topic, object, binding);
+		addIdentifiers(topic, object, binding);
 
 		// add names
 		addNames(topic, object, binding);
@@ -1783,41 +1783,43 @@ public class TopicMapHandler {
 	 *            - The topic binding.
 	 * @throws TopicMapIOException
 	 */
-	private void addIdentifier(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException {
+	private void addIdentifiers(Topic topic, Object object, TopicBinding binding) throws TopicMapIOException {
 
 		for (AbstractFieldBinding afb : binding.getFieldBindings()) {
 
 			if (afb instanceof IdBinding) {
 
-				IdBinding idBinding = (IdBinding) afb;
-
-				if (idBinding.getIdtype() == IdType.ITEM_IDENTIFIER) {
-
-					Set<Locator> identifier = HashUtil.getHashSet();
-					// filter out the item identifier created from the xtm2.0
-					// reader
-					for (Locator l : topic.getItemIdentifiers()) {
-						if (!l.toExternalForm().startsWith(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX))
-							identifier.add(l);
-					}
-					addIdentifier(topic, object, idBinding, identifier);
-
-				} else if (idBinding.getIdtype() == IdType.SUBJECT_IDENTIFIER) {
-
-					Set<Locator> identifier = topic.getSubjectIdentifiers();
-					addIdentifier(topic, object, idBinding, identifier);
-
-				} else if (idBinding.getIdtype() == IdType.SUBJECT_LOCATOR) {
-
-					Set<Locator> identifier = topic.getSubjectLocators();
-					addIdentifier(topic, object, idBinding, identifier);
-
-				} else {
-
-					// / TODO handle unknown id-type
-				}
+				addIdentifier(topic, object, (IdBinding) afb);
 
 			}
+		}
+	}
+
+	void addIdentifier(Topic topic, Object object, IdBinding idBinding) throws TopicMapIOException {
+		if (idBinding.getIdtype() == IdType.ITEM_IDENTIFIER) {
+
+			Set<Locator> identifier = HashUtil.getHashSet();
+			// filter out the item identifier created from the xtm2.0
+			// reader
+			for (Locator l : topic.getItemIdentifiers()) {
+				if (!l.toExternalForm().startsWith(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX))
+					identifier.add(l);
+			}
+			addIdentifier(topic, object, idBinding, identifier);
+
+		} else if (idBinding.getIdtype() == IdType.SUBJECT_IDENTIFIER) {
+
+			Set<Locator> identifier = topic.getSubjectIdentifiers();
+			addIdentifier(topic, object, idBinding, identifier);
+
+		} else if (idBinding.getIdtype() == IdType.SUBJECT_LOCATOR) {
+
+			Set<Locator> identifier = topic.getSubjectLocators();
+			addIdentifier(topic, object, idBinding, identifier);
+
+		} else {
+
+			// / TODO handle unknown id-type
 		}
 	}
 
@@ -1943,7 +1945,7 @@ public class TopicMapHandler {
 			}
 		}
 	}
-
+	
 	/**
 	 * Add names to an object.
 	 * 
@@ -1960,60 +1962,61 @@ public class TopicMapHandler {
 		for (AbstractFieldBinding afb : binding.getFieldBindings()) {
 
 			if (afb instanceof NameBinding) {
+				addName(topic, object, (NameBinding) afb);
+			}
+		}
+	}
+	
+	void addName(Topic topic, Object object, NameBinding nameBinding) throws TopicMapIOException {
+		// get name type
+		Topic nameType = getTopicMap().getTopicBySubjectIdentifier(
+				getTopicMap().createLocator(
+						TopicMapsUtils.resolveURI(nameBinding.getNameType(), this.config.getPrefixMap())));
 
-				NameBinding nameBinding = (NameBinding) afb;
-				// get name type
-				Topic nameType = getTopicMap().getTopicBySubjectIdentifier(
-						getTopicMap().createLocator(
-								TopicMapsUtils.resolveURI(nameBinding.getNameType(), this.config.getPrefixMap())));
+		if (nameType == null)
+			return; 
 
-				if (nameType == null)
-					continue; // get to next binding if type don't exist
+		Set<Name> names = topic.getNames(nameType);
 
-				Set<Name> names = topic.getNames(nameType);
+		if (names.isEmpty())
+			return; 
 
-				if (names.isEmpty())
-					continue; // get to next binding if no names of this type
-								// are found
+		Set<String> existingNames = new HashSet<String>();
 
-				Set<String> existingNames = new HashSet<String>();
+		for (Name name : names)
+			existingNames.add(name.getValue());
 
-				for (Name name : names)
-					existingNames.add(name.getValue());
+		if (!nameBinding.isArray() && !nameBinding.isCollection()) {
 
-				if (!nameBinding.isArray() && !nameBinding.isCollection()) {
+			if (existingNames.size() > 1)
+				throw new TopicMapIOException("Cannot add multiple names to an non container field.");
 
-					if (existingNames.size() > 1)
-						throw new TopicMapIOException("Cannot add multiple names to an non container field.");
+			nameBinding.setValue(existingNames.iterator().next(), object);
 
-					nameBinding.setValue(existingNames.iterator().next(), object);
+		} else {
 
-				} else {
+			if (nameBinding.isArray()) {
 
-					if (nameBinding.isArray()) {
+				nameBinding.setValue(existingNames.toArray(new String[existingNames.size()]), object);
 
-						nameBinding.setValue(existingNames.toArray(new String[existingNames.size()]), object);
+			} else {
 
-					} else {
+				Collection<String> collection;
 
-						Collection<String> collection;
+				if (((ParameterizedType) nameBinding.getFieldType()).getRawType().equals(Set.class)) { // is set
 
-						if (((ParameterizedType) nameBinding.getFieldType()).getRawType().equals(Set.class)) { // is set
+					collection = new HashSet<String>();
 
-							collection = new HashSet<String>();
+				} else { // is list
 
-						} else { // is list
-
-							collection = new ArrayList<String>();
-						}
-
-						for (String name : existingNames)
-							collection.add(name);
-
-						nameBinding.setValue(collection, object);
-
-					}
+					collection = new ArrayList<String>();
 				}
+
+				for (String name : existingNames)
+					collection.add(name);
+
+				nameBinding.setValue(collection, object);
+
 			}
 		}
 	}
@@ -2035,65 +2038,65 @@ public class TopicMapHandler {
 
 			if (afb instanceof OccurrenceBinding) {
 
-				OccurrenceBinding occurrenceBinding = (OccurrenceBinding) afb;
+				addOccurrence(topic, object, (OccurrenceBinding) afb);
+			}
+		}
+	}
+	
+	void addOccurrence(Topic topic, Object object, OccurrenceBinding occurrenceBinding) throws TopicMapIOException {
+		// get occurrence type
+		Topic occurrenceType = getTopicMap().getTopicBySubjectIdentifier(
+				getTopicMap().createLocator(
+						TopicMapsUtils.resolveURI(occurrenceBinding.getOccurrenceType(),
+								this.config.getPrefixMap())));
 
-				// get occurrence type
-				Topic occurrenceType = getTopicMap().getTopicBySubjectIdentifier(
-						getTopicMap().createLocator(
-								TopicMapsUtils.resolveURI(occurrenceBinding.getOccurrenceType(),
-										this.config.getPrefixMap())));
+		if (occurrenceType == null)
+			return;
 
-				if (occurrenceType == null)
-					continue; // get to next binding if type don't exist
+		Set<Occurrence> occurrences = topic.getOccurrences(occurrenceType);
 
-				Set<Occurrence> occurrences = topic.getOccurrences(occurrenceType);
+		if (occurrences.isEmpty())
+			return;
 
-				if (occurrences.isEmpty())
-					continue; // get to next binding if no occurrence of this
-								// type are found
+		if (!occurrenceBinding.isArray() && !occurrenceBinding.isCollection()) {
 
-				if (!occurrenceBinding.isArray() && !occurrenceBinding.isCollection()) {
+			if (occurrences.size() > 1)
+				throw new TopicMapIOException("Cannot add multiple occurrences to an non container field.");
 
-					if (occurrences.size() > 1)
-						throw new TopicMapIOException("Cannot add multiple occurrences to an non container field.");
+			occurrenceBinding
+					.setValue(
+							getOccurrenceValue(occurrences.iterator().next(),
+									occurrenceBinding.getParameterisedType()), object);
 
-					occurrenceBinding
-							.setValue(
-									getOccurrenceValue(occurrences.iterator().next(),
-											occurrenceBinding.getParameterisedType()), object);
+		} else {
 
-				} else {
+			Set<Object> values = new HashSet<Object>();
 
-					Set<Object> values = new HashSet<Object>();
+			for (Occurrence occurrence : occurrences)
+				values.add(getOccurrenceValue(occurrence, occurrenceBinding.getParameterisedType()));
 
-					for (Occurrence occurrence : occurrences)
-						values.add(getOccurrenceValue(occurrence, occurrenceBinding.getParameterisedType()));
+			if (occurrenceBinding.isArray()) {
 
-					if (occurrenceBinding.isArray()) {
+				Object[] tmp = (Object[]) Array.newInstance(
+						(Class<?>) occurrenceBinding.getParameterisedType(), values.size());
+				values.toArray(tmp);
+				occurrenceBinding.setValue(tmp, object);
 
-						Object[] tmp = (Object[]) Array.newInstance(
-								(Class<?>) occurrenceBinding.getParameterisedType(), values.size());
-						values.toArray(tmp);
-						occurrenceBinding.setValue(tmp, object);
+			} else {
 
-					} else {
+				if (((ParameterizedType) occurrenceBinding.getFieldType()).getRawType().equals(Set.class)) { // is
+																												// set
 
-						if (((ParameterizedType) occurrenceBinding.getFieldType()).getRawType().equals(Set.class)) { // is
-																														// set
+					occurrenceBinding.setValue(values, object);
 
-							occurrenceBinding.setValue(values, object);
+				} else { // is list
 
-						} else { // is list
+					List<Object> list = new ArrayList<Object>(values);
+					occurrenceBinding.setValue(list, object);
 
-							List<Object> list = new ArrayList<Object>(values);
-							occurrenceBinding.setValue(list, object);
-
-						}
-					}
 				}
 			}
 		}
-
 	}
 
 	/**
