@@ -82,6 +82,13 @@ public abstract class AbstractFieldBinding{
 	public void setGetter(Method getter) {
 		this.getter = getter;
 	}
+	
+	/**
+	 * @return the getter
+	 */
+	public Method getGetter() {
+		return getter;
+	}
 
 	/**
 	 * Sets the setter method

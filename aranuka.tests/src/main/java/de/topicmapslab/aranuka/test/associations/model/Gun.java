@@ -54,13 +54,14 @@ public class Gun {
 			return true;
 		if (obj == null)
 			return false;
-		if (getClass() != obj.getClass())
+		// do we have a subtype?
+		if (!getClass().isAssignableFrom(obj.getClass()))
 			return false;
 		Gun other = (Gun) obj;
-		if (subjectIdentifier == null) {
-			if (other.subjectIdentifier != null)
+		if (getSubjectIdentifier() == null) {
+			if (other.getSubjectIdentifier() != null)
 				return false;
-		} else if (!subjectIdentifier.equals(other.subjectIdentifier))
+		} else if (!getSubjectIdentifier().equals(other.getSubjectIdentifier()))
 			return false;
 		return true;
 	}

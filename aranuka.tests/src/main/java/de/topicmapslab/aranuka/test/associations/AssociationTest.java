@@ -135,7 +135,7 @@ public class AssociationTest extends AbstractTest {
 
 		p = (Person) session.getBySubjectIdentifier(tony.getSubjectIdentifier());
 		assertEquals(tony.getName(), p.getName());
-		assertEquals(tony.getGun(), p.getGun());
+		assertTrue(tony.getGun().equals(p.getGun()));
 		assertEquals(tony.isSpy(), p.isSpy());
 
 		p = (Person) session.getBySubjectIdentifier(bond.getSubjectIdentifier());

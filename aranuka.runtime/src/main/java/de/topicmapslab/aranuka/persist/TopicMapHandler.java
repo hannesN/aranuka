@@ -27,6 +27,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
+import net.sf.cglib.proxy.Enhancer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmapi.core.Association;
@@ -1732,6 +1734,7 @@ public class TopicMapHandler {
 	 *            - The class type of the new object.
 	 * @return The object.
 	 */
+	@SuppressWarnings("unchecked")
 	private <E> E getInstanceFromTopic(Topic topic, TopicBinding binding, Class<E> clazz) throws Exception {
 
 		@SuppressWarnings("unchecked")
@@ -1747,9 +1750,23 @@ public class TopicMapHandler {
 		} else {
 
 			try {
-				object = clazz.getConstructor().newInstance();
+				// TODO remove if not suitable
+				
+				// create list of bindings
+				List<AbstractFieldBinding> bindings = new ArrayList<AbstractFieldBinding>(binding.getFieldBindings());
+				while (binding.getParent()!=null) {
+					binding = binding.getParent();
+					bindings.addAll(binding.getFieldBindings());
+				}
+				Enhancer e = new Enhancer();
+				e.setSuperclass(clazz);
+				e.setCallback(new AranukaGetterMethodInterceptor(this, topic, bindings));
+				
+				object = (E) e.create();
+				
 				addObjectToCache(object, topic);
 			} catch (Exception e) {
+				e.printStackTrace();
 				throw new TopicMapIOException("Cannot instanciate new object: " + e.getMessage());
 			}
 		}
@@ -1757,16 +1774,16 @@ public class TopicMapHandler {
 
 
 		// add identifier
-		addIdentifiers(topic, object, binding);
+//		addIdentifiers(topic, object, binding);
 
 		// add names
-		addNames(topic, object, binding);
+//		addNames(topic, object, binding);
 
 		// add occurrences
-		addOccurrences(topic, object, binding);
+//		addOccurrences(topic, object, binding);
 
 		// add associations
-		addAssociations(topic, object, binding);
+//		addAssociations(topic, object, binding);
 
 		return object;
 
@@ -1796,38 +1813,47 @@ public class TopicMapHandler {
 	}
 
 	void addIdentifier(Topic topic, Object object, IdBinding idBinding) throws TopicMapIOException {
-		if (idBinding.getIdtype() == IdType.ITEM_IDENTIFIER) {
+		
+		Set<Locator> identifier = null;
 
-			Set<Locator> identifier = HashUtil.getHashSet();
-			// filter out the item identifier created from the xtm2.0
-			// reader
-			for (Locator l : topic.getItemIdentifiers()) {
-				if (!l.toExternalForm().startsWith(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX))
-					identifier.add(l);
-			}
-			addIdentifier(topic, object, idBinding, identifier);
-
-		} else if (idBinding.getIdtype() == IdType.SUBJECT_IDENTIFIER) {
-
-			Set<Locator> identifier = topic.getSubjectIdentifiers();
-			addIdentifier(topic, object, idBinding, identifier);
-
-		} else if (idBinding.getIdtype() == IdType.SUBJECT_LOCATOR) {
-
-			Set<Locator> identifier = topic.getSubjectLocators();
-			addIdentifier(topic, object, idBinding, identifier);
-
-		} else {
-
-			// / TODO handle unknown id-type
+		switch (idBinding.getIdtype()) {
+		case ITEM_IDENTIFIER:
+			identifier = getFilteredItemIdentifiers(topic);
+			break;
+		case SUBJECT_IDENTIFIER:
+			identifier = topic.getSubjectIdentifiers();
+			break;
+		case SUBJECT_LOCATOR:
+			identifier = topic.getSubjectLocators();
+			break;
+		default:
+			throw new TopicMapIOException("Unknown Identifier Type");
 		}
+		
+		addIdentifier(object, idBinding, identifier);
+
+	}
+
+	/**
+	 * Returns the list of item identifiers which are starting with the 
+	 * 
+	 * @param topic the topic which identifers should be returned
+	 * @return the set of item identifier
+	 */
+	private Set<Locator> getFilteredItemIdentifiers(Topic topic) {
+		Set<Locator> identifier = HashUtil.getHashSet();
+		// filter out the item identifier created from the xtm2.0
+		// reader
+		for (Locator l : topic.getItemIdentifiers()) {
+			if (!l.toExternalForm().startsWith(IAranukaIRIs.ITEM_IDENTIFIER_PREFIX))
+				identifier.add(l);
+		}
+		return identifier;
 	}
 
 	/**
 	 * Adds identifier to an object.
 	 * 
-	 * @param topic
-	 *            - The corresponding topic.
 	 * @param object
 	 *            - The object.
 	 * @param idBinding
@@ -1836,7 +1862,7 @@ public class TopicMapHandler {
 	 *            - Set of identifier.
 	 * @throws TopicMapIOException
 	 */
-	private void addIdentifier(Topic topic, Object object, IdBinding idBinding, Set<Locator> identifiers)
+	private void addIdentifier(Object object, IdBinding idBinding, Set<Locator> identifiers)
 			throws TopicMapIOException {
 
 		if (identifiers.isEmpty())
@@ -2155,22 +2181,34 @@ public class TopicMapHandler {
 
 			if (afb instanceof AssociationBinding) {
 
-				AssociationBinding associationBinding = (AssociationBinding) afb;
-
-				if (associationBinding.getKind() == AssociationKind.UNARY) {
-
-					addUnaryAssociation(topic, object, associationBinding);
-
-				} else if (associationBinding.getKind() == AssociationKind.BINARY) {
-
-					addBinaryAssociation(topic, object, associationBinding);
-
-				} else {
-
-					addNnaryAssociation(topic, object, associationBinding);
-
-				}
+				addAssociation(topic, object, (AssociationBinding) afb);
 			}
+		}
+	}
+
+	/**
+	 * Adds the association values to the object
+	 * 
+	 * @param topic
+	 * @param object
+	 * @param associationBinding
+	 * @throws TopicMapInconsistentException
+	 * @throws Exception
+	 */
+	void addAssociation(Topic topic, Object object, AssociationBinding associationBinding) throws TopicMapInconsistentException,
+			Exception {
+		if (associationBinding.getKind() == AssociationKind.UNARY) {
+
+			addUnaryAssociation(topic, object, associationBinding);
+
+		} else if (associationBinding.getKind() == AssociationKind.BINARY) {
+
+			addBinaryAssociation(topic, object, associationBinding);
+
+		} else {
+
+			addNnaryAssociation(topic, object, associationBinding);
+
 		}
 	}
 
