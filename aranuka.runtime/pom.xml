@@ -53,7 +53,9 @@
 							de.topicmapslab.tmql4j.path.components.processor.runtime,
 							de.topicmapslab.tmql4j.util,
 							de.topicmapslab.tmql4j.components.processor.results.model,
-							de.topicmapslab.tmql4j.query
+							de.topicmapslab.tmql4j.query,
+							net.sf.cglib.proxy,
+							net.sf.cglib.core
 						</Import-Package>
 						<Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
 						<Bundle-Activator>de.topicmapslab.aranuka.osgi.RuntimeActivator</Bundle-Activator>
