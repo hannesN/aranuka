@@ -18,11 +18,7 @@
  */
 package de.topicmapslab.aranuka.proxy;
 
-/**
- * @author Hannes Niederhausen
- *
- */
 public interface IMethodInterceptor {
 
-	public Object methodCalled();
+	public Object methodCalled(Object instance, String name, Object... param);
 }

@@ -17,6 +17,8 @@ package de.topicmapslab.aranuka.proxy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
 
@@ -46,13 +48,34 @@ public class ProxyTest {
 		Object obj = ProxyFactory.create(Person.class, new IMethodInterceptor() {
 			
 			@Override
-			public Object methodCalled() {
+			public Object methodCalled(Object instance, String name, Object... param) {
+				System.out.println("Method called: "+name);
+				System.out.println("Instance: "+instance);
+				System.out.printf("Params ("+param.length+"):");
+				for (Object o : param) {
+					System.out.println("\t"+o);
+				}
 				return null;
 			}
 		});
 		
 		assertNotNull(obj);
+		assertTrue(obj instanceof Person);
 		assertEquals(Person.class.getDeclaredMethods().length+1, obj.getClass().getDeclaredMethods().length);
 		assertEquals(1, obj.getClass().getDeclaredFields().length);
+		
+		Person p=(Person) obj;
+		
+		// check String setter
+		assertNull(p.getName());
+		p.setName("Hannes");
+		assertEquals("Hannes", p.getName());
+		
+		assertEquals(0, p.getAge());
+		p.setAge(29);
+		assertEquals(29, p.getAge());
+		p.setDoubleValue(3.143);
+		p.setLongValue(3143);
+		p.hello("Hallo", 23, 3.145d, (byte) 34, (long)13242, 'd');
 	}
 }
