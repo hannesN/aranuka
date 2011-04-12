@@ -21,6 +21,8 @@ public class Person {
 	private String name;
 	
 	private int age;
+	
+	
 
 	public String getName() {
 		return name;
@@ -38,7 +40,18 @@ public class Person {
 		this.age = age;
 	}
 	
-	void hello(String test, int age) {
-		
+	public void setDoubleValue(double value) {
+		System.out.println("Double value set to: "+value);
+	}
+	
+	public void hello(String test, int age, double dnum, byte bnum, long lNum, char character) {
+		System.out.println("Hallo: "+test+"; I'm "+age+" years old");
+	}
+
+	/**
+	 * @param i
+	 */
+	public void setLongValue(long value) {
+		System.out.println("Long value set to: "+value);
 	}
 }

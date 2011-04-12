@@ -3,20 +3,17 @@
  */
 package de.topicmapslab.aranuka.proxy;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.lang.reflect.Method;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.util.CheckClassAdapter;
-import org.objectweb.asm.util.TraceClassVisitor;
 
 
 /**
+ * The Proxyfactory generates a proxy for methods adding a given interceptor which is called before the method is called.
+ * 
  * @author Hannes Niederhausen
  *
  */
@@ -33,10 +30,10 @@ public class ProxyFactory {
 			InputStream is = clazz.getClassLoader().getResourceAsStream(className+".class");
 			ClassReader reader = new ClassReader(is);
 			ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-			TraceClassVisitor tv = new TraceClassVisitor(writer, new PrintWriter(System.out));
-			CheckClassAdapter cca = new CheckClassAdapter(tv);
+//			TraceClassVisitor tv = new TraceClassVisitor(writer, new PrintWriter(System.out));
+//			CheckClassAdapter cca = new CheckClassAdapter(tv);
 			
-			ProxyAdapter pa = new ProxyAdapter(cca, className, targetName);
+			ProxyAdapter pa = new ProxyAdapter(writer, className, targetName);
 			reader.accept(pa, 0);
 			
 			is.close();
@@ -45,7 +42,7 @@ public class ProxyFactory {
 			fis.write(writer.toByteArray());
 			fis.close();
 			
-			AranukaClassLoader classLoader = new AranukaClassLoader(ProxyFactory.class.getClassLoader());
+			AranukaClassLoader classLoader = new AranukaClassLoader(clazz.getClassLoader());
 			Class<?> result = classLoader.defineClass("de.topicmapslab.aranuka.proxy."+name+"_ARANUKA_PROXY", writer.toByteArray());
 
 			Object obj = result.newInstance();

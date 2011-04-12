@@ -21,6 +21,7 @@ package de.topicmapslab.aranuka.proxy;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Opcodes.RETURN;
 
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -50,6 +51,12 @@ public class ProxyAdapter extends ClassAdapter {
 	}
 	
 	@Override
+	public AnnotationVisitor visitAnnotation(String arg0, boolean arg1) {
+		// TODO Auto-generated method stub
+		return super.visitAnnotation(arg0, arg1);
+	}
+	
+	@Override
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
 		return null;
 	}
@@ -58,8 +65,7 @@ public class ProxyAdapter extends ClassAdapter {
 		if (name.equals("<init>"))
 			return null;
 		
-		return new GetterAdapter(super.visitMethod(access, name, desc, signature, exceptions), desc, newName, name);
-//		return super.visitMethod(access, name, desc, signature, exceptions);
+		return new GetterAdapter(super.visitMethod(access, name, desc, signature, exceptions), desc, newName, name, oldName);
 	}
 
 	@Override

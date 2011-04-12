@@ -34,8 +34,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
-import net.sf.cglib.proxy.Enhancer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmapi.core.Association;
@@ -68,6 +66,7 @@ import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
 import de.topicmapslab.aranuka.exception.TopicMapIOException;
 import de.topicmapslab.aranuka.exception.TopicMapInconsistentException;
+import de.topicmapslab.aranuka.proxy.ProxyFactory;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 import de.topicmapslab.tmql4j.components.processor.results.model.IResult;
@@ -1764,11 +1763,10 @@ public class TopicMapHandler {
 					binding = binding.getParent();
 					bindings.addAll(binding.getFieldBindings());
 				}
-				Enhancer e = new Enhancer();
-				e.setSuperclass(clazz);
-				e.setCallback(new AranukaGetterMethodInterceptor(this, topic, bindings));
+
+				AranukaMethodInterceptor interceptor = new AranukaMethodInterceptor(this, topic, bindings);
 				
-				object = (E) e.create();
+				object = (E) ProxyFactory.create(clazz, interceptor);
 				
 				addObjectToCache(object, topic);
 			} catch (Exception e) {
