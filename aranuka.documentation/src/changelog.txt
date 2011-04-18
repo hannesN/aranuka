@@ -1,6 +1,6 @@
 == ChangeLog ==
 
-=== Version 1.0.2 ===
+=== Version 1.1.0 ===
  * add autogenerate flag to Id annotation -> identifiers which are null will be generated if true
  * implemented TMQL query for session
  * added "addPackage" for classregistration
