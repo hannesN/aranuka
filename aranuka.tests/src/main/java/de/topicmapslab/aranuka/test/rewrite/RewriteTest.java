@@ -6,6 +6,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +18,7 @@ import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.aranuka.exception.AranukaException;
 import de.topicmapslab.aranuka.test.AbstractTest;
 import de.topicmapslab.aranuka.test.rewrite.model.Person;
+import de.topicmapslab.aranuka.test.rewrite.model.State;
 
 public class RewriteTest extends AbstractTest {
 
@@ -69,8 +72,13 @@ public class RewriteTest extends AbstractTest {
 		assertEquals(person.getName(), p.getName());
 		assertEquals(person.getId(), p.getId());
 		assertEquals(person.getVita(), p.getVita());
+		assertEquals(person.getState(), p.getState());
 		
+		State state = new State("dead");
+		
+		p.setState(state);
 		p.setAge(29);
+		p.setNonstate(Arrays.asList(new State("alive"), new State("rich")));
 		
 		session.persist(p);
 		
@@ -87,10 +95,16 @@ public class RewriteTest extends AbstractTest {
 		assertTrue(p instanceof Person);
 
 		assertNotSame(person.getAge(), p.getAge());
+		assertNotSame(person.getState(), p.getState());
 		assertEquals(person.getName(), p.getName());
 		assertEquals(person.getId(), p.getId());
 		assertEquals(person.getVita(), p.getVita());
 		assertEquals(29, p.getAge());
+		assertEquals(state, p.getState());
+		
+		
+		p.setNonstate(Arrays.asList(new State("alive"), new State("young"), new State("rich")));
+		session.persist(p);
 	}
 
 	

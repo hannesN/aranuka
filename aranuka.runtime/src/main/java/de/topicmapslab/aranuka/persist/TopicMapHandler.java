@@ -579,16 +579,9 @@ public class TopicMapHandler {
 				Object topicObject = itr.next();
 
 				// get binding
-				Class<?> clazz = getModelClass(topicObject.getClass());
-				
-				TopicBinding binding = (TopicBinding) getBindingHandler().getBinding(clazz);
+				TopicBinding binding = (TopicBinding) getBindingHandler().getBinding(topicObject.getClass());
 
 				if (getTopicFromCache(topicObject) == null) {
-					// check
-//					if (!this.config.getClasses().contains(clazz))
-//						throw new ClassNotSpecifiedException("The class " + clazz.getName()
-//								+ " is not registered.");
-
 					// create topic
 					persistTopic(topicObject, cascadingTopicObjects, binding);
 
@@ -603,17 +596,6 @@ public class TopicMapHandler {
 
 		}
 
-	}
-
-	/**
-	 * Returns the class or if its a proxy the superclass of the giben class
-	 * @param the clazz to check
-	 * @return the class of the object
-	 */
-	private Class<?> getModelClass(Class<?> clazz) {
-		if (clazz.getName().endsWith(ProxyFactory.ARANUKA_PROXY_NAME_SUFFIX))
-			clazz = clazz.getSuperclass();
-		return clazz;
 	}
 
 	/**
@@ -3417,7 +3399,7 @@ public class TopicMapHandler {
 	
 	public long countTopics(Class<?> clazz) throws AranukaException {
 		try {
-			TopicBinding binding = (TopicBinding) getBindingHandler().getBinding(getModelClass(clazz));
+			TopicBinding binding = (TopicBinding) getBindingHandler().getBinding(clazz);
 			IResultSet<?> rs = runTMQL("fn:count( // "+binding.getIdentifier().iterator().next()+" )");
 			
 			return ((BigInteger)rs.get(0, 0)).longValue();
