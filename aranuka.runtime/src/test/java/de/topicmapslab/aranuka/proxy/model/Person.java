@@ -45,7 +45,7 @@ public class Person {
 	}
 	
 	public void hello(String test, int age, double dnum, byte bnum, long lNum, char character) {
-		System.out.println("Hallo: "+test+"; I'm "+age+" years old");
+		System.out.println("Hallo: "+test+"; I'm "+age+" years old; numbers are: "+dnum+";"+bnum+";"+lNum+";"+character);
 	}
 
 	/**

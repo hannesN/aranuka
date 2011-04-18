@@ -19,13 +19,18 @@ import org.objectweb.asm.ClassWriter;
  */
 public class ProxyFactory {
 
+	/**
+	 * 
+	 */
+	public static final String ARANUKA_PROXY_NAME_SUFFIX = "_ARANUKA_PROXY";
+
 	public static Object create(Class<?> clazz, IMethodInterceptor methodInterceptor) {
 		try {
 			String className = clazz.getName().replaceAll("\\.", "/");
 			
 			String qname = clazz.getName();
 			String name = qname.substring(qname.lastIndexOf('.')+1);
-			String targetName = "de/topicmapslab/aranuka/proxy/"+name+"_ARANUKA_PROXY";
+			String targetName = "de/topicmapslab/aranuka/proxy/"+name+ARANUKA_PROXY_NAME_SUFFIX;
 			
 			InputStream is = clazz.getClassLoader().getResourceAsStream(className+".class");
 			ClassReader reader = new ClassReader(is);
@@ -43,7 +48,7 @@ public class ProxyFactory {
 			fis.close();
 			
 			AranukaClassLoader classLoader = new AranukaClassLoader(clazz.getClassLoader());
-			Class<?> result = classLoader.defineClass("de.topicmapslab.aranuka.proxy."+name+"_ARANUKA_PROXY", writer.toByteArray());
+			Class<?> result = classLoader.defineClass("de.topicmapslab.aranuka.proxy."+name+ARANUKA_PROXY_NAME_SUFFIX, writer.toByteArray());
 
 			Object obj = result.newInstance();
 			
