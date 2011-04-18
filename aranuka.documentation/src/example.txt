@@ -210,14 +210,18 @@ The next step is to generate a small application which uses the model.
 
 Create a class *Test* with a method *main*. The first step is the instantiation of the *Configuration* class:
 ---------------------------
-Configuration conf = new Configuration(TinyTiMConnector.class);
+Configuration conf = new Configuration();
+		
+// set classname of connector
+conf.setProperty(IProperties.CONNECTOR_CLASS, MaJorToMEngineConnector.class.getName());
+		
+// set backend - not needed for tinytimn but necessary for majortom and ontopia
+conf.setProperty(IProperties.BACKEND, "memory");
 ---------------------------
 
-The constructor of Configuration needs one parameter: the connectors class. It is not possible to
-switch between connectors. In this example the tinyTiM connector is used, which means _Aranuka stores 
-the topics into a memory topic map of the tinyTiM Topic Maps engine.
+
  
- The next step is to add the annotated classes which should be persisted:
+The next step is to add the annotated classes which should be persisted:
 ---------------------------------
 conf.addClass(Person.class);
 conf.addClass(Address.class);

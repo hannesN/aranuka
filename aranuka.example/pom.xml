@@ -2,14 +2,18 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	
 	<properties>
-		<aranuka.version>1.1.0-SNAPSHOT</aranuka.version>
+		<aranuka.version>1.1.0</aranuka.version>
 	</properties>
 	
 		
+	<parent>
+		<artifactId>aranuka-parent</artifactId>
+		<groupId>de.topicmapslab.aranuka</groupId>
+		<version>1.1.0</version>
+	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.topicmapslab.aranuka</groupId>
 	<artifactId>aranuka-example</artifactId>
-	<version>1.1.0</version>
 	<name>Aranuka Example Application</name>
 	<build>
 		<plugins>
@@ -53,19 +57,6 @@
 	<dependencies>
 		<dependency>
 			<groupId>de.topicmapslab.aranuka</groupId>
-			<artifactId>aranuka-connector-tinytim</artifactId>
-			<version>${aranuka.version}</version>
-			<scope>compile</scope>
-			<exclusions>
-				<exclusion>
-					<artifactId>ctm-writer</artifactId>
-					<groupId>de.topicmapslab</groupId>
-				</exclusion>
-			</exclusions>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>de.topicmapslab.aranuka</groupId>
 			<artifactId>aranuka-runtime</artifactId>
 			<version>${aranuka.version}</version>
 			<scope>compile</scope>
@@ -80,6 +71,13 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.6.1</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.topicmapslab.aranuka</groupId>
+			<artifactId>aranuka-connector-majortom</artifactId>
+			<version>${aranuka.version}</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>

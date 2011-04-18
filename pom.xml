@@ -5,7 +5,7 @@
 	<groupId>de.topicmapslab.aranuka</groupId>
 
 	<artifactId>aranuka-parent</artifactId>
-	<version>1.0.2-SNAPSHOT</version>
+	<version>1.1.0</version>
 	<packaging>pom</packaging>
 
 	<name>Aranuka Parent Project</name>
@@ -13,6 +13,7 @@
 	<properties>
 		<osgi.version>1.0.2.${maven.build.timestamp}</osgi.version>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<build>
