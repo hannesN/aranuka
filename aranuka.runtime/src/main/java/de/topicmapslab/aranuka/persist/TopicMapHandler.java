@@ -579,13 +579,15 @@ public class TopicMapHandler {
 				Object topicObject = itr.next();
 
 				// get binding
-				TopicBinding binding = (TopicBinding) getBindingHandler().getBinding(topicObject.getClass());
+				Class<?> clazz = getModelClass(topicObject.getClass());
+				
+				TopicBinding binding = (TopicBinding) getBindingHandler().getBinding(clazz);
 
 				if (getTopicFromCache(topicObject) == null) {
 					// check
-					if (!this.config.getClasses().contains(topicObject.getClass()))
-						throw new ClassNotSpecifiedException("The class " + topicObject.getClass().getName()
-								+ " is not registered.");
+//					if (!this.config.getClasses().contains(clazz))
+//						throw new ClassNotSpecifiedException("The class " + clazz.getName()
+//								+ " is not registered.");
 
 					// create topic
 					persistTopic(topicObject, cascadingTopicObjects, binding);
@@ -601,6 +603,17 @@ public class TopicMapHandler {
 
 		}
 
+	}
+
+	/**
+	 * Returns the class or if its a proxy the superclass of the giben class
+	 * @param the clazz to check
+	 * @return the class of the object
+	 */
+	private Class<?> getModelClass(Class<?> clazz) {
+		if (clazz.getName().endsWith(ProxyFactory.ARANUKA_PROXY_NAME_SUFFIX))
+			clazz = clazz.getSuperclass();
+		return clazz;
 	}
 
 	/**
@@ -674,10 +687,7 @@ public class TopicMapHandler {
 		}
 
 		type = getTopicMap().createTopicBySubjectIdentifier(
-				getTopicMap()
-						.createLocator(
-								TopicMapsUtils.resolveURI(binding.getIdentifier().iterator().next(),
-										this.config.getPrefixMap())));
+				getTopicMap().createLocator(TopicMapsUtils.resolveURI(binding.getIdentifier().iterator().next(), this.config.getPrefixMap())));
 
 		if (binding.getName() != null)
 			type.createName(binding.getName());
@@ -3403,5 +3413,17 @@ public class TopicMapHandler {
 		}
 
 		return result;
+	}
+	
+	public long countTopics(Class<?> clazz) throws AranukaException {
+		try {
+			TopicBinding binding = (TopicBinding) getBindingHandler().getBinding(getModelClass(clazz));
+			IResultSet<?> rs = runTMQL("fn:count( // "+binding.getIdentifier().iterator().next()+" )");
+			
+			return ((BigInteger)rs.get(0, 0)).longValue();
+		} catch (Exception e) {
+			throw new AranukaException(e);
+		}
+		
 	}
 }

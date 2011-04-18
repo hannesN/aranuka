@@ -62,7 +62,7 @@ public class Session {
 	public Session(Configuration config, boolean lazyBinding) throws AranukaException {
 
 		if (config == null)
-			throw new RuntimeException("Config must not be null."); // / TODO change exception type
+			throw new AranukaException("Config must not be null.");
 
 		this.config = config;
 
@@ -208,10 +208,12 @@ public class Session {
 	 * Count the number of topic of a specific type. NOT YET IMPLEMENTED
 	 * 
 	 * @param clazz
-	 *            - The class representig the type.
+	 *            - The class representing the type.
+	 * @return the number of topics of this type
+	 * @throws AranukaException if something went wrong.
 	 */
-	public void count(Class<?> clazz) {
-		throw new UnsupportedOperationException();
+	public long count(Class<?> clazz) throws AranukaException {
+		return getTopicMapHandler().countTopics(clazz);
 	}
 
 	/**
