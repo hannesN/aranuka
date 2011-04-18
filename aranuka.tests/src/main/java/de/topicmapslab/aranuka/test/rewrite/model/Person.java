@@ -1,5 +1,8 @@
 package de.topicmapslab.aranuka.test.rewrite.model;
 
+import java.util.List;
+
+import de.topicmapslab.aranuka.annotations.Association;
 import de.topicmapslab.aranuka.annotations.Id;
 import de.topicmapslab.aranuka.annotations.Name;
 import de.topicmapslab.aranuka.annotations.Occurrence;
@@ -22,6 +25,13 @@ public class Person {
 	@Occurrence
 	@Scope(themes="http://de.wikipedia.de/deutsch")
 	private String vita;
+	
+	@Association(type="http://de.wikipedia.de/stateassoc", played_role="http://de.wikipedia.de/person", other_role="http://de.wikipedia.de/state", persistOnCascade=true)
+	private State state;
+	
+	@Association(type="http://de.wikipedia.de/nonstateassoc", played_role="http://de.wikipedia.de/person", other_role="http://de.wikipedia.de/state", persistOnCascade=true)
+	private List<State> nonstate;
+	
 	
 	public String getId() {
 		return id;
@@ -53,6 +63,34 @@ public class Person {
 
 	public void setVita(String vita) {
 		this.vita = vita;
+	}
+	
+	/**
+	 * @param state the state to set
+	 */
+	public void setState(State state) {
+		this.state = state;
+	}
+	
+	/**
+	 * @return the state
+	 */
+	public State getState() {
+		return state;
+	}
+	
+	/**
+	 * @param nonstate the nonstate to set
+	 */
+	public void setNonstate(List<State> nonstate) {
+		this.nonstate = nonstate;
+	}
+	
+	/**
+	 * @return the nonstate
+	 */
+	public List<State> getNonstate() {
+		return nonstate;
 	}
 
 	@Override

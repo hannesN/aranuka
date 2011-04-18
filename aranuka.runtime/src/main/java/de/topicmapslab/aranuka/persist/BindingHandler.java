@@ -54,6 +54,7 @@ import de.topicmapslab.aranuka.enummerations.AssociationKind;
 import de.topicmapslab.aranuka.enummerations.IdType;
 import de.topicmapslab.aranuka.exception.BadAnnotationException;
 import de.topicmapslab.aranuka.exception.ClassNotSpecifiedException;
+import de.topicmapslab.aranuka.proxy.ProxyFactory;
 import de.topicmapslab.aranuka.utils.ReflectionUtil;
 import de.topicmapslab.aranuka.utils.TopicMapsUtils;
 
@@ -136,6 +137,8 @@ public class BindingHandler {
 			throws BadAnnotationException, NoSuchMethodException,
 			ClassNotSpecifiedException {
 
+		clazz = getModelClass(clazz);
+		
 		if (getBindingFromCache(clazz) != null)
 			return getBindingFromCache(clazz);
 
@@ -163,6 +166,17 @@ public class BindingHandler {
 
 		return binding;
 
+	}
+	
+	/**
+	 * Returns the class or if its a proxy the superclass of the giben class
+	 * @param the clazz to check
+	 * @return the class of the object
+	 */
+	private Class<?> getModelClass(Class<?> clazz) {
+		if (clazz.getName().endsWith(ProxyFactory.ARANUKA_PROXY_NAME_SUFFIX))
+			clazz = clazz.getSuperclass();
+		return clazz;
 	}
 
 	/**
