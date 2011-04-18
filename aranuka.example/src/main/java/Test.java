@@ -21,6 +21,7 @@ import de.topicmapslab.aranuka.Configuration;
 import de.topicmapslab.aranuka.Session;
 import de.topicmapslab.aranuka.connectors.IProperties;
 import de.topicmapslab.aranuka.exception.AranukaException;
+import de.topicmapslab.aranuka.majortom.connector.MaJorToMEngineConnector;
 
 
 /**
@@ -36,7 +37,7 @@ public class Test {
 		Configuration conf = new Configuration();
 		
 		// set classname of connector
-		conf.setProperty(IProperties.CONNECTOR_CLASS, "de.topicmapslab.aranuka.tinytim.connectors.TinyTiMConnector");
+		conf.setProperty(IProperties.CONNECTOR_CLASS, MaJorToMEngineConnector.class.getName());
 		
 		// set backend - not needed for tinytimn but necessary for majortom and ontopia
 		conf.setProperty(IProperties.BACKEND, "memory");

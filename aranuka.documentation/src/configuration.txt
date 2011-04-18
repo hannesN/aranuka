@@ -137,6 +137,23 @@ getBySubjectLocator(String)
 
 NOTE: The given identifier must be resolved. QNames are not allowed at the moment.
 
+With version 1.1.0 you can execute TMQL queries to retrieve instances. Use the method
+
+-----------------------------------
+getObjectsByQuery(String tmqlQuery)
+-----------------------------------
+
+NOTE: The result must be one or a list of topics which are mapped to an object. You can find the TMQL documentation
+at http://docs.topicmapslab.de/tmql4j/ .   
+
+
+If you want to know how many topics of a specific type exist in the topic map use the method
+
+--------------------------------------
+count(Class<?>)
+--------------------------------------
+
+
 ==== Persist the Topic Map ====
 
 The session provides the following method:
