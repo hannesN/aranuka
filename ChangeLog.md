@@ -1,0 +1,16 @@
+# ChangeLog #
+
+## Version 1.1.0 ##
+  * add autogenerate flag to Id annotation -> identifiers which are null will be generated if true
+  * implemented TMQL query for session
+  * added "addPackage" for classregistration
+  * using proxies for topic retrieval which enables lazy loading of attributes
+  * implementes count method of session
+
+## Version 1.0.1 ##
+
+  * Updated Maven repositories
+  * merged Ontopia connectors
+  * added MaJorToM connector
+  * added method clearTopicMap()
+  * created engine independent database properties
